@@ -52,7 +52,7 @@ function careerSeasonEnd(st,log){if(!isCareer())return;const c=S.career;
   else if(c.jobless)c.offers=jobOffers(3,true);
 }
 function jobOffers(n,jobless){const c=S.career,rep=c.rep+(jobless?6:0),cur=c.club?lvOfId(c.club):9;const out=[];
-  const levels=Object.keys(REQ_REP).map(Number).filter(lv=>lv<=9&&REQ_REP[lv]<=rep&&licOk(lv)&&(jobless||lv<cur||(lv===cur&&Math.random()<.4)));
+  const levels=Object.keys(REQ_REP).map(Number).filter(lv=>lv<=10&&REQ_REP[lv]<=rep&&licOk(lv)&&(jobless||lv<cur||(lv===cur&&Math.random()<.4)));
   if(!levels.length)return out;
   const best=levels.sort((a,b)=>a-b).slice(0,3);
   for(let i=0;i<n*3&&out.length<n;i++){const lv=rpick(best,Math.random);
@@ -124,7 +124,7 @@ function courseTick(){const c=S.career;if(!c||!c.course)return;c.course.left-=c.
   c.course=null}
 // Freie Stellen (für Arbeitslose) und Bewerbungen
 function vacancies(){const c=S.career;if(!c.vac||c.vacS!==S.season*100+Math.floor(S.round/4)){c.vacS=S.season*100+Math.floor(S.round/4);
-    const lvls=[1,2,3,4,5,6,7,8,9].filter(lv=>licOk(lv)&&REQ_REP[lv]<=c.rep+22).sort((a,b)=>a-b).slice(0,5);const out=[];
+    const lvls=[1,2,3,4,5,6,7,8,9,10].filter(lv=>licOk(lv)&&REQ_REP[lv]<=c.rep+22).sort((a,b)=>a-b).slice(0,5);const out=[];
     for(let i=0;i<16&&out.length<6;i++){const lv=rpick(lvls,Math.random);const ls=S.leagues.filter(l=>!l.foreign&&l.level===lv);if(!ls.length)continue;const lg=rpick(ls,Math.random);const tb=table(lg);
       const id=rpick(tb.slice(Math.floor(tb.length*.4)).map(r=>r.id),Math.random);if(id&&!isRes(T(id).name)&&!out.includes(id)&&id!==c.club)out.push(id)}
     c.vac=out}
