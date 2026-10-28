@@ -25,18 +25,19 @@ function simDay(){
   if(S.done) return;
   if(typeof view!=='undefined'&&view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done)dynFinish(view.ov);
   const before={L:{},C:{},E:{},EW:{}};S.leagues.forEach(l=>before.L[l.id]=l.played);S.cups.forEach(c=>before.C[c.id]=c.played);(S.euro||[]).forEach(e=>{before.E[e.id]=e.step;before.EW[e.id]=e.winner});
-  try{tickInjuries();tickScouting();simDayCore();careerDay()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
+  try{const wk=simDayCore();if(wk){tickInjuries();tickScouting();careerDay()}}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
 }
+// Ein Kalendertag: fällige Liga-, Pokal- und Europapokalspiele, Transfers im Fenster, montags der Wochentakt
 function simDayCore(){
-  S.round++;
-  S.leagues.forEach(playRound);
-  const M=maxRounds();
-  for(const c of S.cups){
-    while(!c.winner && S.round>=Math.round((c.played+1)*M/(c.R+1))) playCupRound(c);
-  }
-  for(const e of S.euro||[]){
-    while(!e.winner && S.round>=Math.round((e.step+1)*M/(e.steps+1))) euroStep(e);
-  }
-  if(windowOpen()&&!S.done) transferDay(18);
-  if(S.round>=M){S.cups.forEach(c=>{while(!c.winner)playCupRound(c)});(S.euro||[]).forEach(e=>{while(!e.winner)euroStep(e)});S.done=true}
+  if(S.day==null)ensureCalendar();
+  const d=++S.day,last=seasonLen(S.season)-1;let played=false;
+  for(const l of S.leagues){while(l.played<l.rounds.length&&l.dates&&l.dates[l.played]<=d){playRound(l);played=true}}
+  for(const c of S.cups){while(!c.winner&&c.dates&&(c.dates[c.played]??0)<=d){playCupRound(c);played=true}}
+  for(const e of S.euro||[]){while(!e.winner&&e.dates&&(e.dates[e.step]??0)<=d){euroStep(e);played=true}}
+  const wk=wdOf(d)===1;if(wk)S.round++;
+  if(transferOpenOn(d)){transferDay(1+(Math.random()<.35?1:0),wk)}
+  S.lastPlayed=played?d:S.lastPlayed;
+  const fin=S.leagues.every(l=>l.played>=l.rounds.length)&&S.cups.every(c=>c.winner)&&(S.euro||[]).every(e=>e.winner);
+  if(fin||d>=last){S.leagues.forEach(l=>{while(l.played<l.rounds.length)playRound(l)});S.cups.forEach(c=>{while(!c.winner)playCupRound(c)});(S.euro||[]).forEach(e=>{while(!e.winner)euroStep(e)});S.done=true}
+  return wk
 }

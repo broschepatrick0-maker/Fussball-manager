@@ -26,4 +26,5 @@ function startSeason(){
   S.round=0;S.done=false;
   buildCups();
   buildEuro();
+  buildCalendar();
 }

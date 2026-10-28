@@ -10,7 +10,7 @@ let storeMode='idb';
 let SLOT=1;try{SLOT=+(localStorage.getItem('fp-slot')||1)||1}catch(e){}
 const skey=k=>SLOT===1?k:`s${SLOT}:${k}`;
 DB.del=async function(k){const db=await this.open();return new Promise((res,rej)=>{const tx=db.transaction('kv','readwrite');tx.objectStore('kv').delete(k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})};
-function metaOf(){const c=S.career;return {season:S.season,round:S.round,mode:S.mode||'free',club:S.fav&&T(S.fav)?T(S.fav).name:null,lg:S.fav&&lgOf(S.fav)?lgOf(S.fav).name:null,mgr:c?c.name:null,jobless:!!(c&&c.jobless),saved:Date.now()}}
+function metaOf(){const c=S.career;return {season:S.season,round:S.round,day:S.day,mode:S.mode||'free',club:S.fav&&T(S.fav)?T(S.fav).name:null,lg:S.fav&&lgOf(S.fav)?lgOf(S.fav).name:null,mgr:c?c.name:null,jobless:!!(c&&c.jobless),saved:Date.now()}}
 function switchSlot(n){SLOT=n;try{localStorage.setItem('fp-slot',String(n))}catch(e){}save.split=false;save.hv=undefined}
 function warnSave(){if(!save.warned){save.warned=true;setTimeout(()=>toast('Spielstand konnte nicht gespeichert werden. Sichere ihn unter Historie → Spielstand sichern.'),50)}}
 function save(){

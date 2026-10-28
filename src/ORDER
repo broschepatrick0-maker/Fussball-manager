@@ -1,6 +1,7 @@
 01-data.js
 02-state.js
 03-schedule.js
+03b-calendar.js
 04-sim.js
 05-euro.js
 06-cups.js
@@ -18,4 +19,5 @@
 14-ui-core.js
 15-news.js
 15b-menu.js
+15c-calui.js
 16-ui-pages.js

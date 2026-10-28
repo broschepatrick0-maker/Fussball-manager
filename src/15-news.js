@@ -1,6 +1,6 @@
 // ---------- News, PR & TV-Prognosen ----------
 function NEWS(){if(!S.news)S.news=[];return S.news}
-function addNews(o){const n=NEWS();n.unshift({s:S.season,r:S.round,...o});if(n.length>500)n.length=500}
+function addNews(o){const n=NEWS();n.unshift({s:S.season,r:S.round,d:S.day,...o});if(n.length>500)n.length=500}
 const sl2=s=>`${s}/${String(s+1).slice(2)}`;
 function person(id,role){const t=T(id);if(!t)return '';if(role==='tr'&&S.career&&S.career.club===id)return S.career.name;t.ppl=t.ppl||{};if(!t.ppl[role]){const c=NAMES.DE;const R=srng(hstr(role+id+t.name+(t.ppl[role+'#']||0)));t.ppl[role]=rpick(c.f.split(','),R)+' '+rpick(c.l.split(','),R)}return t.ppl[role]}
 const coach=id=>person(id,'tr'),boss=id=>person(id,'pr'),sd=id=>person(id,'sd');
@@ -32,7 +32,7 @@ function seasonForecast(lg,runs){runs=runs||400;const key=lg.id+':'+S.season+':'
   FC[key]=out;return out}
 // Spieltags-Nachrichten (nach jedem simulierten Spieltag)
 function newsAfterDay(before){
-  const R=srng(hstr('n'+S.season+':'+S.round));
+  const R=srng(hstr('n'+S.season+':'+S.day));
   const tops=S.leagues.filter(l=>l.level<=3||l.foreign||(S.fav&&l.teams.includes(S.fav)));
   for(const lg of tops){const md=lg.played-1;if(md<0||before.L[lg.id]===lg.played)continue;
     const rd=lg.rounds[md],tb=table(lg);
@@ -93,7 +93,7 @@ function newsSeason(st,oldSeason){
 // Ansicht
 const NCAT={liga:'Liga',fav:'Mein Verein',tr:'Transfer',fin:'Finanzen',cup:'Pokal',int:'International',pr:'Pressemitteilung'};
 function newsItem(x){const c=(x.clubs||[]).filter(id=>T(id));
-  return `<article class="ni${x.imp>=3?' big':''} c-${x.cat}"><div class="nk"><span class="tag">${x.press?'Pressemitteilung · ':''}${NCAT[x.cat]||'News'}</span><span class="meta">${sl2(x.s)} · ${x.r?x.r+'. Spieltag':'Saisonpause'}</span></div>
+  return `<article class="ni${x.imp>=3?' big':''} c-${x.cat}"><div class="nk"><span class="tag">${x.press?'Pressemitteilung · ':''}${NCAT[x.cat]||'News'}</span><span class="meta">${x.d!=null&&x.d>=0?fmtDay(x.d,{y:false})+' '+(x.d>=184?x.s+1:x.s):sl2(x.s)+' · '+(x.r?x.r+'. Spieltag':'Saisonpause')}</span></div>
    <h3>${esc(x.h)}</h3>${x.b?`<p>${esc(x.b)}</p>`:''}
    ${x.pr?`<blockquote><p>„${esc(x.pr.txt)}“</p><cite>${esc(x.pr.who)}</cite></blockquote>`:''}${x.pr2?`<blockquote class="opp"><p>„${esc(x.pr2.txt)}“</p><cite>${esc(x.pr2.who)}</cite></blockquote>`:''}
    ${c.length?`<div class="nl">${c.map(id=>tl(id)).join(' · ')}${x.lg&&L(x.lg)?` · <button class="tlink" data-act="lg:${x.lg}">${esc(L(x.lg).name)}</button>`:''}</div>`:''}</article>`}

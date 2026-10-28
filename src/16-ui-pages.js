@@ -102,7 +102,7 @@ function renderSave(){
   <div class="facts"><div><small>Größe des Spielstands</small><b>${sz>1024?(sz/1024).toFixed(1).replace('.',',')+' MB':sz+' KB'}</b></div>
   <div><small>Verfügbarer Speicher</small><b>${e&&e.quota?(e.quota/1073741824>=1?(e.quota/1073741824).toFixed(1).replace('.',',')+' GB':Math.round(e.quota/1048576)+' MB'):'unbekannt'}</b></div>
   <div><small>Belegt</small><b>${e&&e.usage!=null?Math.round(e.usage/1048576)+' MB':'–'}</b></div>
-  <div><small>Saison</small><b>${S.season}/${String(S.season+1).slice(2)} · ${S.round}. Spieltag</b></div></div>
+  <div><small>Saison</small><b>${S.season}/${String(S.season+1).slice(2)} · ${dateLine()}</b></div></div>
   <p class="note" style="margin-top:12px">Der Spielstand wird automatisch nach jeder Aktion in diesem Browser gespeichert. Um ihn auf ein anderes Gerät mitzunehmen oder abzusichern, exportiere ihn als Datei oder Text und lade ihn dort wieder.</p></div>
   <div class="grid2"><div class="card"><h3 class="ct">Exportieren</h3><div class="ctrls"><button class="btn pri" data-act="exdl">Als Datei herunterladen</button><button class="btn" data-act="excp">In Zwischenablage kopieren</button></div>
   <p class="note" style="margin-top:8px">Das Herunterladen funktioniert in der eigenständigen App-Datei. Im Chat-Fenster nutze „Kopieren“.</p></div>
@@ -151,8 +151,9 @@ function renderSeason(){
 }
 function render(){
   MREF=[];
-  $('cSeason').textContent=`${S.season}/${String(S.season+1).slice(2)}`;
-  $('cRound').textContent=S.done?'Saison beendet':`Spieltag ${S.round}/${maxRounds()}`;
+  if(S.day==null)ensureCalendar();
+  {const d=Math.max(0,S.day+1);$('cSeason').innerHTML=S.done?`Saison ${S.season}/${String(S.season+1).slice(2)}`:`${fmtDay(d)}<span class="yr"> ${dayDate(d).getUTCFullYear()}</span>`}
+  {const nf=S.done?null:nextFavDay(),w=nextOpen();$('cRound').textContent=S.done?'Saisonpause – alle Spiele gespielt':nf!=null?(nf===S.day+1?'Heute Spieltag':'Nächstes Spiel: '+fmtDay(nf)):w&&w.open?'Transferfenster offen':`Saison ${S.season}/${String(S.season+1).slice(2)}`}
   ['bNext','bTen','bAll'].forEach(b=>$(b).disabled=S.done);
   $('bNew').hidden=!S.done;
   renderTabs();
@@ -164,6 +165,7 @@ function render(){
   else if(view.tab==='club') h=renderClub(view.id);
   else if(view.tab==='euro'&&(S.euro||[]).find(e=>e.id===view.id)) h=renderEuro(S.euro.find(e=>e.id===view.id));
   else if(view.tab==='season') h=renderSeason();
+  else if(view.tab==='cal') h=renderCalendar();
   else if(view.tab==='fav') h=renderFav();
   else if(view.tab==='tr') h=renderTransfers();
   else if(view.tab==='fin') h=renderFinance();
@@ -189,6 +191,8 @@ function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
   if(k==='menu'){openMenu();return}
+  if(k==='cal'){view=S.fav&&T(S.fav)?{tab:'fav',ftab:'kal'}:{tab:'cal'};view.cm=null;render();return}
+  if(k==='calm'){view.cm=+v===0?null:Math.max(0,Math.min(11,(view.cm??0)+ +v));render();return}
   if(view.ov&&view.ov.t==='menu'&&['mscr','mcont','mstart','mclub','mslot','mtheme','mspeed','mload','mdel','mgo'].includes(k)){menuAct(k,v);return}
   if(view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done&&!['mpl','msp','mend','mrep','mtac','msub','mtalk','mcosub','club','fav'].includes(k)){dynFinish(view.ov);toast(`Abpfiff: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag}${view.ov.m.pen?' i.E.':view.ov.m.et?' n.V.':''} ${T(view.ov.m.a).name}`);view.ov.fresh=false;view.ov.playing=false}
   if(k==='ovx'){if(view.ov&&view.ov.t==='match'&&view.ov.fresh&&view.ov.playing)toast(`Endstand: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag} ${T(view.ov.m.a).name}`);view.ov=null;render();return}
@@ -222,7 +226,7 @@ function act(a){
     transferLog({pid:o.pid,n:P()[o.pid].n,from:S.fav,to:o.club,fee:o.amt,out:true});recalc(S.fav);recalc(o.club);view.offer=null;save();toast('Verkauft für '+money(o.amt))}
   else if(k==='decline'){view.offer=null}
   else if(k==='savev'){view={...view,tab:'save'};est()}
-  else if(k==='exdl'){try{const b=new Blob([exportJSON()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fussball-pyramide-${S.season}-${S.round}.json`;document.body.appendChild(a);a.click();a.remove();toast('Datei wird gespeichert')}catch(e){toast('Download nicht möglich – nutze „Kopieren“')}return}
+  else if(k==='exdl'){try{const b=new Blob([exportJSON()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fussball-pyramide-${S.season}-${S.day}.json`;document.body.appendChild(a);a.click();a.remove();toast('Datei wird gespeichert')}catch(e){toast('Download nicht möglich – nutze „Kopieren“')}return}
   else if(k==='excp'){const t=exportJSON();navigator.clipboard.writeText(t).then(()=>toast('Spielstand kopiert ('+Math.round(t.length/1024)+' KB)')).catch(()=>{const ta=$('exTxt');ta.value=t;ta.select();toast('Text markiert – jetzt kopieren')});return}
   else if(k==='impt'){try{importJSON($('exTxt').value);view={tab:'home'};toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}}
   else if(k==='auto'){FV().auto=!favAuto();save();toast(favAuto()?'Die Vereinsführung handelt jetzt selbst':'Nur noch du tätigst Transfers')}
@@ -301,14 +305,28 @@ function act(a){
   else return;
   render();
 }
-function sim(n){const before=(S.tr||[]).length;for(let i=0;i<n&&!S.done;i++)simDay();
+// Weiter: bis einschließlich zum nächsten Spieltag von Mein Verein (ohne Verein: bis zum nächsten Spielwochenende)
+function advance(mode,quiet){const before=(S.tr||[]).length;let g=0;
+  if(mode==='week'){for(let i=0;i<7&&!S.done;i++)simDay()}
+  else if(mode==='all'){while(!S.done&&g++<400)simDay()}
+  else{// Spieltag spielen (falls heute einer ist), dann bis zum Vortag des nächsten Spiels vorspulen
+    const has=()=>S.fav&&lgOf(S.fav)?favPlaysOn(S.day+1):anyMatchOn(S.day+1,true);
+    if(has()){do{simDay()}while(!S.done&&!(S.fav&&lgOf(S.fav))&&has()&&g++<10)}
+    else simDay();
+    while(!S.done&&!has()&&g++<400){simDay();if(isCareer()&&S.career.jobless&&S.career.offers.length>(advance.no||0))break}
+    advance.no=isCareer()?S.career.offers.length:0}
+  if(!quiet)finishSim(before)}
+// n-mal „Weiter“ (entspricht etwa n Spieltagen)
+function sim(n){const before=(S.tr||[]).length;for(let i=0;i<n&&!S.done;i++)advance('next',true);finishSim(before)}
+function finishSim(before){
   if(S.fav){const nw=(S.tr||[]).slice(0,(S.tr||[]).length-before).filter(x=>x.from===S.fav||x.to===S.fav);if(nw.length)setTimeout(()=>toast(`${T(S.fav).name}: ${nw.length} neue${nw.length===1?'r':''} Transfer${nw.length===1?'':'s'}`),60)}view.md=null;view.emd=null;save();render()}
-$('bNext').onclick=()=>sim(1);
-$('bTen').onclick=()=>sim(5);
-$('bAll').onclick=()=>{sim(99);view={...view,tab:'season'};render();toast('Saison beendet')};
+$('bNext').onclick=()=>advance('next');
+$('bTen').onclick=()=>advance('week');
+$('bAll').onclick=()=>{advance('all');view={...view,tab:'season'};render();toast('Saison beendet')};
 $('bNew').onclick=()=>act('newseason');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
 function migrateLoaded(){
+  try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
   for(const p of PRESETS) if(!S.leagues.some(l=>l.name===p.name)){

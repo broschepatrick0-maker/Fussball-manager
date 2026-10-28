@@ -4,7 +4,7 @@ function applyTheme(){let t='auto';try{t=localStorage.getItem('fp-theme')||'auto
 async function readMetas(){for(const n of [1,2,3]){try{const k=n===1?'meta':`s${n}:meta`;let m=await DB.get(k);if(!m&&n===1){const st=await DB.get('state');if(st)m={season:st.season,round:st.round,mode:st.mode||'free',club:st.fav&&st.teams[st.fav]?st.teams[st.fav].name:null}}MENU.metas[n]=m||null}catch(e){MENU.metas[n]=null}}}
 async function openMenu(scr){MENU.scr=scr||'main';await readMetas();view.ov={t:'menu'};render()}
 function metaLine(m){if(!m)return '<span class="meta">Leer</span>';const mode=m.mode==='career'?'Karriere':'Freies Spiel';
-  return `<b>${m.mgr?esc(m.mgr)+' · ':''}${m.club?esc(m.club):m.jobless?'ohne Verein':'kein Verein'}</b><span class="meta">${mode} · Saison ${sl2(m.season)}${m.round?' · '+m.round+'. Spieltag':''}${m.saved?' · gespeichert '+new Date(m.saved).toLocaleDateString('de-DE'):''}</span>`}
+  return `<b>${m.mgr?esc(m.mgr)+' · ':''}${m.club?esc(m.club):m.jobless?'ohne Verein':'kein Verein'}</b><span class="meta">${mode} · Saison ${sl2(m.season)}${m.day!=null&&m.day>=0?' · '+fmtDay(m.day,{wd:false})+' '+(m.day>=184?m.season+1:m.season):m.round?' · '+m.round+'. Spieltag':''}${m.saved?' · gespeichert '+new Date(m.saved).toLocaleDateString('de-DE'):''}</span>`}
 function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
   const back=`<button class="btn" data-act="mscr:main">‹ Zurück</button>`;
   if(scr==='main')return `<div class="menu"><div class="mhero">${svg(ICO.de,'mlogo')}<h1>Fußball-Pyramide</h1><p>Von der Kreisliga bis zur Champions League</p></div>

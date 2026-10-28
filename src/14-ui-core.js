@@ -32,6 +32,7 @@ function areaOf(v){
   if(v.tab==='euro') return 'eu';
   if(v.tab==='cup') return 'cups';
   if(v.tab==='hall'||v.tab==='season'||v.tab==='save') return 'hist';
+  if(v.tab==='cal') return 'home';
   if(v.tab==='import') return 'de';
   return v.area||'home';
 }
@@ -76,7 +77,7 @@ function sideHTML(a){
   }
   if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
-    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
+    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
   }
   if(a==='tr'){
@@ -119,7 +120,7 @@ function ctxBar(){
     chips=[dfb&&chip(c&&c.id===dfb.id,'DFB-Pokal','cup:'+dfb.id),...same.filter(x=>x.type!=='dfb').map(x=>chip(c&&c.id===x.id,x.name.replace('Kreispokal ',''),'cup:'+x.id))].filter(Boolean);
   }
   if(a==='fav'){cur=S.fav&&T(S.fav)?T(S.fav).name:'Mein Verein';
-    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader','Kader'],['jugend','Jugend'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
+    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader','Kader'],['jugend','Jugend'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
@@ -148,13 +149,13 @@ function miniTable(lg,n=4){
   return `<div class="mini"><div class="mh"><button class="tlink" data-act="lg:${lg.id}"><b>${esc(lg.name)}</b></button><span class="meta">${lg.played}/${lg.rounds.length}</span></div>
   ${t.map((r,i)=>`<div class="mr${r.id===S.fav?' me':''}"><span class="rk">${i+1}</span>${tl(r.id)}<span class="meta">${r.sp?r.tf-r.tg:''}</span><b>${r.p}</b></div>`).join('')}</div>`;
 }
-function euroStage(e){return e.winner?'Sieger: '+T(e.winner).name:e.step<e.nmd?`Ligaphase · ${e.step}/${e.nmd} Spieltage`:e.ko[e.ko.length-1].name}
+function euroStage(e){return e.winner?'Sieger: '+T(e.winner).name:e.step<e.nmd?`Ligaphase · ${e.step}/${e.nmd} Spieltage`:e.ko.length?e.ko[e.ko.length-1].name:`Ligaphase beendet${e.dates?' · Play-offs ab '+fmtDay(e.dates[e.step]-7):''}`}
 function cupStage(c){return c.winner?'Sieger: '+T(c.winner).name:c.played===0?'1. Runde ausstehend':`${ROUNDN(c.R,c.played)} · ${c.rounds[c.played].filter(m=>!m.bye).length*2||1} Teams im Rennen`}
 function renderHome(){
-  const M=maxRounds(),pct=Math.round(S.round/M*100);
+  const last=Math.max(...S.leagues.filter(l=>l.dates&&l.dates.length).map(l=>l.dates[l.dates.length-1])),pct=S.done?100:Math.max(0,Math.min(100,Math.round((S.day+1)/last*100)));
   const de=['bl','bl2','l3'].map(L).filter(Boolean),eu=['pl','ll','sa','l1'].map(L).filter(Boolean);
   const dfb=S.cups.find(c=>c.type==='dfb');
-  let h=`<div class="card"><div class="hd"><div><div class="meta">Saison ${S.season}/${String(S.season+1).slice(2)}</div><h2>Übersicht</h2></div><span class="tag">${S.done?'Saison beendet':`Spieltag ${S.round} von ${M}`}</span></div>
+  let h=`<div class="card"><div class="hd"><div><div class="meta">Saison ${S.season}/${String(S.season+1).slice(2)}</div><h2>Übersicht</h2></div><span class="tag">${S.done?'Saison beendet':fmtDay(Math.max(0,S.day+1),{y:true})}</span></div>
   <div class="prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
   ${S.done?'<p class="note" style="margin-top:10px">Alle Spiele sind gespielt. Starte oben die neue Saison, dann gibt es Auf- und Abstieg und neue Europapokal-Plätze.</p>':''}
   ${!S.fav?'<p class="note" style="margin-top:10px">Tipp: Tippe oben auf die Lupe, suche deinen Verein und wähle „Als Mein Verein beobachten“ – dann siehst du ihn immer oben.</p>':''}</div>
@@ -191,9 +192,10 @@ function matchRow(m,cup,ctx){
   if(ctx&&!m.bye&&m.a&&(m.hg!=null||ctx.canLive)){sc=sc.replace('<span class="s','<button class="s mbtn'+(m.hg==null?' golive':'')+'" title="'+(m.hg!=null?'Spielbericht ansehen':'90 Minuten live simulieren')+'" data-act="mt:'+mref(m,ctx)+'"').replace(/<\/span>$/,'</button>');if(m.hg==null)sc=sc.replace('–:–','▶ Live')}
   return `<div class="m"><span class="h${hw?' w':''}">${nm(m.h)}</span>${sc}<span class="a${aw?' w':''}">${m.bye?'':nm(m.a)}</span></div>`;
 }
-const ctxL=(lg,i)=>({key:'L'+lg.id+':'+i,comp:lg.name,rd:(i+1)+'. Spieltag',canLive:i===lg.played&&!S.done});
-const ctxC=(c,k)=>({key:'C'+c.id+':'+k,comp:c.name,rd:ROUNDN(c.R,k),cup:true,neutral:k===c.R-1&&c.type==='dfb',canLive:k===c.played&&!c.winner});
-const ctxE=(e,i)=>({key:'E'+e.id+':'+i,comp:e.name,rd:(i+1)+'. Spieltag Ligaphase',canLive:i===e.step&&e.step<e.nmd});
+const soon=d=>true;
+const ctxL=(lg,i)=>({key:'L'+lg.id+':'+i,comp:lg.name,rd:(i+1)+'. Spieltag',canLive:i===lg.played&&!S.done&&soon(lg.dates&&lg.dates[i]),day:lg.dates&&lg.dates[i]});
+const ctxC=(c,k)=>({key:'C'+c.id+':'+k,comp:c.name,rd:ROUNDN(c.R,k),cup:true,neutral:k===c.R-1&&c.type==='dfb',canLive:k===c.played&&!c.winner&&soon(c.dates&&c.dates[k]),day:c.dates&&c.dates[k]});
+const ctxE=(e,i)=>({key:'E'+e.id+':'+i,comp:e.name,rd:(i+1)+'. Spieltag Ligaphase',canLive:i===e.step&&e.step<e.nmd&&soon(e.dates&&e.dates[i]),day:e.dates&&e.dates[i]});
 const ctxK=(e,r,leg)=>({key:'K'+e.id+':'+r.name+':'+leg,comp:e.name,rd:r.name+(leg?' · '+leg:''),neutral:!leg,canLive:false});
 function renderLeague(lg){
   const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
@@ -298,10 +300,11 @@ function renderEuro(e){
 function teamMatches(id){
   const out=[];
   const lg=S.leagues.find(l=>l.teams.includes(id));
-  if(lg) lg.rounds.forEach((rd,i)=>rd.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:lg.name,rd:(i+1)+'. Spieltag',m,done:i<lg.played,ord:i,ctx:ctxL(lg,i)})}));
-  S.cups.forEach(c=>c.rounds.forEach((rd,k)=>rd.forEach(m=>{if(!m.bye&&(m.h===id||m.a===id)) out.push({comp:c.name,rd:ROUNDN(c.R,k),m,done:m.hg!=null&&k<c.played,cup:true,ctx:ctxC(c,k)})})));
-  (S.euro||[]).forEach(e=>{e.mds.forEach((md,i)=>md.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:e.name,rd:(i+1)+'. Spieltag',m,done:i<e.step,ctx:ctxE(e,i)})}));
-    e.ko.forEach(r=>r.ties.forEach(x=>{if(x.a===id||x.b===id){out.push({comp:e.name,rd:r.name+(x.final?'':' Hin'),m:x.l1,done:true,ctx:ctxK(e,r,x.final?'':'Hinspiel')});if(x.l2)out.push({comp:e.name,rd:r.name+' Rück',m:x.l2,done:true,ctx:ctxK(e,r,'Rückspiel')})}}))});
+  const dd=(a,i)=>a&&a[i]!=null?a[i]:null;
+  if(lg) lg.rounds.forEach((rd,i)=>rd.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:lg.name,rd:(i+1)+'. Spieltag',m,done:i<lg.played,ord:i,ctx:ctxL(lg,i),day:dd(lg.dates,i),k:'L'})}));
+  S.cups.forEach(c=>c.rounds.forEach((rd,k)=>rd.forEach(m=>{if(!m.bye&&(m.h===id||m.a===id)) out.push({comp:c.name,rd:ROUNDN(c.R,k),m,done:m.hg!=null&&k<c.played,cup:true,ctx:ctxC(c,k),day:dd(c.dates,k),k:'C',dfb:c.type==='dfb'})})));
+  (S.euro||[]).forEach(e=>{e.mds.forEach((md,i)=>md.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:e.name,rd:(i+1)+'. Spieltag',m,done:i<e.step,ctx:ctxE(e,i),day:dd(e.dates,i),k:'E'})}));
+    e.ko.forEach((r,ri)=>{const st=e.nmd+Math.max(0,KOR.indexOf(r.name));const d2=dd(e.dates,st);r.ties.forEach(x=>{if(x.a===id||x.b===id){out.push({comp:e.name,rd:r.name+(x.final?'':' Hin'),m:x.l1,done:true,ctx:ctxK(e,r,x.final?'':'Hinspiel'),day:d2==null?null:x.final?d2:d2-7,k:'E'});if(x.l2)out.push({comp:e.name,rd:r.name+' Rück',m:x.l2,done:true,ctx:ctxK(e,r,'Rückspiel'),day:d2,k:'E'})}})})});
   return out;
 }
 function res(m,id){if(m.hg==null)return '';const me=m.h===id?m.hg:m.ag,op=m.h===id?m.ag:m.hg;if(m.pen){const w=(m.pen[0]>m.pen[1])===(m.h===id);return w?'S':'N'}return me>op?'S':me<op?'N':'U'}
@@ -348,12 +351,12 @@ function renderFav(){
     <div class="facts">${teamFormHTML(id)}<div><small>Tabellenplatz</small><b>${pos?pos+'. · '+(row.p||0)+' Pkt':'–'}</b></div><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div><div><small>Transferbudget</small><b>${money(bud(id))}</b></div><div><small>Kontostand</small><b class="${FZ(id).c<0?'no':''}">${FZ(id).c<0?'−':''}${money(Math.abs(FZ(id).c))}</b></div><div><small>Transferfenster</small><b class="${wo?'ok':'no'}">${wo?'Offen':'Geschlossen'}</b></div></div>
     <label class="tog" for="autoTr"><input type="checkbox" id="autoTr" ${favAuto()?'checked':''} data-act="auto"> Vereinsführung kauft und verkauft automatisch, wenn das Fenster offen ist</label></div>`;
   if(ft==='ov'){
-    const ms=teamMatches(id),done=ms.filter(x=>x.done),next=ms.filter(x=>!x.done&&!x.cup).slice(0,5);
+    const ms=teamMatches(id),done=ms.filter(x=>x.done),next=ms.filter(x=>!x.done&&x.m.a&&x.m.h).sort((a,b)=>(a.day??999)-(b.day??999)).slice(0,5);
     const around=pos?tb.slice(Math.max(0,pos-4),pos+3):[];
     const off=pos?Math.max(0,pos-4):0;
     h+=`<div class="grid2"><div class="card"><h3 class="ct">Tabelle${lg?' '+esc(lg.name):''}</h3><table><tbody>${around.map((r,i)=>`<tr class="${r.id===id?'hl':''}"><td class="pos l">${off+i+1}</td><td class="team">${tl(r.id)}</td><td>${r.sp}</td><td>${r.tf-r.tg>0?'+':''}${r.tf-r.tg}</td><td class="pts">${r.p}</td></tr>`).join('')}</tbody></table>${lg?`<button class="btn" style="margin-top:10px" data-act="lg:${lg.id}:${id}">Ganze Tabelle</button>`:''}</div>
     <div class="card"><h3 class="ct">Form</h3><div class="form big">${done.slice(-10).map(x=>`<i class="f-${res(x.m,id)}" title="${esc(x.comp)}">${res(x.m,id)}</i>`).join('')||'<span class="meta">Noch keine Spiele</span>'}</div>
-    <h3 class="ct" style="margin-top:16px">Nächste Spiele</h3><div class="matches">${next.map(x=>`<div class="m"><span class="h">${tl(x.m.h)}</span>${x.ctx.canLive?`<button class="s mbtn golive" data-act="mt:${mref(x.m,x.ctx)}" title="90 Minuten live simulieren">▶ Live<small>${esc(x.rd.replace('. Spieltag','. Sp.'))}</small></button>`:`<span class="s open">${x.rd.replace('. Spieltag','.')}<small>${esc(x.comp)}</small></span>`}<span class="a">${tl(x.m.a)}</span></div>`).join('')||'<div class="empty">Keine Spiele mehr angesetzt.</div>'}</div></div></div>
+    <div class="hd" style="margin-top:16px"><h3 class="ct" style="margin:0">Nächste Spiele</h3><button class="btn sm" data-act="ftab:kal">Kalender</button></div><div class="matches">${next.map(x=>`${x.day!=null?`<div class="mdate">${fmtDay(x.day)} · ${esc(x.comp)}</div>`:''}<div class="m"><span class="h">${tl(x.m.h)}</span>${x.ctx.canLive&&(x.day==null||x.day===nextFavDay())?`<button class="s mbtn golive" data-act="mt:${mref(x.m,x.ctx)}" title="90 Minuten live simulieren">▶ Live<small>${esc(x.rd.replace('. Spieltag','. Sp.'))}</small></button>`:`<span class="s open">${x.rd.replace('. Spieltag','.')}<small>${esc(x.comp)}</small></span>`}<span class="a">${tl(x.m.a)}</span></div>`).join('')||'<div class="empty">Keine Spiele mehr angesetzt.</div>'}</div></div></div>
     ${(()=>{const l=(S.tr||[]).filter(x=>x.from===id||x.to===id).slice(0,6);return l.length?`<div class="card"><div class="hd"><h3 class="ct" style="margin:0">Neueste Transfers</h3><button class="btn sm" data-act="ftab:fin">Alle</button></div><table><tbody>${l.map(x=>`<tr><td class="l meta">${x.s}/${String(x.s+1).slice(2)}</td><td class="l"><span class="pos-${x.p}">${x.p}</span></td><td class="l team">${esc(x.n)}</td><td class="l team">${x.to===id?'← '+tl(x.from):'→ '+tl(x.to)}</td><td class="${x.to===id?'no':'ok'}">${x.free?'ablösefrei':(x.to===id?'−':'+')+money(x.fee)}</td></tr>`).join('')}</tbody></table></div>`:''})()}
     <div class="card"><h3 class="ct">Letzte Ergebnisse</h3><div class="matches">${done.slice(-8).reverse().map(x=>`<div class="m"><span class="h">${tl(x.m.h)}</span>${score(x.m)}<span class="a">${tl(x.m.a)}</span></div>`).join('')||'<div class="empty">Noch keine Spiele.</div>'}</div></div>
     <div class="stages">${S.cups.filter(c=>c.teams.includes(id)).concat((S.euro||[]).filter(e=>e.teams.includes(id))).map(c=>{const r=c.type==='euro'?euroReach(c,id):(c.played?cupReach(c,id):'1. Runde');const out=c.type==='euro'?(c.step>c.nmd&&r!=='Sieger'&&!(c.ko[c.ko.length-1].ties.some(x=>x.w===id))):(c.played&&r!=='Sieger'&&!c.rounds[c.played]?.some(m=>m.h===id||m.a===id));return `<button class="stage" data-act="${c.type==='euro'?'euro':'cup'}:${c.id}"><small>${esc(c.name)}</small><b>${esc(r)}${out&&!c.winner?' · ausgeschieden':''}</b></button>`}).join('')}</div>`;
@@ -364,10 +367,11 @@ function renderFav(){
   }
   if(ft==='scout') h+=renderScout(id);
   if(ft==='taktik') h+=renderTactics(id);
+  if(ft==='kal') h+=renderCalendar();
   if(ft==='karriere'&&isCareer()) h+=renderCareer(id);
   if(ft==='jugend') h+=renderAcademy(id);
   if(ft==='ov'){const sq=ensureSquad(id).map(pid=>[pid,P()[pid]]).filter(x=>x[1]);const inj=sq.filter(x=>x[1].inj),exp=sq.filter(x=>x[1].c!=null&&x[1].c<=S.season);
-    if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Spiel':'Spiele'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls">${[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
+    if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Woche':'Wochen'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls">${[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
   if(ft==='kader'){
     if(view.offer){const o=view.offer;h+=`<div class="card offer"><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} (Marktwert ${money(value(o.pid))}).<div class="ctrls" style="margin-top:8px"><button class="btn pri" data-act="accept">Annehmen</button><button class="btn" data-act="decline">Ablehnen</button></div></div>`}
     h+=squadCard(id,true);
@@ -382,7 +386,7 @@ function renderFav(){
     <div class="form"><label for="mLg">Liga<select id="mLg">${lgs.map(l=>`<option value="${l.id}"${l.id===sel?' selected':''}>${esc(l.name)}</option>`).join('')}</select></label>
     <label for="mPos">Position<select id="mPos"><option value="">Alle</option>${POS.map(p=>`<option value="${p}"${p===fp?' selected':''}>${POSN[p]}</option>`).join('')}</select></label>
     <label for="mMax">Höchstens<select id="mMax"><option value="0">Egal</option>${[5e4,2e5,1e6,5e6,2e7,5e7].map(v=>`<option value="${v}"${v===maxp?' selected':''}>${money(v)}</option>`).join('')}<option value="${bud(id)}"${maxp===bud(id)?' selected':''}>Mein Budget</option></select></label></div>
-    ${wo?'':'<p class="note" style="margin-top:10px">Das Transferfenster ist geschlossen. Es öffnet am Saisonende, an den ersten vier Spieltagen und rund um die Winterpause.</p>'}
+    ${wo?'':'<p class="note" style="margin-top:10px">Das Transferfenster ist geschlossen. Es ist vom Saisonende bis 1. September und vom 1. Januar bis 1. Februar geöffnet.</p>'}
     <div class="scroll" style="margin-top:12px"><table><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th class="l">Verein</th><th>Alter</th><th>Stärke</th><th>Ablöse</th><th></th></tr></thead><tbody>
     ${rows.map(r=>{const p=P()[r.pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}</td><td class="l team">${tl(r.tid)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td>${money(r.fee)}</td><td class="l"><button class="btn sm${S.scout&&S.scout.list[r.pid]?' pri':''}" data-act="${S.scout&&S.scout.list[r.pid]?'unwatch':'watch'}:${r.pid}" title="Beobachten">👁</button> <button class="btn sm${r.fee>bud(id)||!wo?'':' pri'}" data-act="buy:${r.pid}:${r.tid}">Kaufen</button></td></tr>`}).join('')}
     </tbody></table></div><p class="note" style="margin-top:8px">Ablöse = Marktwert + 25 %. Starke Spieler lehnen Wechsel in Ligen ab, die mehr als zwei Stufen tiefer liegen. Neue Spieler ändern sofort die Spielstärke deines Vereins (Ø der besten Elf im 4-4-2).</p></div>`;

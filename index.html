@@ -20,10 +20,10 @@
 <header class="top">
   <button class="ib" data-act="ov:nav" aria-label="Menü öffnen"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <button class="brand tlink" data-act="area:home"><b>Fußball-Pyramide</b></button>
-  <div class="clock"><b id="cSeason">2026/27</b><span id="cRound">Spieltag 0</span></div>
+  <button class="clock tlink" data-act="cal" title="Kalender öffnen"><b id="cSeason">2026/27</b><span id="cRound">1. Juli</span></button>
   <div class="simc">
-    <button class="btn pri" id="bNext" title="Nächster Spieltag"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg><span>Spieltag</span></button>
-    <button class="btn" id="bTen" title="5 Spieltage">+5</button>
+    <button class="btn pri" id="bNext" title="Weiter bis zum nächsten Spiel"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg><span>Weiter</span></button>
+    <button class="btn" id="bTen" title="Eine Woche weiter">+7 T</button>
     <button class="btn" id="bAll" title="Saison zu Ende simulieren"><svg viewBox="0 0 24 24"><path d="M5 5l8 7-8 7zM13 5l8 7-8 7z"/></svg><span>Saison</span></button>
     <button class="btn pri" id="bNew" hidden>Neue Saison</button>
   </div>
@@ -38,6 +38,7 @@
 <script src="src/01-data.js"></script>
 <script src="src/02-state.js"></script>
 <script src="src/03-schedule.js"></script>
+<script src="src/03b-calendar.js"></script>
 <script src="src/04-sim.js"></script>
 <script src="src/05-euro.js"></script>
 <script src="src/06-cups.js"></script>
@@ -55,6 +56,7 @@
 <script src="src/14-ui-core.js"></script>
 <script src="src/15-news.js"></script>
 <script src="src/15b-menu.js"></script>
+<script src="src/15c-calui.js"></script>
 <script src="src/16-ui-pages.js"></script>
 <script src="src/pwa.js"></script>
 </body>

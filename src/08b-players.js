@@ -1,5 +1,5 @@
 // ---------- Spieler: Verträge, Gehälter, Form, Moral, Verletzungen, Scouting ----------
-// Kurzfelder am Spieler: c = Vertrag bis (Saisonjahr), w = Jahresgehalt, inj = Ausfall in Spieltagen, it = Verletzungsart, fo = persönliche Form
+// Kurzfelder am Spieler: c = Vertrag bis (Saisonjahr), w = Jahresgehalt, inj = Ausfall in Wochen, it = Verletzungsart, fo = persönliche Form
 // Am Verein: fm = Teamform (-3…+3), mo = Moral (0…100)
 const lvOfTeam=id=>{const l=lgOf(id);return l?(l.foreign?1:l.level):6};
 function marketWage(pid,club){const z=T(club)&&T(club).fz;const lv=lvOfTeam(club);return Math.round(value(pid)*(WRATIO[lv]||.03)*((z&&z.wf)||1)/100)*100}
@@ -71,7 +71,7 @@ const formLbl=v=>v>=1.2?'<span class="ok" title="Formstark">▲</span>':v<=-1.2?
 const moodLbl=m=>m>=75?'Euphorie':m>=60?'Gut':m>=45?'Durchwachsen':m>=30?'Gedrückt':'Am Boden';
 function teamFormHTML(id){const t=T(id);const fm=t.fm||0,mo=t.mo??60;return `<div><small>Form</small><b>${fm>=1.2?'stark':fm<=-1.2?'schwach':'normal'} ${formLbl(fm)}</b></div><div><small>Stimmung</small><b>${moodLbl(mo)}</b><span class="meta">${mo}/100</span></div>`}
 function playerClubMap(){const m=new Map();for(const t of Object.values(S.teams))if(t.sq)for(const pid of t.sq)m.set(pid,t.id);return m}
-function playerBadges(p){let h='';if(p.inj)h+=` <span class="tag no" title="${esc(p.it||'Verletzt')}">🚑 ${p.inj} Sp.</span>`;if(p.c!=null&&p.c<=S.season)h+=` <span class="tag" style="border-color:var(--rel);color:var(--rel)" title="Vertrag läuft zum Saisonende aus">Vertrag endet</span>`;return h}
+function playerBadges(p){let h='';if(p.inj)h+=` <span class="tag no" title="${esc(p.it||'Verletzt')}">🚑 ${p.inj} Wo.</span>`;if(p.c!=null&&p.c<=S.season)h+=` <span class="tag" style="border-color:var(--rel);color:var(--rel)" title="Vertrag läuft zum Saisonende aus">Vertrag endet</span>`;return h}
 function renderScout(id){
   const s=SC(),lv=SCOUT_LV[s.lv],cm=playerClubMap(),wo=windowOpen();
   const rows=Object.keys(s.list).filter(pid=>P()[pid]).map(pid=>({pid,p:P()[pid],club:cm.get(pid),r:scoutReport(pid)})).sort((a,b)=>b.r.hi-a.r.hi);

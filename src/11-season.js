@@ -6,6 +6,7 @@ function twoLeg(a,b){ // a = Klassentieferer, b = Klassenhöherer (Rückspiel zu
   return {w,l:w===a?b:a,txt:`${T(a).name} – ${T(b).name} ${x1}:${y1}, ${x2}:${y2} (${ga}:${gb}${ga===gb?', i.E.':''})`};
 }
 function newSeason(){
+  {let g=0;while(!S.done&&g++<400)simDay()}
   recordSeason();const oldSeason=S.season;
   const log=[];const st={};S.leagues.forEach(l=>st[l.id]=table(l).map(r=>r.id));
   const bl=st.bl,b2=st.bl2,l3=st.l3;

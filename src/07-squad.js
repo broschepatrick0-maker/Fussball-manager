@@ -37,7 +37,7 @@ function value(pid){
 }
 function clubValue(id){return (T(id).sq||ensureSquad(id)).reduce((a,pid)=>a+value(pid),0)}
 function money(v){return v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace('.',',')+' Mio. €':v>=1e3?Math.round(v/1e3)+' Tsd. €':v+' €'}
-function windowOpen(){const M=maxRounds(),h=Math.floor(M/2);return S.done||S.round<=4||(S.round>=h-1&&S.round<=h+1)}
+function windowOpen(){return S.done||transferOpenOn(Math.max(0,S.day+1))}
 function FV(){if(!S.fin)S.fin={budget:null,log:[],income:[]};return S.fin}
 function initBudget(){if(S.fav&&T(S.fav))FZ(S.fav)}
 function seasonIncome(id,st){ // Prämien & TV-Geld am Saisonende
@@ -153,5 +153,5 @@ function aiOffer(){ // Angebot an Mein Verein
   S.offers.unshift({pid,club,amt,s:S.season,r:S.round});S.offers.length=Math.min(S.offers.length,6);
 }
 function favAuto(){return !!S.fav&&FV().auto!==false}
-function transferDay(n){for(let i=0;i<n;i++)aiTransfer();aiOffer();
+function transferDay(n,offer=true){for(let i=0;i<n;i++)aiTransfer();if(offer)aiOffer();
   const rich=Object.values(S.inv||{}).filter(x=>x.club&&T(x.club)&&x.club!==S.fav);for(let i=0;i<Math.min(6,rich.length);i++)aiTransfer(rpick(rich,Math.random).club)}

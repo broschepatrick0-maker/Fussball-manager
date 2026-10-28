@@ -160,6 +160,7 @@ function paintMatch(){const c=document.querySelector('#ov .ovc');if(c){c.innerHT
 function liveRun(){clearInterval(LIVE.timer);const o=view.ov;if(!o||!o.playing)return;const ms=(SPEEDS.find(x=>x[0]===(o.speed||1))||SPEEDS[0])[1];LIVE.timer=setInterval(liveTick,ms)}
 function openMatch(ref){
   const r=MREF[ref];if(!r)return;const {m,ctx}=r;let fresh=false;
+  if(m.hg==null&&ctx.canLive&&S.fav&&(m.h===S.fav||m.a===S.fav)&&ctx.day!=null&&nextFavDay()!=null&&ctx.day>nextFavDay()){toast('Erst ist das Spiel am '+fmtDay(nextFavDay())+' dran');return}
   if(m.hg==null&&ctx.canLive&&S.fav&&(m.h===S.fav||m.a===S.fav)){const rep=dynStart(m,ctx);
     view.ov={t:'match',m,ctx,rep,i:0,playing:false,speed:(view.ov&&view.ov.speed)||(S.liveSpeed||1),fresh:true,top:true};return}
   if(m.hg==null){if(!ctx.canLive){toast('Dieses Spiel ist noch nicht dran – live geht immer das nächste anstehende Spiel');return}decideMatch(m,ctx);fresh=true;save()}
