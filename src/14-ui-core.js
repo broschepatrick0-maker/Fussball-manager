@@ -198,6 +198,12 @@ const ctxL=(lg,i)=>({key:'L'+lg.id+':'+i,comp:lg.name,rd:(i+1)+'. Spieltag',canL
 const ctxC=(c,k)=>({key:'C'+c.id+':'+k,comp:c.name,rd:ROUNDN(c.R,k),cup:true,neutral:k===c.R-1&&c.type==='dfb',canLive:k===c.played&&!c.winner&&soon(c.dates&&c.dates[k]),day:c.dates&&c.dates[k]});
 const ctxE=(e,i)=>({key:'E'+e.id+':'+i,comp:e.name,rd:(i+1)+'. Spieltag Ligaphase',canLive:i===e.step&&e.step<e.nmd&&soon(e.dates&&e.dates[i]),day:e.dates&&e.dates[i]});
 const ctxK=(e,r,leg)=>({key:'K'+e.id+':'+r.name+':'+leg,comp:e.name,rd:r.name+(leg?' · '+leg:''),neutral:!leg,canLive:false});
+// Zweitvertretungen ohne Aufstiegsrecht in dieser Liga
+function resBlocked(lg){if(lg.foreign||lg.level<=1)return [];const D=deLevels(),out=[];
+  for(const id of lg.teams){const t=T(id);if(!t||!isRes(t.name))continue;const need=resMinLevel(t.name,D.byName,x=>D.lv[x]);if(need<=lg.level-1)continue;
+    const b=resBase(t.name),third=/\sIII$/.test(t.name),ref=third&&D.byName[b+' II']!=null&&D.lv[D.byName[b+' II']]+1===need?D.byName[b+' II']:D.byName[b];
+    const rl=ref!=null&&D.lg[ref];out.push({id,why:rl?`${T(ref).name} spielt in der ${rl.name}`:'erste Mannschaft spielt zu hoch'})}
+  return out}
 function renderLeague(lg){
   const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
   if(view.lmode==='ewig') return renderEwig(lg,tabs);
@@ -206,11 +212,12 @@ function renderLeague(lg){
   const md=view.md, rd=lg.rounds[md]||[];
   const sub=lg.foreign?`${lg.land} · 1. Liga · Saison ${S.season}/${String(S.season+1).slice(2)}`:lg.level<=4?`${LEVELS[lg.level]} · Saison ${S.season}/${String(S.season+1).slice(2)}`:`${LEVELS[lg.level]} · ${VB[lg.vb]}${lg.kreis?' · Kreis '+esc(lg.kreis):''}`;
   const bye=lg.teams.length%2?lg.teams.filter(id=>!rd.some(m=>m.h===id||m.a===id)):[];
+  const noUp=resBlocked(lg);
   return `<div class="card"><div class="hd"><div><div class="meta">${sub}</div><h2>${esc(lg.name)}</h2></div>
     <div>${lg.real?'<span class="tag real">Echte Vereine 26/27</span>':''} <span class="tag">${lg.played}/${lg.rounds.length} Spieltage</span>${lg.custom?` <button class="btn" data-act="del:${lg.id}">Liga entfernen</button>`:''}</div></div>
     ${tabs}<div class="grid2"><div class="scroll"><table class="lt"><thead><tr><th class="l">Pl.</th><th class="l">Verein</th><th>Sp</th><th>S</th><th>U</th><th>N</th><th>Tore</th><th>Diff</th><th>Pkt</th></tr></thead><tbody>
-    ${t.map((r,i)=>`<tr class="z-${zone(lg,i,n)}${r.id===view.team?' hl':''}"><td class="pos l">${i+1}</td><td class="team">${tl(r.id)}${lg.pen&&lg.pen[r.id]?` <span class="tag no" title="Punktabzug nach Insolvenz">${lg.pen[r.id]}</span>`:''}</td><td>${r.sp}</td><td>${r.s}</td><td>${r.u}</td><td>${r.n}</td><td>${r.tf}:${r.tg}</td><td>${r.tf-r.tg>0?'+':''}${r.tf-r.tg}</td><td class="pts">${r.p}</td></tr>`).join('')}
-    </tbody></table>${legend(lg)}</div>
+    ${t.map((r,i)=>`<tr class="z-${zone(lg,i,n)}${r.id===view.team?' hl':''}"><td class="pos l">${i+1}</td><td class="team">${tl(r.id)}${noUp.some(x=>x.id===r.id)?' <span class="tag nup" title="Darf nicht aufsteigen (Reserve-Regel)">⛔</span>':''}${lg.pen&&lg.pen[r.id]?` <span class="tag no" title="Punktabzug nach Insolvenz">${lg.pen[r.id]}</span>`:''}</td><td>${r.sp}</td><td>${r.s}</td><td>${r.u}</td><td>${r.n}</td><td>${r.tf}:${r.tg}</td><td>${r.tf-r.tg>0?'+':''}${r.tf-r.tg}</td><td class="pts">${r.p}</td></tr>`).join('')}
+    </tbody></table>${legend(lg)}${noUp.length?`<div class="noup"><b>Kein Aufstiegsrecht</b>${noUp.map(x=>`<div>${tl(x.id)} <span class="meta">– ${esc(x.why)}</span></div>`).join('')}<p class="meta" style="margin:4px 0 0">Zweitvertretungen müssen mindestens zwei Ligen unter der ersten Mannschaft spielen (dritte Mannschaften eine Liga unter der zweiten). Steht so ein Team auf einem Aufstiegsplatz, rückt der nächste berechtigte Verein nach.</p></div>`:''}</div>
     <div><div class="hd" style="margin-bottom:4px"><div class="md-nav"><button class="btn" data-act="md:-1" aria-label="Vorheriger Spieltag">‹</button><b>${md+1}. Spieltag</b><button class="btn" data-act="md:1" aria-label="Nächster Spieltag">›</button></div></div>
     <div class="matches">${rd.map(m=>matchRow(m,false,ctxL(lg,md))).join('')}${bye.length?`<div class="meta" style="padding-top:6px">Spielfrei: ${esc(T(bye[0]).name)}</div>`:''}</div></div></div></div>`;
 }
