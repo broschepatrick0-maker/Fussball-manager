@@ -433,3 +433,6 @@ button.clock:hover b{text-decoration:underline}
 .pyr-up:hover{border-color:var(--accent)}
 .pyr-down small{color:var(--muted);font-size:12px;display:block;margin-bottom:4px}
 .pyr-chips{display:flex;flex-wrap:wrap;gap:6px}.pyr-chips .chip{cursor:pointer}
+.sanc{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.sanc:first-of-type{border-top:0}
+.sanc .sk{min-width:34px;text-align:center}.sanc .sk b{display:inline-block;font-variant-numeric:tabular-nums}
+.ni.c-sg{border-left-color:#7a4bd1}

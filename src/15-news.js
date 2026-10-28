@@ -91,7 +91,7 @@ function newsSeason(st,oldSeason){
   S.leagues.filter(l=>l.foreign&&st[l.id]).forEach(l=>addNews({cat:'int',lg:l.id,clubs:[st[l.id][0]],h:`${l.title}: ${T(st[l.id][0]).name}`,b:`${T(st[l.id][0]).name} sichert sich den Titel in ${l.land}.`,imp:1}));
 }
 // Ansicht
-const NCAT={liga:'Liga',fav:'Mein Verein',tr:'Transfer',fin:'Finanzen',cup:'Pokal',int:'International',pr:'Pressemitteilung'};
+const NCAT={liga:'Liga',fav:'Mein Verein',tr:'Transfer',fin:'Finanzen',cup:'Pokal',int:'International',pr:'Pressemitteilung',sg:'Sportgericht'};
 function newsItem(x){const c=(x.clubs||[]).filter(id=>T(id));
   return `<article class="ni${x.imp>=3?' big':''} c-${x.cat}"><div class="nk"><span class="tag">${x.press?'Pressemitteilung · ':''}${NCAT[x.cat]||'News'}</span><span class="meta">${x.d!=null&&x.d>=0?fmtDay(x.d,{y:false})+' '+(x.d>=184?x.s+1:x.s):sl2(x.s)+' · '+(x.r?x.r+'. Spieltag':'Saisonpause')}</span></div>
    <h3>${esc(x.h)}</h3>${x.b?`<p>${esc(x.b)}</p>`:''}

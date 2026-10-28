@@ -75,7 +75,7 @@ function sideHTML(a){
     if(kp.length) h+=`<h3>Kreispokale</h3>`+kp.map(c=>navBtn(view.tab==='cup'&&view.id===c.id,c.name.replace('Kreispokal ',''),c.teams.length,'cup:'+c.id)).join('');
     h+=`<h3>International</h3>`+(S.euro||[]).map(e=>navBtn(false,e.name,null,'euro:'+e.id,e.short)).join('');
   }
-  if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
+  if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['sg','Sportgericht'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
     if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
@@ -108,7 +108,7 @@ function ctxBar(){
       const up=S.leagues.find(l=>l.name===((PRESETS.find(p=>p.name===lg.name)||{}).up));
       if(up) chips.unshift(chip(false,'▲ '+up.name,'lg:'+up.id));}
   }
-  if(a==='news'){cur='News';chips=[['','Alle'],['fav','★ Mein Verein'],['bl','Bundesliga'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['pr','Pressemitteilungen'],['prog','📺 TV-Prognose']].map(([k,t])=>chip((view.nf||'')===k,t,'nf:'+k))}
+  if(a==='news'){cur='News';chips=[['','Alle'],['fav','★ Mein Verein'],['bl','Bundesliga'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['sg','⚖️ Sportgericht'],['pr','Pressemitteilungen'],['prog','📺 TV-Prognose']].map(([k,t])=>chip((view.nf||'')===k,t,'nf:'+k))}
   if(a==='eu'){
     const lg=view.tab==='league'&&L(view.id),e=view.tab==='euro'&&(S.euro||[]).find(x=>x.id===view.id);cur=lg?lg.name:e?e.name:cur;
     chips=[...S.leagues.filter(l=>l.foreign).map(l=>chip(lg&&lg.id===l.id,l.name,'lg:'+l.id)),...(S.euro||[]).map(x=>chip(e&&e.id===x.id,x.name,'euro:'+x.id))];
@@ -228,10 +228,10 @@ function renderLeague(lg){
   return `<div class="card"><div class="hd"><div><div class="meta">${sub}</div><h2>${esc(lg.name)}</h2></div>
     <div>${lg.real?'<span class="tag real">Echte Vereine 26/27</span>':''} <span class="tag">${lg.played}/${lg.rounds.length} Spieltage</span>${lg.custom?` <button class="btn" data-act="del:${lg.id}">Liga entfernen</button>`:''}</div></div>
     ${pyrNav(lg)}${tabs}<div class="grid2"><div class="scroll"><table class="lt"><thead><tr><th class="l">Pl.</th><th class="l">Verein</th><th>Sp</th><th>S</th><th>U</th><th>N</th><th>Tore</th><th>Diff</th><th>Pkt</th></tr></thead><tbody>
-    ${t.map((r,i)=>`<tr class="z-${zone(lg,i,n)}${r.id===view.team?' hl':''}"><td class="pos l">${i+1}</td><td class="team">${tl(r.id)}${noUp.some(x=>x.id===r.id)?' <span class="tag nup" title="Darf nicht aufsteigen (Reserve-Regel)">⛔</span>':''}${lg.pen&&lg.pen[r.id]?` <span class="tag no" title="Punktabzug nach Insolvenz">${lg.pen[r.id]}</span>`:''}</td><td>${r.sp}</td><td>${r.s}</td><td>${r.u}</td><td>${r.n}</td><td>${r.tf}:${r.tg}</td><td>${r.tf-r.tg>0?'+':''}${r.tf-r.tg}</td><td class="pts">${r.p}</td></tr>`).join('')}
+    ${t.map((r,i)=>`<tr class="z-${zone(lg,i,n)}${r.id===view.team?' hl':''}"><td class="pos l">${i+1}</td><td class="team">${tl(r.id)}${noUp.some(x=>x.id===r.id)?' <span class="tag nup" title="Darf nicht aufsteigen (Reserve-Regel)">⛔</span>':''}${lg.pen&&lg.pen[r.id]?` <span class="tag no" title="Punktabzug (Sportgericht/Insolvenz)">${lg.pen[r.id]}</span>`:''}</td><td>${r.sp}</td><td>${r.s}</td><td>${r.u}</td><td>${r.n}</td><td>${r.tf}:${r.tg}</td><td>${r.tf-r.tg>0?'+':''}${r.tf-r.tg}</td><td class="pts">${r.p}</td></tr>`).join('')}
     </tbody></table>${legend(lg)}${noUp.length?`<div class="noup"><b>Kein Aufstiegsrecht</b>${noUp.map(x=>`<div>${tl(x.id)} <span class="meta">– ${esc(x.why)}</span></div>`).join('')}<p class="meta" style="margin:4px 0 0">Zweitvertretungen müssen mindestens zwei Ligen unter der ersten Mannschaft spielen (dritte Mannschaften eine Liga unter der zweiten). Steht so ein Team auf einem Aufstiegsplatz, rückt der nächste berechtigte Verein nach.</p></div>`:''}</div>
     <div><div class="hd" style="margin-bottom:4px"><div class="md-nav"><button class="btn" data-act="md:-1" aria-label="Vorheriger Spieltag">‹</button><b>${md+1}. Spieltag</b><button class="btn" data-act="md:1" aria-label="Nächster Spieltag">›</button></div></div>
-    <div class="matches">${rd.map(m=>matchRow(m,false,ctxL(lg,md))).join('')}${bye.length?`<div class="meta" style="padding-top:6px">Spielfrei: ${esc(T(bye[0]).name)}</div>`:''}</div></div></div></div>`;
+    <div class="matches">${rd.map(m=>matchRow(m,false,ctxL(lg,md))).join('')}${bye.length?`<div class="meta" style="padding-top:6px">Spielfrei: ${esc(T(bye[0]).name)}</div>`:''}</div></div></div></div>${leagueSancHTML(lg)}`;
 }
 function renderEwig(lg,tabs){
   const rows=liveAll(lg.name),seasons=(S.season-2026)+(lg.played>0?1:0);
@@ -299,7 +299,7 @@ function renderClub(id){
   <div class="card"><h3 class="ct">Trophäenschrank</h3>${tc.length?`<div class="cab">${tc.map(x=>`<div class="tro ${x.k}"><b>${x.n}×</b><span>${esc(x.c)}</span><small>${x.s.map(sl).join(', ')}</small></div>`).join('')}</div>`:'<div class="empty">Noch kein Titel gewonnen.</div>'}</div>
   <div class="card"><h3 class="ct">Saisonverlauf</h3>${car.length?`<div class="scroll"><table><thead><tr><th class="l">Saison</th><th class="l">Liga</th><th>Platz</th><th>Pkt</th><th class="l">Pokale</th><th class="l"></th></tr></thead><tbody>
     ${car.slice().reverse().map(e=>`<tr><td class="l">${sl(e.s)}${e.live?' <span class="tag">läuft</span>':''}</td><td class="l">${esc(e.lg)}</td><td>${e.pos===1&&!e.live?'<b>1. 🏆</b>':e.pos+'.'}</td><td>${e.p}</td><td class="l team">${e.cups.map(c=>`${esc(c.c)}: ${c.r==='Sieger'?'<b>Sieger</b>':c.r}`).join('<br>')||'–'}</td><td class="l">${mv[e.mv]||''}</td></tr>`).join('')}
-    </tbody></table></div>`:'<div class="empty">Noch keine Spiele gespielt.</div>'}</div>`;
+    </tbody></table></div>`:'<div class="empty">Noch keine Spiele gespielt.</div>'}</div>${clubSancHTML(id)}`;
 }
 function renderEuro(e){
   const t=euroTable(e),lpDone=e.step>=e.nmd;

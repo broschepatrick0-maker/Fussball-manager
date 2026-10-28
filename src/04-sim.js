@@ -27,7 +27,7 @@ function simDay(){
   if(S.done) return;
   if(typeof view!=='undefined'&&view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done)dynFinish(view.ov);
   const before={L:{},C:{},E:{},EW:{}};S.leagues.forEach(l=>before.L[l.id]=l.played);S.cups.forEach(c=>before.C[c.id]=c.played);(S.euro||[]).forEach(e=>{before.E[e.id]=e.step;before.EW[e.id]=e.winner});
-  try{const wk=simDayCore();if(wk){tickInjuries();tickScouting();careerDay();try{moodTick()}catch(e){console.warn(e)}}}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
+  try{const wk=simDayCore();if(wk){tickInjuries();tickScouting();careerDay();try{moodTick()}catch(e){console.warn(e)}try{sancWeek()}catch(e){console.warn(e)}}}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
 }
 // Ein Kalendertag: fällige Liga-, Pokal- und Europapokalspiele, Transfers im Fenster, montags der Wochentakt
 function simDayCore(){

@@ -28,4 +28,5 @@ function startSeason(){
   buildEuro();
   buildCalendar();
   try{rested()}catch(e){}
+  try{sancPurge()}catch(e){}
 }
