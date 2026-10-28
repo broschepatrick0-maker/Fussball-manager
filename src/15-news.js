@@ -13,7 +13,7 @@ const QUPSET=['Niemand hat uns heute etwas zugetraut. Genau das hat uns stark ge
 function resultQuote(id,m,R){const me=m.h===id?m.hg:m.ag,op=m.h===id?m.ag:m.hg;return me>op?(me-op>=4?rpick(QBIG,R):rpick(QWIN,R)):me<op?rpick(QLOSS,R):rpick(QDRAW,R)}
 // Wahrscheinlichkeiten für ein Spiel (TV-Prognose)
 function pmf(l){const a=[];let p=Math.exp(-l);for(let k=0;k<=9;k++){a.push(p);p*=l/(k+1)}return a}
-function matchProb(h,a,neutral){const rh=T(h).r,ra=T(a).r,lh=lam(rh,ra,!neutral),la=lam(ra,rh,false);const A=pmf(lh),B=pmf(la);let pH=0,pD=0,pA=0,best=[0,0,0];
+function matchProb(h,a,neutral){const rh=effR(h),ra=effR(a),lh=lam(rh,ra,!neutral),la=lam(ra,rh,false);const A=pmf(lh),B=pmf(la);let pH=0,pD=0,pA=0,best=[0,0,0];
   for(let i=0;i<10;i++)for(let j=0;j<10;j++){const p=A[i]*B[j];if(i>j)pH+=p;else if(i<j)pA+=p;else pD+=p;if(p>best[2])best=[i,j,p]}
   const t=pH+pD+pA;return {h:pH/t,d:pD/t,a:pA/t,tip:best,xg:[lh,la]}}
 // Saisonprognose per Simulation der Restsaison

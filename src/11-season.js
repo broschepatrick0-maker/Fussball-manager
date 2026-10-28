@@ -85,6 +85,7 @@ function newSeason(){
   }
   enforceReserves(st,log);
   applyInsolvency(insolvent,st,log);
+  contractsSeason(log,lvOld);
   // Stärke anpassen
   S.leagues.forEach(l=>l.teams.forEach(id=>{
     const t=T(id),o=lvOld[id]||l.level;

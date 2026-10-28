@@ -19,10 +19,10 @@ function FZ(id){const t=T(id);if(!t)return null;if(t.fz)return t.fz;
 }
 function fmed(L_){const k=L_.f?'F':L_.lv,m=S.fmed&&S.fmed[k];return m||(L_.f?MEDF:(MEDV[L_.lv]||1e5))}
 function updMedians(){const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>(o[k]=o[k]||[]).push(clubValue(id)))});S.fmed={};for(const k in o){const a=o[k].sort((x,y)=>x-y),cut=Math.floor(a.length*.05),b=a.slice(cut,a.length-cut||a.length);S.fmed[k]=b.reduce((x,y)=>x+y,0)/b.length}}
-function estRevenue(id,L_){L_=L_||finLv(id);if(!L_)return 0;const med=fmed(L_),base=med*(L_.f?.24:(WRATIO[L_.lv]||.03))/(L_.lv>=5&&!L_.f?0.64:0.7);
+function estRevenue(id,L_){L_=L_||finLv(id);if(!L_)return 0;const med=fmed(L_),base=med*(L_.f?.24:(WRATIO[L_.lv]||.03))/(L_.lv>=5&&!L_.f?0.69:0.71);
   const attr=Math.max(.2,Math.min(8,clubValue(id)/med));return base*(0.3+0.7*attr)}
 function wage(pid,lv){const p=P()[pid];if(!p)return 0;return value(pid)*(WRATIO[lv]||.03)}
-function wageBill(id,lv){const t=T(id),z=FZ(id);return ensureSquad(id).reduce((a,pid)=>a+wage(pid,lv),0)*((z&&z.wf)||1)}
+function wageBill(id,lv){return ensureSquad(id).reduce((a,pid)=>a+wageOf(pid,id),0)}
 function prizeMoney(id){
   const L_=finLv(id);const base=L_?(L_.f?REVF:(REVL[L_.lv]||8e3)):0;
   let euro=0;(S.euro||[]).forEach(e=>{if(e.teams.includes(id)){const r=euroReach(e,id);euro+=({ucl:18e6,uel:6e6,uecl:3e6}[e.id])*(r==='Sieger'?3:r==='Finale'?2.2:r==='Halbfinale'?1.8:r==='Viertelfinale'?1.5:r==='Achtelfinale'?1.25:1)}});
@@ -43,12 +43,12 @@ function finBalance(id,perf){
   const inc={tv:pro?rest*.5:lv===4?rest*.12:0,zus,spons:rest*(pro?.32:lv===4?.55:.62),merch:pro?rest*.12:rest*.05,mitgl:pro?rest*.06:rest*(lv===4?.28:.33),praem:pm.euro+pm.cup};
   const wb=wageBill(id,lv);
   const rev=Object.values(inc).reduce((a,b)=>a+b,0);
-  const exp={geh:wb,stad:z.cap*(lv<=2?45:lv===3?25:lv===4?10:4)+total*.03,verw:total*.09,jugend:total*.03,abg:total*.04,zins:z.d*(z.ir||0)};
+  const exp={scout:id===S.fav&&S.scout?total*(SCOUT_LV[S.scout.lv]||{cost:0}).cost:0,geh:wb,stad:z.cap*(lv<=2?45:lv===3?25:lv===4?10:4)+total*.03,verw:total*.09,jugend:total*.03,abg:total*.04,zins:z.d*(z.ir||0)};
   const ex=Object.values(exp).reduce((a,b)=>a+b,0);
   return {inc,exp,rev,ex,res:rev-ex,att,share:seasonShare,lv};
 }
 const INC_N={tv:'TV-Gelder',zus:'Zuschauer',spons:'Sponsoring',merch:'Merchandising',mitgl:'Mitglieder & Sonstiges',praem:'Prämien (Pokal & Europa)'};
-const EXP_N={geh:'Spielergehälter',stad:'Stadion & Infrastruktur',verw:'Verwaltung & Personal',jugend:'Nachwuchs',abg:'Abgaben, Steuern, Versicherungen',zins:'Zinsen'};
+const EXP_N={scout:'Scouting-Abteilung',geh:'Spielergehälter',stad:'Stadion & Infrastruktur',verw:'Verwaltung & Personal',jugend:'Nachwuchs',abg:'Abgaben, Steuern, Versicherungen',zins:'Zinsen'};
 function creditLimit(id){const z=FZ(id),b=lastBal(id)||{rev:estRevenue(id)};const bad=(z.ins||[]).some(s=>S.season-s<6)?.4:1;return Math.max(0,(b.rev*0.4+clubValue(id)*0.1)*bad-z.d)}
 function lastBal(id){const z=FZ(id);if(!z||!z.h.length)return null;const h=z.h[0];return {rev:h[1],ex:h[2],res:h[3]}}
 function spendable(id){const z=FZ(id);if(!z)return 0;const b=lastBal(id);const res=b?b.ex*.1:estRevenue(id)*.1;return Math.max(0,Math.round(z.c-res))}
@@ -65,7 +65,7 @@ function newInvestor(lv){if(!S.inv)S.inv={};const id='i'+(S.next++);const b=rpic
   S.inv[id]={id,n,k:loc?'Lokaler Mäzen':b[1],o:loc?'aus der Region':rpick(INV_O,Math.random),w,amb:Math.max(1,lv-1-Math.floor(Math.random()*3)),pat:3+Math.floor(Math.random()*5),club:null,since:null,put:0,best:99};
   return S.inv[id];
 }
-function takeover(id,inv,log){const z=FZ(id);inv.club=id;inv.since=S.season;inv.best=finLv(id)?finLv(id).lv:9;z.own=inv.id;
+function takeover(id,inv,log){const z=FZ(id);T(id).mo=Math.min(100,(T(id).mo??60)+10);inv.club=id;inv.since=S.season;inv.best=finLv(id)?finLv(id).lv:9;z.own=inv.id;
   const pay=Math.min(z.d,inv.w*1.5);z.d-=pay;inv.put+=pay;if(!z.d)z.ir=0;z.c+=inv.w*.5;inv.put+=inv.w*.5;z.wf=Math.min(1.6,z.wf+0.15);
   const txt=`${T(id).name}: ${inv.n} (${inv.k} ${inv.o}) übernimmt den Verein${pay?` und löst ${money(pay)} Schulden ab`:''}`;log&&log.push(txt);finLog('inv',id,txt)}
 function investorLeaves(id,inv,why,log){const z=FZ(id);const loan=Math.round(inv.put*.25/1e3)*1e3;z.own=null;inv.club=null;z.d+=loan;if(loan)z.ir=Math.max(z.ir||0,.06);z.wf=Math.max(.8,z.wf-0.2);
@@ -87,7 +87,7 @@ function seasonFinances(st,log){
     if(inv){inj=lv>inv.amb?inv.w:inv.w*.5;z.c+=inj;inv.put+=inj;if(lv<inv.best){inv.best=lv;inv.since=S.season}}
     z.c+=b.res;
     // Sonderbelastungen und Glücksfälle
-    if(Math.random()<.045){const bad=Math.random()<.7,amt=Math.round(b.rev*(0.06+Math.random()*0.22)/1e3)*1e3;
+    if(Math.random()<.06){const bad=Math.random()<.72,amt=Math.round(b.rev*(bad?0.08+Math.random()*Math.random()*0.6:0.06+Math.random()*0.2)/1e3)*1e3;
       const why=bad?rpick(['Steuernachzahlung','Ausfall des Hauptsponsors','Stadionsanierung','Strafe des Verbands','Rückforderung von Fördergeldern'],Math.random):rpick(['Neuer Großsponsor','Erbschaft eines Gönners','Verkauf von Vereinsgelände','Sonderzahlung aus der Vermarktung'],Math.random);
       z.c+=bad?-amt:amt;if(lv<=4||l.foreign||id===S.fav)finLog(bad?'neg':'pos',id,`${T(id).name}: ${why} (${bad?'−':'+'}${money(amt)})`)}
     // Tilgung
@@ -98,7 +98,11 @@ function seasonFinances(st,log){
       if(z.c<0){S.fsale=(S.fsale||0)+1;fireSale(id,z.c<-b.rev*.15?1:2);if(z.c<0)ins.push(id);else finLog('neg',id,`${T(id).name}: Notverkäufe, um zahlungsfähig zu bleiben`)}}
     else if(z.d>b.rev*1.2&&z.c<b.ex*.1&&Math.random()<.4) ins.push(id); // überschuldet
     // Gehaltsniveau anpassen (Vereinsführung)
-    if(z.c>b.rev*.5)z.wf=Math.min(inv?1.7:1.3,+(z.wf+0.04).toFixed(2));else if(z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.65,+(z.wf-0.08).toFixed(2));
+    // Investitionen: viel Geld auf dem Konto fließt teilweise in den Stadionausbau
+    if(z.c>b.rev*1.1&&z.cap<81000){const per=lv<=2?3000:lv<=4?1500:800,inv_=Math.round((z.c-b.rev*1.1)*.35/1e3)*1e3,seats=Math.min(81000-z.cap,Math.floor(inv_/per/50)*50);
+      if(seats>=50){z.c-=seats*per;z.cap+=seats;if(lv<=3||id===S.fav)finLog('pos',id,`${T(id).name}: Stadionausbau um ${seats.toLocaleString('de-DE')} Plätze (${money(seats*per)})`)}}
+    // Gehaltsniveau für neue Verträge: zurückhaltend erhöhen, bei Verlust sofort bremsen
+    if(b.res<0||z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.7,+(z.wf-(b.res<-b.rev*.05?0.08:0.04)).toFixed(2));else if(z.c>b.rev*.45)z.wf=Math.min(inv?1.7:1.45,+(z.wf+0.05).toFixed(2));
     z.h.unshift([S.season,Math.round(b.rev+inj),Math.round(b.ex),Math.round(b.res+inj),Math.round(z.c),Math.round(z.d),l.foreign?1:l.level,b.att]);if(z.h.length>12)z.h.length=12;
     // Investor ungeduldig?
     if(inv&&S.season-inv.since>=inv.pat&&(l.foreign?1:l.level)>inv.amb&&Math.random()<.5) investorLeaves(id,inv,'Ziele verfehlt',log);
@@ -123,7 +127,7 @@ function seasonFinances(st,log){
 function applyInsolvency(ids,st,log){
   if(!S.penNext)S.penNext={};
   for(const id of ids){const z=FZ(id);if(!z)continue;const l=lgOf(id);if(!l)continue;const t=T(id);
-    z.ins.unshift(S.season);const cut=Math.round(z.d*.7/1e3)*1e3;z.d-=cut;z.c=Math.max(0,Math.round(lastBal(id)?lastBal(id).ex*.05:0));z.wf=.7;z.ir=z.d?.08:0;
+    z.ins.unshift(S.season);t.mo=Math.max(10,(t.mo??60)-20);const cut=Math.round(z.d*.7/1e3)*1e3;z.d-=cut;z.c=Math.max(0,Math.round(lastBal(id)?lastBal(id).ex*.05:0));z.wf=.7;z.ir=z.d?.08:0;
     const inv=z.own&&S.inv&&S.inv[z.own];if(inv){inv.club=null;z.own=null}
     let what;
     const repeat=z.ins.filter(s=>S.season-s<5).length>1;

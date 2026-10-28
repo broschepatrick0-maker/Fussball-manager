@@ -14,8 +14,10 @@ function P(){if(!S.pl)S.pl={};return S.pl}
 const clampS=x=>Math.max(10,Math.min(99,x));
 function newPlayer(t,pos,st,age){st=clampS(st);const id='p'+(S.next++);P()[id]={n:pname(t),p:pos,a:age??(18+Math.floor(Math.random()*16)),s:+st.toFixed(1)};return id}
 function xi(sq){
-  const by=p=>sq.filter(id=>P()[id]&&P()[id].p===p).map(id=>P()[id].s).sort((a,b)=>b-a);
-  const take=(p,n)=>{const a=by(p);while(a.length<n)a.push(15);return a.slice(0,n)};
+  const fit=sq.filter(id=>P()[id]&&!P()[id].inj);
+  const by=p=>fit.filter(id=>P()[id].p===p).map(id=>P()[id].s).sort((a,b)=>b-a);
+  const spare=fit.map(id=>P()[id].s).sort((a,b)=>b-a);
+  const take=(p,n)=>{const a=by(p);let i=0;while(a.length<n)a.push(Math.max(15,(spare[11+i++]||20)-6));return a.slice(0,n)};
   const all=[...take('TW',1),...take('AB',4),...take('MF',4),...take('ST',2)];
   return all.reduce((a,b)=>a+b,0)/11;
 }
@@ -59,7 +61,8 @@ function developSquads(){
   {const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>{(o[k]=o[k]||[]).push(T(id).r)})});S.lvAvg={};for(const k in o)S.lvAvg[k]=o[k].reduce((a,b)=>a+b,0)/o[k].length}
   for(const t of Object.values(S.teams)){
     if(!t.sq) continue;
-    t.sq=t.sq.filter(pid=>{const p=P()[pid];if(!p)return false;p.a++;const pot=potOf(p);
+    const k_=lvKey(t),d_=k_!=null&&S.lvAvg&&S.lvAvg[k_]!=null?S.lvAvg[k_]-(NORM[k_]||S.lvAvg[k_]):0,corr=Math.abs(d_)>0.5?-0.3*d_:0;
+    t.sq=t.sq.filter(pid=>{const p=P()[pid];if(!p)return false;p.a++;if(corr){p.s=+clampS(p.s+corr).toFixed(1);if(p.pot!=null)p.pot=+Math.min(99,p.pot+corr).toFixed(1)}const pot=potOf(p);
       let g;
       if(p.a<=27){g=(pot-p.s)*(p.a<=20?.35:p.a<=23?.28:.18)+gauss()*0.7;if(p.a<=23)p.pot=+Math.min(99,pot+gauss()*0.8).toFixed(1)}
       else if(p.a<=30)g=gauss()*0.7-0.2;
@@ -97,6 +100,7 @@ function addTr(pid,from,to,fee,free){
   S.tr.unshift({s:S.season,r:S.round,n:p.n,p:p.p,a:p.a,st:p.s,from,to,fl:lgName(from),tl:lgName(to),fee,mv:value(pid),free:!!free});
   if(!free||from===S.fav||to===S.fav)try{newsTransfer(pid,from,to,fee)}catch(e){}
   if(S.tr.length>5000)S.tr.length=5000;
+  try{setContract(pid,to)}catch(e){}
 }
 function bud(id){const t=T(id);const z=lgOf(id)?FZ(id):null;if(z)return spendable(id);if(t.bud==null)t.bud=Math.round(clubValue(id)*0.1/1e3)*1e3;return t.bud}
 function addBud(id,v){const t=T(id);if(t.fz){t.fz.c+=v;return}const z=lgOf(id)?FZ(id):null;if(z){z.c+=v;return}bud(id);t.bud+=v}

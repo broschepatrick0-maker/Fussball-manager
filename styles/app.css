@@ -340,3 +340,7 @@ details.vb[open]>summary::before{transform:rotate(90deg)}
 }
 
 
+/* Spieler */
+.stars{color:var(--rel);letter-spacing:1px;font-size:14px;white-space:nowrap}
+.sqt td.l .btn{margin:1px 2px}
+tr.gone td .tag{opacity:1}

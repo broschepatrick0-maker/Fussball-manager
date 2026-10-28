@@ -76,7 +76,7 @@ function sideHTML(a){
   }
   if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
-    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
+    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
   }
   if(a==='tr'){
@@ -119,7 +119,7 @@ function ctxBar(){
     chips=[dfb&&chip(c&&c.id===dfb.id,'DFB-Pokal','cup:'+dfb.id),...same.filter(x=>x.type!=='dfb').map(x=>chip(c&&c.id===x.id,x.name.replace('Kreispokal ',''),'cup:'+x.id))].filter(Boolean);
   }
   if(a==='fav'){cur=S.fav&&T(S.fav)?T(S.fav).name:'Mein Verein';
-    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
+    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
@@ -267,7 +267,7 @@ function renderClub(id){
   const sl=s=>`${s}/${String(s+1).slice(2)}`;
   return `<div class="card"><div class="hd"><div><div class="meta">${VB[t.vb]||t.cc||''}${lg?' · '+esc(lg.name):''}${isRes(t.name)?(()=>{const D=deLevels(),m=resMinLevel(t.name,D.byName,x=>D.lv[x]);return ' · Zweitvertretung'+(m?` · höchstens ${LEVELS[m]||'Stufe '+m}`:'')})():''}</div><h2>${esc(t.name)}</h2></div>
     <div class="ctrls"><button class="btn${S.fav===id?' pri':''}" data-act="fav:${id}">${S.fav===id?'★ Mein Verein':'☆ Als Mein Verein beobachten'}</button>${lg?`<button class="btn" data-act="lg:${lg.id}:${id}">Zur Tabelle</button>`:''}</div></div>
-    <div class="facts"><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div><div><small>Titel</small><b>${(H().titles[id]||[]).length}</b></div><div><small>Saisons</small><b>${car.length}</b></div><div><small>Beste Platzierung</small><b>${best?'Platz '+best.pos+' · '+esc(best.lg):'–'}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div></div></div>
+    <div class="facts"><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div>${teamFormHTML(id)}<div><small>Titel</small><b>${(H().titles[id]||[]).length}</b></div><div><small>Saisons</small><b>${car.length}</b></div><div><small>Beste Platzierung</small><b>${best?'Platz '+best.pos+' · '+esc(best.lg):'–'}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div></div></div>
   ${lgOf(id)?finPanel(id,false):''}
   ${squadCard(id,false)}
   ${clubTransfers(id)}
@@ -321,8 +321,10 @@ function squadCard(id,own){
   const sq=ensureSquad(id).slice().sort((a,b)=>POS.indexOf(P()[a].p)-POS.indexOf(P()[b].p)||P()[b].s-P()[a].s);
   const real=sq.some(pid=>P()[pid].real);
   return `<div class="card"><div class="hd"><h3 class="ct" style="margin:0">Kader <span class="meta">${sq.length} Spieler · Ø ${(sq.reduce((a,pid)=>a+P()[pid].a,0)/sq.length).toFixed(1)} Jahre</span></h3><span class="tag${real?' real':''}">${real?'Echte Namen':'Erzeugter Kader'}</span></div>
-  <div class="scroll"><table><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th>Alter</th><th>Stärke</th><th>Marktwert</th>${own?'<th></th>':''}</tr></thead><tbody>
-  ${sq.map(pid=>{const p=P()[pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td>${money(value(pid))}</td>${own?`<td><button class="btn sm" data-act="sell:${pid}">Verkaufen</button></td>`:''}</tr>`}).join('')}
+  <div class="scroll"><table class="sqt"><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th>Alter</th><th>Stärke</th>${own?'<th>Form</th>':''}<th>Vertrag</th><th>Gehalt</th><th>Marktwert</th><th></th></tr></thead><tbody>
+  ${sq.map(pid=>{const p=P()[pid];ensureContract(pid,id);const watch=S.fav&&!own&&id!==S.fav;const sc=S.scout&&S.scout.list[pid];
+    const ren=own&&p.c<=S.season?(()=>{const o=renewalOffer(pid);return [1,2,3,4,5].filter(y=>y<=o.maxY&&(y===1||y===o.maxY||y===3)).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}" title="Neues Gehalt ${money(o.w)} pro Jahr">+${y} J.</button>`).join('')})():'';
+    return `<tr class="${p.inj?'gone':''}"><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}${playerBadges(p)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td>${own?`<td>${formLbl(p.fo||0)}</td>`:''}<td>${p.c}/${String(p.c+1).slice(2)}</td><td>${money(p.w)}</td><td>${money(value(pid))}</td><td class="l">${own?`${ren}<button class="btn sm" data-act="sell:${pid}">Verkaufen</button>`:watch?`<button class="btn sm${sc?' pri':''}" data-act="${sc?'unwatch':'watch'}:${pid}" title="${sc?'Beobachtung beenden':'Von deinen Scouts beobachten lassen'}">👁</button>`:''}</td></tr>`}).join('')}
   </tbody></table></div>
   <details class="imp"><summary>Echten Kader einfügen</summary><p class="note">Kopiere den Kader z. B. von fussball.de (Reiter „Mannschaft“) oder der Vereinsseite: ein Spieler pro Zeile, Positions-Überschriften wie „Torwart“, „Abwehr“, „Mittelfeld“, „Sturm“ werden erkannt, ebenso das Alter in Klammern. Die Spielstärke des Vereins bleibt gleich.</p>
   <textarea id="sqTxt" placeholder="Torwart&#10;Max Mustermann (27)&#10;Abwehr&#10;…"></textarea><button class="btn pri" style="margin-top:8px" data-act="simport" onclick="view.sqTeam='${id}'">Kader übernehmen</button></details></div>`;
@@ -340,7 +342,7 @@ function renderFav(){
   const wo=windowOpen();
   let h=`<div class="card favhead"><div class="hd"><div><div class="meta">Mein Verein${lg?' · '+esc(lg.name):''}</div><h2>★ ${esc(t.name)}</h2></div>
 </div>
-    <div class="facts"><div><small>Tabellenplatz</small><b>${pos?pos+'. · '+(row.p||0)+' Pkt':'–'}</b></div><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div><div><small>Transferbudget</small><b>${money(bud(id))}</b></div><div><small>Kontostand</small><b class="${FZ(id).c<0?'no':''}">${FZ(id).c<0?'−':''}${money(Math.abs(FZ(id).c))}</b></div><div><small>Transferfenster</small><b class="${wo?'ok':'no'}">${wo?'Offen':'Geschlossen'}</b></div></div>
+    <div class="facts">${teamFormHTML(id)}<div><small>Tabellenplatz</small><b>${pos?pos+'. · '+(row.p||0)+' Pkt':'–'}</b></div><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div><div><small>Transferbudget</small><b>${money(bud(id))}</b></div><div><small>Kontostand</small><b class="${FZ(id).c<0?'no':''}">${FZ(id).c<0?'−':''}${money(Math.abs(FZ(id).c))}</b></div><div><small>Transferfenster</small><b class="${wo?'ok':'no'}">${wo?'Offen':'Geschlossen'}</b></div></div>
     <label class="tog" for="autoTr"><input type="checkbox" id="autoTr" ${favAuto()?'checked':''} data-act="auto"> Vereinsführung kauft und verkauft automatisch, wenn das Fenster offen ist</label></div>`;
   if(ft==='ov'){
     const ms=teamMatches(id),done=ms.filter(x=>x.done),next=ms.filter(x=>!x.done&&!x.cup).slice(0,5);
@@ -357,6 +359,9 @@ function renderFav(){
     const off=(S.offers||[]).filter(o=>T(S.fav).sq.includes(o.pid));
     if(off.length) h+=`<div class="card offer"><h3 class="ct">Angebote für deine Spieler</h3>${(S.offers||[]).map((o,i)=>T(S.fav).sq.includes(o.pid)?`<div class="orow"><span><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} <span class="meta">(${P()[o.pid].p}, ${P()[o.pid].a} J., Marktwert ${money(value(o.pid))})</span></span><span class="ctrls"><button class="btn sm pri" data-act="oacc:${i}">Annehmen</button><button class="btn sm" data-act="odec:${i}">Ablehnen</button></span></div>`:'').join('')}</div>`;
   }
+  if(ft==='scout') h+=renderScout(id);
+  if(ft==='ov'){const sq=ensureSquad(id).map(pid=>[pid,P()[pid]]).filter(x=>x[1]);const inj=sq.filter(x=>x[1].inj),exp=sq.filter(x=>x[1].c!=null&&x[1].c<=S.season);
+    if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Spiel':'Spiele'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls">${[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
   if(ft==='kader'){
     if(view.offer){const o=view.offer;h+=`<div class="card offer"><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} (Marktwert ${money(value(o.pid))}).<div class="ctrls" style="margin-top:8px"><button class="btn pri" data-act="accept">Annehmen</button><button class="btn" data-act="decline">Ablehnen</button></div></div>`}
     h+=squadCard(id,true);
@@ -373,7 +378,7 @@ function renderFav(){
     <label for="mMax">Höchstens<select id="mMax"><option value="0">Egal</option>${[5e4,2e5,1e6,5e6,2e7,5e7].map(v=>`<option value="${v}"${v===maxp?' selected':''}>${money(v)}</option>`).join('')}<option value="${bud(id)}"${maxp===bud(id)?' selected':''}>Mein Budget</option></select></label></div>
     ${wo?'':'<p class="note" style="margin-top:10px">Das Transferfenster ist geschlossen. Es öffnet am Saisonende, an den ersten vier Spieltagen und rund um die Winterpause.</p>'}
     <div class="scroll" style="margin-top:12px"><table><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th class="l">Verein</th><th>Alter</th><th>Stärke</th><th>Ablöse</th><th></th></tr></thead><tbody>
-    ${rows.map(r=>{const p=P()[r.pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}</td><td class="l team">${tl(r.tid)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td>${money(r.fee)}</td><td><button class="btn sm${r.fee>bud(id)||!wo?'':' pri'}" data-act="buy:${r.pid}:${r.tid}">Kaufen</button></td></tr>`}).join('')}
+    ${rows.map(r=>{const p=P()[r.pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}</td><td class="l team">${tl(r.tid)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td>${money(r.fee)}</td><td class="l"><button class="btn sm${S.scout&&S.scout.list[r.pid]?' pri':''}" data-act="${S.scout&&S.scout.list[r.pid]?'unwatch':'watch'}:${r.pid}" title="Beobachten">👁</button> <button class="btn sm${r.fee>bud(id)||!wo?'':' pri'}" data-act="buy:${r.pid}:${r.tid}">Kaufen</button></td></tr>`}).join('')}
     </tbody></table></div><p class="note" style="margin-top:8px">Ablöse = Marktwert + 25 %. Starke Spieler lehnen Wechsel in Ligen ab, die mehr als zwei Stufen tiefer liegen. Neue Spieler ändern sofort die Spielstärke deines Vereins (Ø der besten Elf im 4-4-2).</p></div>`;
   }
   if(ft==='fin'){

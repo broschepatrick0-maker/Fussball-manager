@@ -2,12 +2,12 @@
 function pois(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
 function lam(a,b,home){const d=a-b+(home?4:0);return Math.min(9,Math.max(.1,(home?1.35:1.2)*Math.exp(d/26)))}
 function play(h,a,neutral){
-  const rh=T(h).r+(Math.random()*4-2), ra=T(a).r+(Math.random()*4-2);
+  const rh=effR(h)+(Math.random()*4-2), ra=effR(a)+(Math.random()*4-2);
   return [pois(lam(rh,ra,!neutral)),pois(lam(ra,rh,false))];
 }
 function playRound(lg){
   if(lg.played>=lg.rounds.length) return;
-  for(const m of lg.rounds[lg.played]){if(m.hg!=null)continue;const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}
+  for(const m of lg.rounds[lg.played]){if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}afterMatch(m,lg.foreign?1:lg.level)}
   lg.played++;
 }
 function table(lg){
@@ -23,7 +23,7 @@ function maxRounds(){return Math.max(...S.leagues.map(l=>l.rounds.length))}
 function simDay(){
   if(S.done) return;
   const before={L:{},C:{},E:{},EW:{}};S.leagues.forEach(l=>before.L[l.id]=l.played);S.cups.forEach(c=>before.C[c.id]=c.played);(S.euro||[]).forEach(e=>{before.E[e.id]=e.step;before.EW[e.id]=e.winner});
-  try{simDayCore()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
+  try{tickInjuries();tickScouting();simDayCore()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
 }
 function simDayCore(){
   S.round++;

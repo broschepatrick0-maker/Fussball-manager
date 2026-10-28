@@ -224,6 +224,10 @@ function act(a){
       transferLog({pid:o.pid,n:P()[o.pid].n,from:S.fav,to:o.club,fee:o.amt,out:true});recalc(S.fav);recalc(o.club);toast('Verkauft für '+money(o.amt))}
     save()}
   else if(k==='finv'){view={...view,tab:'fin'}}
+  else if(k==='watch'){const r=scoutAdd(v);toast(r==='ok'?'Spieler wird jetzt beobachtet':r==='voll'?'Die Beobachtungsliste ist voll – Scouting-Abteilung ausbauen oder Spieler entfernen':'Wird schon beobachtet');save()}
+  else if(k==='unwatch'){if(S.scout)delete S.scout.list[v];save()}
+  else if(k==='scoutlv'){SC().lv=+v;const mx=SCOUT_LV[+v].max,ks=Object.keys(S.scout.list);ks.slice(mx).forEach(x=>delete S.scout.list[x]);save();toast(SCOUT_LV[+v].n+' – Kosten werden am Saisonende verbucht')}
+  else if(k==='renew'){const p=P()[v];const o=renewalOffer(v);if(!p||!o)return;const y=Math.min(+w,o.maxY);p.c=S.season+y;p.w=o.w;T(S.fav).mo=Math.min(100,(T(S.fav).mo??60)+1);save();toast(`${p.n} verlängert bis ${p.c}/${String(p.c+1).slice(2)} · ${money(o.w)} pro Jahr`)}
   else if(k==='nf'){view={...view,tab:'news',nf:v||'',npage:1}}
   else if(k==='nmore'){view.npage=(view.npage||1)+1}
   else if(k==='loan'){const got=takeLoan(S.fav,+v);if(got){finLog('pos',S.fav,`${T(S.fav).name}: Kredit über ${money(got)} aufgenommen`);save();toast('Kredit aufgenommen: '+money(got))}else toast('Der Kreditrahmen ist ausgeschöpft')}

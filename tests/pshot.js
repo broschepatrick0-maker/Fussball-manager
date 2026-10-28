@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const errs=[];
+const p=await b.newPage({viewport:{width:1366,height:900}});p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(800);
+await p.evaluate(()=>{act('fav:'+L('bl2').teams[2]);sim(99);act('newseason');sim(10);
+  const other=L('l3').teams.concat(L('rlby').teams);let n=0;for(const t of other){for(const pid of ensureSquad(t)){if(P()[pid].a<=20&&n<6){scoutAdd(pid);n++}}}sim(6);act('area:fav')});
+await p.waitForTimeout(200);await p.screenshot({path:'/tmp/claude-0/s/p-ov.png',fullPage:true});
+await p.evaluate(()=>act('ftab:kader'));await p.screenshot({path:'/tmp/claude-0/s/p-kader.png',fullPage:true});
+await p.evaluate(()=>act('ftab:scout'));await p.screenshot({path:'/tmp/claude-0/s/p-scout.png',fullPage:true});
+const r=await p.evaluate(()=>{const f=T(S.fav);const pid=f.sq.find(x=>P()[x].c<=S.season+1);if(pid){act('renew:'+pid+':3')}return {inj:(S.inj||[]).length,renewed:pid?P()[pid].c:null,mo:f.mo,fm:f.fm}});console.log(JSON.stringify(r));
+console.log(errs);await b.close()})();

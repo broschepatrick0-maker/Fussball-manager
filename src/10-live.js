@@ -5,7 +5,7 @@ function rpois(l,R){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=R()}while(p>L);re
 const rpick=(a,R)=>a[Math.floor(R()*a.length)];
 function wpickR(items,w,R){const s=w.reduce((a,b)=>a+b,0);let x=R()*s;for(let i=0;i<items.length;i++){x-=w[i];if(x<=0)return items[i]}return items[items.length-1]}
 function lineup(id){
-  const sq=ensureSquad(id).filter(pid=>P()[pid]).slice().sort((a,b)=>P()[b].s-P()[a].s);
+  const sq=ensureSquad(id).filter(pid=>P()[pid]&&!P()[pid].inj).slice().sort((a,b)=>P()[b].s-P()[a].s);
   const xi=[],used=new Set();
   for(const [p,n] of [['TW',1],['AB',4],['MF',4],['ST',2]]){sq.filter(x=>P()[x].p===p&&!used.has(x)).slice(0,n).forEach(x=>{xi.push(x);used.add(x)})}
   for(const x of sq){if(xi.length>=11)break;if(!used.has(x)){xi.push(x);used.add(x)}}

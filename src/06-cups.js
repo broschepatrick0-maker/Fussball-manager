@@ -36,6 +36,7 @@ function playCupRound(c){
       }
     }
     m.w = m.pen ? (m.pen[0]>m.pen[1]?m.h:m.a) : (m.hg>m.ag?m.h:m.a);
+    afterMatch(m,9);
   }
   c.played++;
   const winners=rd.map(m=>m.w);
