@@ -436,3 +436,8 @@ button.clock:hover b{text-decoration:underline}
 .sanc{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}.sanc:first-of-type{border-top:0}
 .sanc .sk{min-width:34px;text-align:center}.sanc .sk b{display:inline-block;font-variant-numeric:tabular-nums}
 .ni.c-sg{border-left-color:#7a4bd1}
+.jopts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.jopts .mbtn{background:var(--card);border:1px solid var(--line);color:var(--ink);padding:10px}
+.jopts .mbtn>span:first-child{font-size:17px}
+.jopts .mbtn.pri{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.jlist{display:flex;flex-direction:column;gap:3px;font-size:13.5px}

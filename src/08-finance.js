@@ -5,7 +5,7 @@ const WRATIO={1:.24,2:.22,3:.2,4:.16,5:.12,6:.09,7:.07,8:.05,9:.04,10:.03,11:.02
 const WCAP={1:2.2e7,2:2.5e6,3:6e5,4:1.5e5,5:6e4,6:3e4,7:1.5e4,8:8e3,9:5e3,10:3e3,11:2e3,12:1.5e3};
 const LCAP={1:42000,2:22000,3:12000,4:5000,5:2500,6:1200,7:800,8:500,9:300,10:200,11:150,12:120};
 const TPRICE={1:35,2:24,3:16,4:10,5:7,6:6,7:5,8:4,9:3,10:3,11:2,12:2};
-const _lgc=new Map();function lgOf(id){const l=_lgc.get(id);if(l&&l.teams.includes(id)&&S.leagues.includes(l))return l;const f=S.leagues.find(x=>x.teams.includes(id));if(f)_lgc.set(id,f);else _lgc.delete(id);return f}
+const _lgc=new Map();let _lgArr=null,_lgLen=0;function lgOf(id){if(_lgArr!==S.leagues||_lgLen>S.leagues.length){_lgc.clear();_lgArr=S.leagues}_lgLen=S.leagues.length;const l=_lgc.get(id);if(l&&l.teams.includes(id))return l;const f=S.leagues.find(x=>x.teams.includes(id));if(f)_lgc.set(id,f);else _lgc.delete(id);return f}
 function finLv(id){const l=lgOf(id);return l?{lv:l.level,f:!!l.foreign,lg:l}:null}
 function FZ(id){const t=T(id);if(!t)return null;if(t.fz)return t.fz;
   const L_=finLv(id);if(!L_)return null;

@@ -87,7 +87,7 @@ function sideHTML(a){
     h+=`<h3>Nach Liga</h3>`+['Bundesliga','2. Bundesliga','3. Liga','Premier League','LaLiga','Serie A','Ligue 1','International'].map(n=>navBtn(view.trf&&view.trf.lg===n,n,null,enc({lg:n}))).join('');
   }
   if(a==='hist'){
-    h+=`<h3>Historie</h3>`+navBtn(view.tab==='season','Saisonbilanz & Chronik',null,'season')+navBtn(view.tab==='hall','Ruhmeshalle & Bestenlisten',null,'hall');
+    h+=`<h3>Historie</h3>`+navBtn(view.tab==='season','Saisonbilanz & Chronik',null,'season')+navBtn(false,'⏩ Zeitsprung (mehrere Jahre)',null,'jump')+navBtn(view.tab==='hall','Ruhmeshalle & Bestenlisten',null,'hall');
     h+=`<h3>Ewige Tabellen</h3>`+['bl','bl2','l3','pl','ll','sa','l1'].map(id=>L(id)).filter(Boolean).map(l=>navBtn(false,l.name,null,'ewig:'+l.id)).join('')+`<p class="note" style="margin:6px 8px">Jede andere Liga: Liga öffnen und über der Tabelle „Ewige Tabelle“ wählen.</p>`;
     h+=`<h3>Spielstand</h3>`+navBtn(view.tab==='save','Spielstand sichern & laden',null,'savev');
     h+=`<button class="nav-i" data-act="reset" style="color:var(--down);margin-top:8px">Spielstand zurücksetzen</button>`;
@@ -133,8 +133,9 @@ function renderOverlay(){
   document.body.style.overflow='hidden';
   const x=`<button class="ib" data-act="ovx" aria-label="Schließen">${svg('<path d="M6 6l12 12M18 6L6 18"/>')}</button>`;
   let h='';
-  if(o.t==='nav') h=`<div class="drawer" role="dialog" aria-label="${esc(AREA_T(view.area))}"><div class="ovh"><b>${esc(AREA_T(view.area))}</b>${x}</div><div class="ovc"><button class="nav-i" data-act="menu" style="font-weight:600;margin-bottom:6px">☰ Hauptmenü <em>Spielstände, neue Karriere</em></button>${sideHTML(view.area)}</div></div>`;
+  if(o.t==='nav') h=`<div class="drawer" role="dialog" aria-label="${esc(AREA_T(view.area))}"><div class="ovh"><b>${esc(AREA_T(view.area))}</b>${x}</div><div class="ovc"><button class="nav-i" data-act="menu" style="font-weight:600;margin-bottom:6px">☰ Hauptmenü <em>Spielstände, neue Karriere</em></button><button class="nav-i" data-act="jump" style="font-weight:600;margin-bottom:6px">⏩ Zeitsprung <em>mehrere Jahre am Stück simulieren</em></button>${sideHTML(view.area)}</div></div>`;
   else if(o.t==='search') h=`<div class="drawer" role="dialog" aria-label="Suche"><div class="ovh"><b>Suche</b>${x}</div><div class="ovc"><div class="side"><input class="search" id="q" placeholder="Verein, Liga oder Pokal suchen …" autocomplete="off"><div class="sres" id="sres"></div></div></div></div>`;
+  else if(o.t==='jump') h=`<div class="sheet" role="dialog" aria-label="Zeitsprung"><div class="ovh"><b>⏩ Zeitsprung</b>${o.running?'':x}</div>${jumpHTML()}</div>`;
   else if(o.t==='talk'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Gespräch"><div class="ovh"><b>Gespräch mit ${esc(P()[o.pid].n)}</b>${x}</div>${talkSheet(o.pid)}</div>`;
   else if(o.t==='menu') h=`<div class="mscreen" role="dialog" aria-label="Hauptmenü">${menuHTML()}</div>`;
   else if(o.t==='match') h=`<div class="sheet msheet" role="dialog" aria-label="Live-Spiel"><div class="ovh"><b>${o.m.hg!=null&&!o.fresh&&!o.playing?'Spielbericht':'Live'}</b>${x}</div><div class="ovc">${matchHTML()}</div></div>`;

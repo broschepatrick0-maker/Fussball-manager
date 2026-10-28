@@ -41,3 +41,8 @@ function leagueSancHTML(lg){const r=SC().filter(x=>x.lg===lg.id&&x.s===S.season)
   return `<div class="card"><h3 class="ct">Sportgericht <span class="meta">${r.length} ${r.length===1?'Urteil':'Urteile'} in dieser Saison</span></h3>${sancList(r,true)}</div>`}
 function clubSancHTML(id){const r=SC().filter(x=>x.id===id);if(!r.length)return '';
   return `<div class="card"><h3 class="ct">Strafen & Sportgericht</h3>${sancList(r.slice(0,12),false)}</div>`}
+// Aufräumen: Spieler ohne Verein und ohne Bezug (Scouting, Jugend, Angebote) entfernen
+function gcPlayers(){if(!S.pl)return 0;const keep=new Set();Object.values(S.teams).forEach(t=>(t.sq||[]).forEach(id=>keep.add(id)));
+  if(S.scout&&S.scout.list)Object.keys(S.scout.list).forEach(id=>keep.add(id));if(S.acad&&S.acad.intake)S.acad.intake.forEach(id=>keep.add(id));
+  (S.offers||[]).forEach(o=>keep.add(o.pid));if(S.mgr){(S.mgr.xi||[]).forEach(id=>id&&keep.add(id));if(S.mgr.cap)keep.add(S.mgr.cap);(S.mgr.talk||[]).forEach(x=>keep.add(x.pid))}
+  let n=0;for(const id of Object.keys(S.pl)){if(!keep.has(id)){delete S.pl[id];n++}}S.inj=(S.inj||[]).filter(e=>S.pl[e[0]]);return n}

@@ -144,7 +144,7 @@ function renderImport(){
 }
 function renderSeason(){
   const done=S.done;
-  let h=`<div class="card"><div class="hd"><div><div class="meta">Saison ${S.season}/${String(S.season+1).slice(2)}</div><h2>Saisonbilanz</h2></div>${done?'<button class="btn pri" data-act="newseason">Neue Saison starten</button>':''}</div>`;
+  let h=`<div class="card"><div class="hd"><div><div class="meta">Saison ${S.season}/${String(S.season+1).slice(2)}</div><h2>Saisonbilanz</h2></div><div class="ctrls">${done?'<button class="btn pri" data-act="newseason">Neue Saison starten</button>':''}<button class="btn" data-act="jump">⏩ Zeitsprung</button></div></div>`;
   const champs=S.leagues.filter(l=>l.played>0).sort((a,b)=>a.level-b.level).map(l=>{const t=table(l)[0];return `<div class="m" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><span>${esc(l.name)}</span><span class="w">${esc(T(t.id).name)} <span class="meta">${t.p} Pkt.</span></span></div>`});
   h+=`<h4 class="meta" style="margin:4px 0">${done?'Meister':'Tabellenführer'}</h4><div class="matches">${champs.join('')||'<div class="empty">Noch kein Spieltag gespielt.</div>'}</div>`;
   const cw=S.cups.filter(c=>c.winner);
@@ -197,6 +197,11 @@ function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
   if(k==='menu'){openMenu();return}
+  if(k==='jump'){if(JUMP.run)return;view.ov={t:'jump',n:10};render();return}
+  if(k==='jumpn'){view.ov.n=+v;render();return}
+  if(k==='jumpgo'){const i=document.getElementById('jumpN');let n=Math.max(1,Math.min(500,Math.round(+(i&&i.value)||view.ov.n||10)));if(i&&+i.value!==view.ov.n)n=Math.max(1,Math.min(500,Math.round(+i.value)));runJump(n);return}
+  if(k==='jumpstop'){JUMP.stop=true;if(JUMP.o)JUMP.o.stopping=true;paintJump();return}
+  if(view.ov&&view.ov.t==='jump'&&view.ov.running&&k==='ovx')return;
   if(k==='cal'){view=S.fav&&T(S.fav)?{tab:'fav',ftab:'kal'}:{tab:'cal'};view.cm=null;render();return}
   if(k==='calm'){view.cm=+v===0?null:Math.max(0,Math.min(11,(view.cm??0)+ +v));render();return}
   if(view.ov&&view.ov.t==='menu'&&['mscr','mcont','mstart','mclub','mslot','mtheme','mspeed','mload','mdel','mgo'].includes(k)){menuAct(k,v);return}
@@ -339,7 +344,7 @@ $('bNext').onclick=()=>advance('next');
 $('bTen').onclick=()=>advance('week');
 $('bAll').onclick=()=>{advance('all');view={...view,tab:'season'};render();toast('Saison beendet')};
 $('bNew').onclick=()=>act('newseason');
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov&&!(view.ov.t==='jump'&&view.ov.running)){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
 function migrateLoaded(){
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
