@@ -427,3 +427,9 @@ button.clock:hover b{text-decoration:underline}
 .noup{margin-top:12px;padding:10px 12px;border:1px solid var(--line);border-left:3px solid #d0453b;border-radius:8px;font-size:13px;display:flex;flex-direction:column;gap:3px}
 .noup b{font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
 .tag.nup{padding:0 3px;border:0;background:none}
+.pyr{display:flex;flex-direction:column;gap:8px;margin:2px 0 12px}
+.pyr-up{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font:inherit;color:inherit;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:8px;padding:8px 10px;cursor:pointer;min-width:0}
+.pyr-up span{color:var(--accent);font-size:14px}.pyr-up small{color:var(--muted);font-size:12px;white-space:nowrap}.pyr-up b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pyr-up:hover{border-color:var(--accent)}
+.pyr-down small{color:var(--muted);font-size:12px;display:block;margin-bottom:4px}
+.pyr-chips{display:flex;flex-wrap:wrap;gap:6px}.pyr-chips .chip{cursor:pointer}
