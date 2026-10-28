@@ -25,7 +25,7 @@ function enforceReserves(st,log){
       const t=T(id); if(!t||!t.vb||!isRes(t.name)) continue;
       const need=resMinLevel(t.name,byName,x=>lv[x]); if(lv[id]>=need) continue;
       const cur=lg[id],dest=downLeague(cur,t);
-      if(!dest){if(id===S.fav)continue;cur.teams=cur.teams.filter(x=>x!==id);delete lv[id];(S.parked=S.parked||[]).push({id,lg:cur.id});
+      if(!dest){if(id===S.fav||cur.level>4)continue;cur.teams=cur.teams.filter(x=>x!==id);delete lv[id];(S.parked=S.parked||[]).push({id,lg:cur.id});
         log.push(`Zwangsabstieg: ${t.name} muss mind. zwei Ligen unter ${resBase(t.name)} spielen und zieht sich in die Oberliga zurück (nicht simuliert)`);changed=true;continue}
       const sub=(st[dest.id]||dest.teams).filter(x=>dest.teams.includes(x)).find(x=>{const n=T(x).name;return !isRes(n)||resMinLevel(n,byName,y=>lv[y])<=cur.level});
       cur.teams=cur.teams.filter(x=>x!==id);dest.teams.push(id);lv[id]=dest.level;lg[id]=dest;
