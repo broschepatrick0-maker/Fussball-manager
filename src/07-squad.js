@@ -42,7 +42,7 @@ function FV(){if(!S.fin)S.fin={budget:null,log:[],income:[]};return S.fin}
 function initBudget(){if(S.fav&&T(S.fav))FZ(S.fav)}
 function seasonIncome(id,st){ // Prämien & TV-Geld am Saisonende
   const lg=S.leagues.find(l=>l.teams.includes(id)); if(!lg) return 0;
-  const base={1:lg.foreign?60e6:45e6,2:12e6,3:3e6,4:7e5,5:2e5,6:8e4,7:3e4,8:12e3,9:6e3,10:3e3,11:2e3}[lg.level]||3e3;
+  const base={1:lg.foreign?60e6:45e6,2:12e6,3:3e6,4:7e5,5:2e5,6:8e4,7:3e4,8:12e3,9:6e3,10:3e3,11:2e3,12:1.5e3}[lg.level]||3e3;
   const pos=st[lg.id].indexOf(id)+1,n=st[lg.id].length,f=1.3-0.6*(pos-1)/Math.max(1,n-1);
   let euro=0;(S.euro||[]).forEach(e=>{if(e.teams.includes(id)){const r=euroReach(e,id);euro+=({ucl:18e6,uel:6e6,uecl:3e6}[e.id])*(r==='Sieger'?3:r==='Finale'?2.2:r==='Halbfinale'?1.8:r==='Viertelfinale'?1.5:r==='Achtelfinale'?1.25:1)}});
   let cup=0;S.cups.forEach(c=>{if(c.teams.includes(id)){const r=cupReach(c,id);if(c.type==='dfb')cup+=r==='Sieger'?6e6:r==='Finale'?3e6:r==='Halbfinale'?1.5e6:4e5;else cup+=r==='Sieger'?base*.1:0}});
@@ -51,7 +51,7 @@ function seasonIncome(id,st){ // Prämien & TV-Geld am Saisonende
 // Langzeit-Balance: Jedes Niveau hat eine Norm-Stärke. Nachwuchs entsteht um diese Norm
 // (gute Vereine liefern etwas besseren Nachwuchs), Spieler wachsen bis ~27 Richtung Potenzial
 // und bauen danach ab. So bleibt die Stärke der Ligen über Jahrzehnte stabil.
-const NORM={1:78.6,2:68.8,3:60,4:51.5,5:46,6:41,7:36,8:31,9:26,10:21,11:17,F:78.4};
+const NORM={1:78.6,2:68.8,3:60,4:51.5,5:46,6:41,7:36,8:31,9:26,10:21,11:17,12:14,F:78.4};
 const YOUTH_C=+(globalThis.YOUTH_C??-3);
 function clubNorm(t){const l=lgOf(t.id);if(!l)return t.r;return l.foreign?NORM.F:(NORM[l.level]||t.r)}
 function lvKey(t){const l=lgOf(t.id);return l?(l.foreign?'F':l.level):null}

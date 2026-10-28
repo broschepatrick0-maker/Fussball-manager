@@ -130,7 +130,7 @@ function renderImport(){
   </ol>
   <div class="form">
     <label for="iVb">Landesverband<select id="iVb">${Object.entries(VB).map(([k,v])=>`<option value="${k}"${view.ivb===k?' selected':''}>${v}</option>`).join('')}</select></label>
-    <label for="iLv">Spielklasse<select id="iLv">${[5,6,7,8,9,10,11].map(l=>`<option value="${l}"${(view.ilv||8)==l?' selected':''}>${l}. Liga · ${LEVELS[l]}</option>`).join('')}</select></label>
+    <label for="iLv">Spielklasse<select id="iLv">${[5,6,7,8,9,10,11,12].map(l=>`<option value="${l}"${(view.ilv||8)==l?' selected':''}>${l}. Liga · ${LEVELS[l]}</option>`).join('')}</select></label>
     <label for="iName">Name der Staffel<input id="iName" placeholder="z. B. Kreisliga A Euskirchen" value="${esc(view.iname||'')}"></label>
     <label for="iKreis">Kreis (für den Kreispokal)<input id="iKreis" placeholder="z. B. Euskirchen" value="${esc(view.ikreis||'')}"></label>
     <label for="iUp">Aufstieg in<select id="iUp"><option value="">automatisch</option>${S.leagues.filter(l=>!l.foreign&&(l.vbs||[l.vb]).includes(view.ivb||'BA')&&l.level===(view.ilv||8)-1).sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${esc(l.name)}"${view.iup===l.name?' selected':''}>${esc(l.name)}</option>`).join('')}</select></label>
