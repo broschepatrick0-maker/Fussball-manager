@@ -177,6 +177,7 @@ function render(){
   [['trS','s'],['trL','lg'],['trP','p'],['trT','t'],['trM','min'],['trO','sort']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view.trf={...(view.trf||{}),[k]:e.value};view.trpage=0;render()}});
   {const e=document.getElementById('trQ');if(e)e.onchange=()=>{view.trf={...(view.trf||{}),q:e.value};view.trpage=0;render()}}
   [['mLg','mlg'],['mPos','mpos'],['mMax','mmax']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
+  document.querySelectorAll('select[data-slot]').forEach(sel=>sel.onchange=()=>{const g=MG(),r=mgrXI();const xi=r.xi.slice(),i=+sel.dataset.slot,j=xi.indexOf(sel.value);if(j>=0&&j!==i)xi[j]=xi[i];xi[i]=sel.value;g.xi=xi;recalc(S.fav);save();render()});
   {const pl=document.getElementById('progLg');if(pl)pl.onchange=()=>{view.progLg=pl.value;render()}}
   {const fl=document.getElementById('finLv');if(fl)fl.onchange=()=>{view.finLv=fl.value;render()}}
   {const cs=document.getElementById('chronSel');if(cs)cs.onchange=()=>{view.chron=+cs.value;render()}}
@@ -187,12 +188,17 @@ function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.inam
 function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
+  if(view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done&&!['mpl','msp','mend','mrep','mtac','msub','mtalk','mcosub','club','fav'].includes(k)){dynFinish(view.ov);toast(`Abpfiff: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag}${view.ov.m.pen?' i.E.':view.ov.m.et?' n.V.':''} ${T(view.ov.m.a).name}`);view.ov.fresh=false;view.ov.playing=false}
   if(k==='ovx'){if(view.ov&&view.ov.t==='match'&&view.ov.fresh&&view.ov.playing)toast(`Endstand: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag} ${T(view.ov.m.a).name}`);view.ov=null;render();return}
   if(k==='mt'){openMatch(+v);render();return}
   if(view.ov&&view.ov.t==='match'){const o=view.ov;
-    if(k==='mpl'){o.playing=!o.playing;if(o.playing&&o.i>=o.rep.ticks.length-1)o.i=0;paintMatch();liveRun();return}
+    if(k==='mtac'){dynSetTac(o,v);paintMatch();return}
+    if(k==='mtalk'){if(v==='skip')o.htTalk=false;else dynTalk(o,v);o.playing=true;paintMatch();liveRun();return}
+    if(k==='mcosub'){o.rep.dyn.cosub=!o.rep.dyn.cosub;MG().cosub=o.rep.dyn.cosub;paintMatch();return}
+    if(k==='msub'){const a=document.getElementById('subOut'),b=document.getElementById('subIn');if(a&&b&&dynSub(o.rep,o.rep.dyn.fav,a.value,b.value,o.rep.ticks[o.i]))toast('Wechsel vollzogen');paintMatch();return}
+    if(k==='mpl'){o.htTalk=false;o.playing=!o.playing;if(o.playing&&o.i>=o.rep.ticks.length-1)o.i=0;paintMatch();liveRun();return}
     if(k==='msp'){o.speed=+v;S.liveSpeed=+v;paintMatch();liveRun();return}
-    if(k==='mend'){o.i=o.rep.ticks.length-1;o.playing=false;clearInterval(LIVE.timer);LIVE.timer=null;paintMatch();if(o.fresh){o.fresh=false;toast(`Abpfiff: ${T(o.m.h).name} ${o.m.hg}:${o.m.ag} ${T(o.m.a).name}`)}return}
+    if(k==='mend'){if(o.rep.dyn&&!o.rep.done)dynFinish(o);o.i=o.rep.ticks.length-1;o.playing=false;clearInterval(LIVE.timer);LIVE.timer=null;paintMatch();if(o.fresh){o.fresh=false;toast(`Abpfiff: ${T(o.m.h).name} ${o.m.hg}:${o.m.ag} ${T(o.m.a).name}`)}return}
     if(k==='mrep'){o.i=0;o.playing=true;paintMatch();liveRun();return}}
   if(view.ov&&!['club','fav','sell','accept','decline','simport','md','emd','lmode','mt'].includes(k)) view.ov=null;
   if(k==='lg'){view={...view,tab:'league',id:v,md:null,team:w||null}}
@@ -201,7 +207,7 @@ function act(a){
   else if(k==='home'){view={...view,tab:'home'}}
   else if(k==='euro'){view={...view,tab:'euro',id:v,emd:null}}
   else if(k==='emd'){const e=S.euro.find(x=>x.id===view.id);const cur=view.emd??Math.max(0,Math.min(e.step,e.nmd)-1);view.emd=Math.max(0,Math.min(e.nmd-1,cur+ +v))}
-  else if(k==='fav'){const was=S.fav;S.fav=S.fav===v?null:v;if(S.fav!==was){S.fin={log:[],income:[]};S.invOffer=null;if(S.fav){ensureSquad(S.fav);initBudget()}}save();toast(S.fav?T(v).name+' ist jetzt Mein Verein':'Beobachtung beendet')}
+  else if(k==='fav'){const was=S.fav;S.fav=S.fav===v?null:v;if(S.fav!==was){S.fin={log:[],income:[]};S.invOffer=null;S.mgr=null;S.scout=null;if(S.fav){ensureSquad(S.fav);initBudget()}}save();toast(S.fav?T(v).name+' ist jetzt Mein Verein':'Beobachtung beendet')}
   else if(k==='ftab'){view={...view,tab:'fav',ftab:v,offer:null};window.scrollTo(0,0)}
   else if(k==='sell'){const p=P()[v];if(!p)return;if(!windowOpen()){toast('Das Transferfenster ist geschlossen');return}
     const lv=T(S.fav).lv||8,cands=Object.values(S.teams).filter(t=>t.id!==S.fav&&Math.abs((t.lv||9)-lv)<=1&&!t.cc===!T(S.fav).cc);
@@ -224,6 +230,11 @@ function act(a){
       transferLog({pid:o.pid,n:P()[o.pid].n,from:S.fav,to:o.club,fee:o.amt,out:true});recalc(S.fav);recalc(o.club);toast('Verkauft für '+money(o.amt))}
     save()}
   else if(k==='finv'){view={...view,tab:'fin'}}
+  else if(k==='mform'){setTactic('form',v);save()}
+  else if(k==='mstyle'){setTactic('style',v);save()}
+  else if(k==='mtrain'){MG().train=v;save()}
+  else if(k==='mti'){MG().ti=+v;save()}
+  else if(k==='mbest'){bestXI();recalc(S.fav);save();toast('Beste Elf aufgestellt')}
   else if(k==='watch'){const r=scoutAdd(v);toast(r==='ok'?'Spieler wird jetzt beobachtet':r==='voll'?'Die Beobachtungsliste ist voll – Scouting-Abteilung ausbauen oder Spieler entfernen':'Wird schon beobachtet');save()}
   else if(k==='unwatch'){if(S.scout)delete S.scout.list[v];save()}
   else if(k==='scoutlv'){SC().lv=+v;const mx=SCOUT_LV[+v].max,ks=Object.keys(S.scout.list);ks.slice(mx).forEach(x=>delete S.scout.list[x]);save();toast(SCOUT_LV[+v].n+' – Kosten werden am Saisonende verbucht')}

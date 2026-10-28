@@ -7,8 +7,10 @@
 07-squad.js
 08-finance.js
 08b-players.js
+08c-manager.js
 09-history.js
 10-live.js
+10b-livedyn.js
 11-season.js
 12-import.js
 13-storage.js

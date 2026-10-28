@@ -3,7 +3,8 @@ function pois(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(
 function lam(a,b,home){const d=a-b+(home?4:0);return Math.min(9,Math.max(.1,(home?1.35:1.2)*Math.exp(d/26)))}
 function play(h,a,neutral){
   const rh=effR(h)+(Math.random()*4-2), ra=effR(a)+(Math.random()*4-2);
-  return [pois(lam(rh,ra,!neutral)),pois(lam(ra,rh,false))];
+  const [ah,dh]=tacMul(h,a),[aa,da]=tacMul(a,h);
+  return [pois(Math.min(9,lam(rh,ra,!neutral)*ah*da)),pois(Math.min(9,lam(ra,rh,false)*aa*dh))];
 }
 function playRound(lg){
   if(lg.played>=lg.rounds.length) return;
@@ -22,6 +23,7 @@ function table(lg){
 function maxRounds(){return Math.max(...S.leagues.map(l=>l.rounds.length))}
 function simDay(){
   if(S.done) return;
+  if(typeof view!=='undefined'&&view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done)dynFinish(view.ov);
   const before={L:{},C:{},E:{},EW:{}};S.leagues.forEach(l=>before.L[l.id]=l.played);S.cups.forEach(c=>before.C[c.id]=c.played);(S.euro||[]).forEach(e=>{before.E[e.id]=e.step;before.EW[e.id]=e.winner});
   try{tickInjuries();tickScouting();simDayCore()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
 }

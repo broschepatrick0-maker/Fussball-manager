@@ -28,7 +28,7 @@ function ensureSquad(id){
   const d=t.r-xi(sq);sq.forEach(pid=>P()[pid].s=+clampS(P()[pid].s+d).toFixed(1));
   t.sq=sq; return sq;
 }
-function recalc(id){const t=T(id);if(t.sq&&t.sq.length) t.r=+xi(t.sq).toFixed(1)}
+function recalc(id){const t=T(id);if(!t.sq||!t.sq.length)return;if(id===S.fav&&S.mgr){t.r=+mgrXI(id).rating.toFixed(1);return}t.r=+xi(t.sq).toFixed(1)}
 function value(pid){
   const p=P()[pid]; if(!p) return 0;
   const am=p.a<=21?1.25:p.a<=24?1.1:p.a<=28?1:p.a<=30?.8:p.a<=32?.55:.3;

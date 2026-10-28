@@ -5,6 +5,7 @@ function rpois(l,R){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=R()}while(p>L);re
 const rpick=(a,R)=>a[Math.floor(R()*a.length)];
 function wpickR(items,w,R){const s=w.reduce((a,b)=>a+b,0);let x=R()*s;for(let i=0;i<items.length;i++){x-=w[i];if(x<=0)return items[i]}return items[items.length-1]}
 function lineup(id){
+  if(id===S.fav&&S.mgr){const r=mgrXI(id);return {xi:r.xi.filter(Boolean),bench:r.bench}}
   const sq=ensureSquad(id).filter(pid=>P()[pid]&&!P()[pid].inj).slice().sort((a,b)=>P()[b].s-P()[a].s);
   const xi=[],used=new Set();
   for(const [p,n] of [['TW',1],['AB',4],['MF',4],['ST',2]]){sq.filter(x=>P()[x].p===p&&!used.has(x)).slice(0,n).forEach(x=>{xi.push(x);used.add(x)})}
@@ -117,15 +118,15 @@ function matchStats(rep,o){
 }
 function liveScore(rep,o){let h=0,a=0;for(const e of rep.ev){if(e.o>o)break;if(e.t==='goal'){e.s==='h'?h++:a++}}return [h,a]}
 function matchHTML(){
-  const L_=view.ov,m=L_.m,ctx=L_.ctx,rep=L_.rep,i=Math.min(L_.i,rep.ticks.length-1),o=rep.ticks[i],end=i>=rep.ticks.length-1;
+  const L_=view.ov,m=L_.m,ctx=L_.ctx,rep=L_.rep,i=Math.min(L_.i,rep.ticks.length-1),o=rep.ticks[i],end=rep.dyn?(rep.done&&i>=rep.ticks.length-1):i>=rep.ticks.length-1;
   const [sh,sa]=liveScore(rep,o),st=matchStats(rep,o);
   const half=Math.floor(o/100);
   const clock=i===0?'vor dem Anpfiff':o>=400?'Elfmeterschießen':end?(rep.et?'n.V.':'Ende'):rep.ev.some(e=>e.t==='ht'&&Math.abs(e.o-o)<0.001)?'Halbzeit':rep.label(o);
   const pct=Math.round(i/(rep.ticks.length-1)*100);
   const scorers=s=>rep.ev.filter(e=>e.o<=o&&e.t==='goal'&&e.s===s).map(e=>`${esc(P()[e.sc]?P()[e.sc].n.split(' ').slice(-1)[0]:'?')} ${rep.label(e.o)}${e.pen?' (E)':e.og?' (ET)':''}`).join(', ');
   const reds=s=>rep.ev.filter(e=>e.o<=o&&e.t==='red'&&e.s===s).length;
-  const shown=rep.ev.filter(e=>e.o<=o&&!e.quiet).slice().reverse();
-  const ico={goal:'⚽',pgoal:'⚽',pmiss:'✕',save:'🧤',post:'▮',miss:'↗',block:'■',yellow:'🟨',red:'🟥',sub:'⇄',kick:'▶',kick2:'▶',ht:'⏸',ft:'⏹',ft90:'⏱',end:'🏆'};
+  const shown=rep.ev.filter(e=>e.o<=o+0.5&&!e.quiet).slice().sort((x,y)=>y.o-x.o);
+  const ico={tac:'📋',goal:'⚽',pgoal:'⚽',pmiss:'✕',save:'🧤',post:'▮',miss:'↗',block:'■',yellow:'🟨',red:'🟥',sub:'⇄',kick:'▶',kick2:'▶',ht:'⏸',ft:'⏹',ft90:'⏱',end:'🏆'};
   const pen=o>=400?(()=>{let a=0,b=0;rep.ev.forEach(e=>{if(e.o<=o&&e.t==='pgoal'){e.s==='h'?a++:b++}});return `<small>i.E. ${a}:${b}</small>`})():'';
   const row=(lbl,a,b,fmt=x=>x)=>{const t=a+b||1;return `<div class="srow"><b>${fmt(a)}</b><span>${lbl}</span><b>${fmt(b)}</b><div class="sbar"><i style="width:${a/t*100}%"></i><i style="width:${b/t*100}%"></i></div></div>`};
   const posNow=i===0?50:Math.round(rep.pos+Math.sin(i/7)*3);
@@ -140,6 +141,7 @@ function matchHTML(){
   <div class="mctl">${end?`<button class="btn" data-act="mrep">↺ Nochmal ansehen</button>`:`<button class="btn pri" data-act="mpl">${L_.playing?'⏸ Pause':'▶ '+(i===0?'Anpfiff':'Weiter')}</button>`}
    <div class="seg" style="margin:0">${SPEEDS.map(([k,,t])=>`<button class="${speed===k?'on':''}" data-act="msp:${k}">${t}</button>`).join('')}</div>
    ${end?'':`<button class="btn" data-act="mend">Zum Ende ⏭</button>`}</div>
+  ${rep.dyn?dynControls(L_):''}
   <div class="mgrid"><div class="card"><h3 class="ct">Liveticker</h3><div class="tick">${shown.map(e=>`<div class="te t-${e.t}${e.s?' s-'+e.s:''}"><span class="tm_">${e.o>=400?'':e.o===0?'':rep.label(e.o)}</span><span class="ti">${ico[e.t]||'•'}</span><span>${e.t==='goal'?`<b>TOR für ${esc(T(rep.side[e.s].id).name)}!</b> `:''}${esc(e.txt||'')}${e.t==='goal'?` <b>${liveScore(rep,e.o).join(':')}</b>`:''}</span></div>`).join('')||'<div class="empty">Gleich geht es los …</div>'}</div></div>
   <div class="card"><h3 class="ct">Statistik</h3>${row('Ballbesitz',posNow,100-posNow,x=>x+'%')}${row('Torschüsse',st.h.sh,st.a.sh)}${row('Aufs Tor',st.h.on,st.a.on)}${row('Ecken',st.h.co,st.a.co)}${row('Fouls',st.h.fo,st.a.fo)}${row('Abseits',st.h.of,st.a.of)}${row('Gelbe Karten',st.h.ye,st.a.ye)}${st.h.re+st.a.re?row('Rote Karten',st.h.re,st.a.re):''}
    <h3 class="ct" style="margin-top:14px">Aufstellungen</h3><div class="lus">${lu('h')}${lu('a')}</div></div></div></div>`;
@@ -147,8 +149,9 @@ function matchHTML(){
 function liveTick(){
   const o=view.ov;if(!o||o.t!=='match'){clearInterval(LIVE.timer);LIVE.timer=null;return}
   if(!o.playing)return;
-  const before=liveScore(o.rep,o.rep.ticks[o.i]).join();o.i++;
-  if(o.i>=o.rep.ticks.length-1){o.i=o.rep.ticks.length-1;o.playing=false}
+  const before=liveScore(o.rep,o.rep.ticks[o.i]).join();
+  if(o.rep.dyn&&!o.rep.done){dynStep(o);if(o.rep.done)o.playing=false}
+  else{o.i++;if(o.i>=o.rep.ticks.length-1){o.i=o.rep.ticks.length-1;o.playing=false}}
   o.flash=liveScore(o.rep,o.rep.ticks[o.i]).join()!==before;
   paintMatch();
   if(!o.playing){clearInterval(LIVE.timer);LIVE.timer=null;if(o.fresh){o.fresh=false;toast(`Abpfiff: ${T(o.m.h).name} ${o.m.hg}:${o.m.ag}${o.m.pen?' i.E.':o.m.et?' n.V.':''} ${T(o.m.a).name}`)}}
@@ -157,6 +160,8 @@ function paintMatch(){const c=document.querySelector('#ov .ovc');if(c){c.innerHT
 function liveRun(){clearInterval(LIVE.timer);const o=view.ov;if(!o||!o.playing)return;const ms=(SPEEDS.find(x=>x[0]===(o.speed||1))||SPEEDS[0])[1];LIVE.timer=setInterval(liveTick,ms)}
 function openMatch(ref){
   const r=MREF[ref];if(!r)return;const {m,ctx}=r;let fresh=false;
+  if(m.hg==null&&ctx.canLive&&S.fav&&(m.h===S.fav||m.a===S.fav)){const rep=dynStart(m,ctx);
+    view.ov={t:'match',m,ctx,rep,i:0,playing:false,speed:(view.ov&&view.ov.speed)||(S.liveSpeed||1),fresh:true,top:true};return}
   if(m.hg==null){if(!ctx.canLive){toast('Dieses Spiel ist noch nicht dran – live geht immer das nächste anstehende Spiel');return}decideMatch(m,ctx);fresh=true;save()}
   const rep=matchReport(m,ctx);
   view.ov={t:'match',m,ctx,rep,i:fresh?0:rep.ticks.length-1,playing:fresh,speed:(view.ov&&view.ov.speed)||(S.liveSpeed||1),fresh,top:true};

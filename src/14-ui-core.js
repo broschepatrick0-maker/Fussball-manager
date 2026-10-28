@@ -76,7 +76,7 @@ function sideHTML(a){
   }
   if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
-    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
+    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['taktik','Taktik & Training'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
   }
   if(a==='tr'){
@@ -119,7 +119,7 @@ function ctxBar(){
     chips=[dfb&&chip(c&&c.id===dfb.id,'DFB-Pokal','cup:'+dfb.id),...same.filter(x=>x.type!=='dfb').map(x=>chip(c&&c.id===x.id,x.name.replace('Kreispokal ',''),'cup:'+x.id))].filter(Boolean);
   }
   if(a==='fav'){cur=S.fav&&T(S.fav)?T(S.fav).name:'Mein Verein';
-    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
+    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['taktik','Taktik'],['kader','Kader'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
@@ -360,6 +360,7 @@ function renderFav(){
     if(off.length) h+=`<div class="card offer"><h3 class="ct">Angebote für deine Spieler</h3>${(S.offers||[]).map((o,i)=>T(S.fav).sq.includes(o.pid)?`<div class="orow"><span><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} <span class="meta">(${P()[o.pid].p}, ${P()[o.pid].a} J., Marktwert ${money(value(o.pid))})</span></span><span class="ctrls"><button class="btn sm pri" data-act="oacc:${i}">Annehmen</button><button class="btn sm" data-act="odec:${i}">Ablehnen</button></span></div>`:'').join('')}</div>`;
   }
   if(ft==='scout') h+=renderScout(id);
+  if(ft==='taktik') h+=renderTactics(id);
   if(ft==='ov'){const sq=ensureSquad(id).map(pid=>[pid,P()[pid]]).filter(x=>x[1]);const inj=sq.filter(x=>x[1].inj),exp=sq.filter(x=>x[1].c!=null&&x[1].c<=S.season);
     if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Spiel':'Spiele'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls">${[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
   if(ft==='kader'){
