@@ -10,15 +10,16 @@ function dynStart(m,ctx){
   const label=o=>{const half=Math.floor(o/100),mi=Math.round((o%100)*10)/10;const base={0:45,1:90,2:105,3:120}[half];if(mi>base)return base+'+'+Math.round((mi-base)*10)+"'";return Math.floor(mi)+"'"};
   const favSide=m.h===S.fav?'h':m.a===S.fav?'a':null;
   const rep={ev:[{o:0,t:'kick',txt:`Anpfiff! ${T(m.h).name} gegen ${T(m.a).name}`}],ticks,side,label,et:false,pens:false,pos:50,share:.5,dyn:{
-    fav:favSide,st1,st2,cup:!!ctx.cup,neutral:!!ctx.neutral,subs:{h:0,a:0},entered:{},reds:{h:0,a:0},tac:{h:tacStyleOf(m.h,m.a),a:tacStyleOf(m.a,m.h)},talk:0,talked:false,cosub:MG().cosub,possSum:0,possN:0,yel:{},markers:[45+st1/10+0.09,100+90+st2/10+0.09]}};
+    fav:favSide,st1,st2,cup:!!ctx.cup,neutral:!!ctx.neutral,subs:{h:0,a:0},entered:{},left:{},pen0:{h:fatPen(m.h),a:fatPen(m.a)},reds:{h:0,a:0},tac:{h:tacStyleOf(m.h,m.a),a:tacStyleOf(m.a,m.h)},talk:0,talked:false,cosub:MG().cosub,possSum:0,possN:0,yel:{},markers:[45+st1/10+0.09,100+90+st2/10+0.09]}};
   side.h.xi.concat(side.a.xi).forEach(pid=>rep.dyn.entered[pid]=0);
   return rep;
 }
 function dynMinute(o){const t=o%100;const h=Math.floor(o/100);return h===0?t:h===1?t:h===2?t:t} // Spielminute für Ermüdung
 function dynStr(rep,s,o){const d=rep.dyn,sd=rep.side[s],mi=(Math.floor(o/100)>=1?Math.floor(o%100):Math.floor(o%100));
   const tired=pid=>{const since=d.entered[pid]||0,played=mi-since;return Math.max(0,played-55)*0.045*(d.tac[s]==='pressing'?1.5:1)};
-  const sum=sd.xi.reduce((a,pid)=>a+(P()[pid]?P()[pid].s:20)-tired(pid),0);
-  const t=T(sd.id);return sum/11+(t.fm||0)*0.5+(((t.mo??60)-60)/15)+famPenalty(sd.id)+(s===d.fav?d.talk:0)}
+  const fav=sd.id===S.fav&&S.mgr;
+  const sum=sd.xi.reduce((a,pid)=>{const p=P()[pid];return a+(p?p.s*(fav?fitMul(curFi(p)):1):20)-tired(pid)*(fav&&p?(1+Math.max(0,88-curFi(p))/40):1)},0);
+  const t=T(sd.id);return sum/11-(d.pen0?d.pen0[s]||0:0)+(t.fm||0)*0.5+(((t.mo??60)-60)/15)+famPenalty(sd.id)+(s===d.fav?d.talk:0)}
 function dynAdd(rep,e){rep.ev.push(e)}
 function dynStep(ov){
   const rep=ov.rep,d=rep.dyn,m=ov.m;if(rep.done)return;
@@ -62,7 +63,7 @@ function dynGoal(rep,s,o){const R=Math.random,r=R();
   dynAdd(rep,{o,t:'goal',s,sc:p,as:a,txt:rpick(GOALTXT,R)(nmP(p),a?nmP(a):null)})}
 function dynSendOff(rep,s,pid){rep.side[s].xi=rep.side[s].xi.filter(x=>x!==pid);rep.dyn.reds[s]++}
 function dynSub(rep,s,out,inn,o){const d=rep.dyn;if(d.subs[s]>=5)return false;const sd=rep.side[s];if(!sd.xi.includes(out)||!sd.bench.includes(inn))return false;
-  sd.xi=sd.xi.map(x=>x===out?inn:x);sd.bench=sd.bench.filter(x=>x!==inn);d.subs[s]++;d.entered[inn]=Math.floor(o%100);
+  sd.xi=sd.xi.map(x=>x===out?inn:x);sd.bench=sd.bench.filter(x=>x!==inn);d.subs[s]++;d.entered[inn]=Math.floor(o%100);d.left[out]=Math.floor(o%100);
   dynAdd(rep,{o:o+0.05,t:'sub',s,txt:`Wechsel: ${nmP(inn)} kommt für ${nmP(out)}`});return true}
 function dynEndCheck(ov,o){const rep=ov.rep,d=rep.dyn,m=ov.m;o=o??rep.ticks[rep.ticks.length-1];const [h,a]=liveScore(rep,999);const half=Math.floor(o/100);
   if(d.cup&&h===a&&half<=1){rep.et=true;dynAdd(rep,{o,t:'ft90',txt:'Nach 90 Minuten steht es unentschieden – Verlängerung!'});
@@ -79,6 +80,8 @@ function dynPenStep(ov){const rep=ov.rep,d=rep.dyn,k=d.pk,o=rep.ticks[ov.i];cons
 function dynCommit(ov){const rep=ov.rep,m=ov.m,d=rep.dyn;if(rep.done)return;const [h,a]=liveScore(rep,9999);m.hg=h;m.ag=a;m.lv=1;
   if(rep.et)m.et=true;if(rep.pens)m.pen=[d.pk.h,d.pk.a];
   if(d.cup){m.w=m.pen?(m.pen[0]>m.pen[1]?m.h:m.a):(m.hg>m.ag?m.h:m.a);afterMatch(m,9)}
+  try{const end=rep.et?120:90,mins={};Object.keys(d.entered).forEach(pid=>{const a=d.entered[pid]||0,b=d.left[pid]??end;mins[pid]=Math.max(0,Math.min(end,b)-a)*(90/end)*(end>90?1.25:1)});
+    const fs=m.h===S.fav?'h':m.a===S.fav?'a':null;[['h',m.h],['a',m.a]].forEach(([s,id])=>tire(id,s===fs?mins:null))}catch(e){console.warn(e)}
   rep.done=true;ov.i=rep.ticks.length-1;ov.playing=false;save()}
 function dynFinish(ov){let g=0;while(!ov.rep.done&&g++<400){if(ov.htTalk)ov.htTalk=false;dynStep(ov)}}
 // Kabinenansprache zur Halbzeit

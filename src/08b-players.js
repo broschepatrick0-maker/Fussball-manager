@@ -16,13 +16,15 @@ function afterMatch(m,lv){
   [[m.h,res[0],m.hg-m.ag],[m.a,res[1],m.ag-m.hg]].forEach(([id,r,gd])=>{const t=T(id);if(!t)return;
     t.fm=+((t.fm||0)*0.72+r*0.85+Math.max(-1,Math.min(1,gd/4))*0.3).toFixed(2);
     t.mo=Math.round(Math.max(5,Math.min(100,(t.mo??60)+(60-(t.mo??60))*0.1+r*4+(Math.abs(gd)>=3?r*2:0))));
-    if(Math.random()<(lv<=2?.16:.11)*injuryMod(id)) injure(id);
+    if(Math.random()<(lv<=2?.16:.11)*injuryMod(id)*fatInjMod(id)) injure(id);
     if(id===S.fav) trainTick();
     if(id===S.fav)(t.sq||[]).forEach(pid=>{const p=P()[pid];if(p)p.fo=+Math.max(-3,Math.min(3,(p.fo||0)*0.7+gauss()*0.6+r*0.25)).toFixed(1)});
   });
 }
 function injure(id){const t=T(id);if(!t||!t.sq)return;const fit=t.sq.filter(pid=>P()[pid]&&!P()[pid].inj);if(fit.length<14)return;
-  const pid=fit[Math.floor(Math.random()*fit.length)],p=P()[pid];
+  let pid=fit[Math.floor(Math.random()*fit.length)];
+  if(id===S.fav&&S.mgr){const xi=new Set(mgrXI(id).xi);pid=wpickR(fit,fit.map(x=>(xi.has(x)?3:0.6)*(1+Math.max(0,90-curFi(P()[x]))/12)),Math.random)}
+  const p=P()[pid];
   const [n,lo,hi]=wpickR(INJ,INJ.map(x=>x[3]),Math.random);const d=lo+Math.floor(Math.random()*(hi-lo+1));
   p.inj=d;p.it=n;if(!S.inj)S.inj=[];S.inj.push([pid,id]);if(p.s>=t.r-4)recalc(id);
   if(id===S.fav||(lvOfTeam(id)<=1&&p.s>=86&&d>=6)) try{addNews({cat:id===S.fav?'fav':'liga',clubs:[id],h:`${t.name} muss auf ${p.n} verzichten`,b:`${p.n} (${POSN[p.p]}) fällt mit ${n} voraussichtlich ${d} ${d===1?'Spiel':'Spiele'} aus.`,imp:d>=10?2:1})}catch(e){}

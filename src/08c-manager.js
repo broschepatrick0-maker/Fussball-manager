@@ -13,13 +13,17 @@ const FIT={TW:{TW:0,AB:25,MF:25,ST:25},AB:{TW:25,AB:0,MF:6,ST:12},MF:{TW:25,AB:6
 const slotStr=(pid,slot)=>{const p=P()[pid];return p?p.s-FIT[slot][p.p]:0};
 // Aufstellung für Mein Verein: gewählte Elf, Ausfälle werden automatisch ersetzt
 function mgrXI(id){id=id||S.fav;const g=MG(),slots=slotsOf(g.form),sq=ensureSquad(id).filter(pid=>P()[pid]);
-  const fit=sq.filter(pid=>!P()[pid].inj),used=new Set(),xi=new Array(slots.length).fill(null);
+  const fit=sq.filter(pid=>!P()[pid].inj),used=new Set(),xi=new Array(slots.length).fill(null),rot=[];
   if(g.xi)g.xi.forEach((pid,i)=>{if(i<slots.length&&pid&&fit.includes(pid)&&!used.has(pid)){xi[i]=pid;used.add(pid)}});
+  // automatische Rotation: müde Stammspieler gegen frischere Ersatzleute derselben Position tauschen, wenn es sich lohnt
+  if(g.xi&&rotOn())slots.forEach((sl,i)=>{const pid=xi[i];if(!pid||curFi(P()[pid])>=rotT())return;
+    const alt=fit.filter(x=>!used.has(x)&&!g.xi.includes(x)&&P()[x].p===P()[pid].p&&curFi(P()[x])>=rotT()).sort((a,b)=>slotEff(b,sl)-slotEff(a,sl))[0];
+    if(alt&&slotEff(alt,sl)>=slotEff(pid,sl)-2.5){xi[i]=alt;used.delete(pid);used.add(alt);rot.push([pid,alt])}});
   // erst gelernte Positionen besetzen, dann Lücken mit dem besten Ersatz füllen
-  slots.forEach((sl,i)=>{if(xi[i])return;const best=fit.filter(pid=>!used.has(pid)&&P()[pid].p===sl).sort((a,b)=>P()[b].s-P()[a].s)[0];if(best){xi[i]=best;used.add(best)}});
-  slots.forEach((sl,i)=>{if(xi[i])return;const best=fit.filter(pid=>!used.has(pid)).sort((a,b)=>slotStr(b,sl)-slotStr(a,sl))[0];if(best){xi[i]=best;used.add(best)}});
-  const vals=slots.map((sl,i)=>xi[i]?slotStr(xi[i],sl):15);
-  return {slots,xi,bench:fit.filter(pid=>!used.has(pid)).sort((a,b)=>P()[b].s-P()[a].s).slice(0,9),rating:vals.reduce((a,b)=>a+b,0)/vals.length}}
+  slots.forEach((sl,i)=>{if(xi[i])return;const best=fit.filter(pid=>!used.has(pid)&&P()[pid].p===sl).sort((a,b)=>slotEff(b,sl)-slotEff(a,sl))[0];if(best){xi[i]=best;used.add(best)}});
+  slots.forEach((sl,i)=>{if(xi[i])return;const best=fit.filter(pid=>!used.has(pid)).sort((a,b)=>slotEff(b,sl)-slotEff(a,sl))[0];if(best){xi[i]=best;used.add(best)}});
+  const vals=slots.map((sl,i)=>xi[i]?slotEff(xi[i],sl):15);
+  return {slots,xi,rot,bench:fit.filter(pid=>!used.has(pid)).sort((a,b)=>P()[b].s-P()[a].s).slice(0,9),rating:vals.reduce((a,b)=>a+b,0)/vals.length}}
 function bestXI(){const g=MG();g.xi=null;const r=mgrXI();g.xi=r.xi.slice();return r}
 function famPenalty(id){return id===S.fav&&S.mgr?-(100-S.mgr.fam)/25:0}
 function setTactic(k,v){const g=MG();const old=g[k];g[k]=v;if((k==='style'||k==='form')&&old!==v)g.fam=Math.max(0,g.fam-35);if(k==='form'){g.xi=null}recalc(S.fav)}
@@ -43,16 +47,16 @@ function renderTactics(id){
   const g=MG(),r=mgrXI(id),sq=ensureSquad(id).filter(pid=>P()[pid]).sort((a,b)=>POS.indexOf(P()[a].p)-POS.indexOf(P()[b].p)||P()[b].s-P()[a].s);
   const SL={TW:'Tor',AB:'Abwehr',MF:'Mittelfeld',ST:'Sturm'};
   const rows=r.slots.map((sl,i)=>{const cur=r.xi[i];const val=cur?slotStr(cur,sl):0,off=cur&&P()[cur].p!==sl;
-    return `<tr><td class="l"><span class="pos-${sl}">${sl}</span></td><td class="l"><select class="search xs" data-slot="${i}">${sq.map(pid=>{const p=P()[pid];return `<option value="${pid}"${pid===cur?' selected':''}${p.inj?' disabled':''}>${p.p} · ${esc(p.n)} · ${p.s.toFixed(0)}${p.inj?' · verletzt':''}</option>`}).join('')}</select></td><td class="${off?'no':''}">${cur?val.toFixed(1):'–'}${off?' <span class="meta">fremde Position</span>':''}</td></tr>`}).join('');
-  const nxt=teamMatches(id).find(x=>!x.done);
+    return `<tr><td class="l"><span class="pos-${sl}">${sl}</span></td><td class="l"><select class="search xs" data-slot="${i}">${sq.map(pid=>{const p=P()[pid];return `<option value="${pid}"${pid===cur?' selected':''}${p.inj?' disabled':''}>${p.p} · ${esc(p.n)} · ${p.s.toFixed(0)}${p.inj?' · verletzt':' · '+Math.round(curFi(p))+' %'}</option>`}).join('')}</select></td><td>${cur?fiLbl(P()[cur]):''}</td><td class="${off?'no':''}">${cur?slotEff(cur,sl).toFixed(1):'–'}${off?' <span class="meta">fremde Position</span>':''}${cur&&(r.rot||[]).some(x=>x[1]===cur)?' <span class="tag">rotiert</span>':''}</td></tr>`}).join('');
+  const nxt=clubFixtures(id).find(x=>!x.done);
   const opp=nxt?(nxt.m.h===id?nxt.m.a:nxt.m.h):null;
   const prob=nxt?matchProb(nxt.m.h,nxt.m.a):null;
-  return `<div class="grid2"><div class="card"><div class="hd"><h3 class="ct" style="margin:0">Aufstellung</h3><span class="tag">Stärke ${r.rating.toFixed(1)}</span></div>
+  return `<div class="grid2"><div><div class="card"><div class="hd"><h3 class="ct" style="margin:0">Aufstellung</h3><span class="tag">Stärke ${r.rating.toFixed(1)}</span></div>
    <div class="chipbar" style="flex-wrap:wrap;margin-bottom:10px">${Object.keys(FORMS).map(f=>`<button class="${g.form===f?'on':''}" data-act="mform:${f}">${f}</button>`).join('')}</div>
    <table><tbody>${rows}</tbody></table>
    <div class="ctrls" style="margin-top:10px"><button class="btn" data-act="mbest">Beste Elf aufstellen</button></div>
-   <p class="note" style="margin-top:8px">Verletzte Spieler ersetzt der Co-Trainer automatisch. Spieler auf einer fremden Position verlieren an Stärke (Abwehr ↔ Mittelfeld −6, Mittelfeld ↔ Sturm −5, Abwehr ↔ Sturm −12, Torwart im Feld −25).</p></div>
-  <div><div class="card"><div class="hd"><h3 class="ct" style="margin:0">Spielstil</h3><span class="tag">Eingespielt ${Math.round(g.fam)} %</span></div>
+   <p class="note" style="margin-top:8px">Verletzte Spieler ersetzt der Co-Trainer automatisch. Der Balken zeigt die Frische, die Stärke ist bereits um die Müdigkeit bereinigt. Spieler auf einer fremden Position verlieren an Stärke (Abwehr ↔ Mittelfeld −6, Mittelfeld ↔ Sturm −5, Abwehr ↔ Sturm −12, Torwart im Feld −25).</p></div>
+  ${fitnessCard(id)}</div><div><div class="card"><div class="hd"><h3 class="ct" style="margin:0">Spielstil</h3><span class="tag">Eingespielt ${Math.round(g.fam)} %</span></div>
    <div class="prog" style="margin-bottom:10px"><i style="width:${g.fam}%"></i></div>
    ${Object.entries(STYLES).map(([k,v])=>`<button class="stage${g.style===k?' on':''}" style="width:100%;margin-bottom:6px" data-act="mstyle:${k}"><small>${g.style===k?'Aktiv':'Spielstil'}</small><b>${v.n}</b><span class="meta">${v.d}</span></button>`).join('')}
    <p class="note">Ein Wechsel von Formation oder Spielstil kostet Eingespieltheit (bis zu −4 Stärke). Sie wächst mit jedem Pflichtspiel wieder.</p></div>

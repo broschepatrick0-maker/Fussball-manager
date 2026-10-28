@@ -27,4 +27,5 @@ function startSeason(){
   buildCups();
   buildEuro();
   buildCalendar();
+  try{rested()}catch(e){}
 }

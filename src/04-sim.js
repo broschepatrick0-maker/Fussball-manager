@@ -2,9 +2,11 @@
 function pois(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
 function lam(a,b,home){const d=a-b+(home?4:0);return Math.min(9,Math.max(.1,(home?1.35:1.2)*Math.exp(d/26)))}
 function play(h,a,neutral){
-  const rh=effR(h)+(Math.random()*4-2), ra=effR(a)+(Math.random()*4-2);
+  if(S.fav&&S.mgr&&(h===S.fav||a===S.fav))recalc(S.fav);
+  const rh=effR(h)-fatPen(h)+(Math.random()*4-2), ra=effR(a)-fatPen(a)+(Math.random()*4-2);
   const [ah,dh]=tacMul(h,a),[aa,da]=tacMul(a,h);
-  return [pois(Math.min(9,lam(rh,ra,!neutral)*ah*da)),pois(Math.min(9,lam(ra,rh,false)*aa*dh))];
+  const r=[pois(Math.min(9,lam(rh,ra,!neutral)*ah*da)),pois(Math.min(9,lam(ra,rh,false)*aa*dh))];
+  tire(h);tire(a);return r;
 }
 function playRound(lg){
   if(lg.played>=lg.rounds.length) return;
@@ -37,6 +39,7 @@ function simDayCore(){
   const wk=wdOf(d)===1;if(wk)S.round++;
   if(transferOpenOn(d)){transferDay(1+(Math.random()<.35?1:0),wk)}
   S.lastPlayed=played?d:S.lastPlayed;
+  if(S.fav&&S.mgr&&T(S.fav)&&T(S.fav).sq)recalc(S.fav);
   const fin=S.leagues.every(l=>l.played>=l.rounds.length)&&S.cups.every(c=>c.winner)&&(S.euro||[]).every(e=>e.winner);
   if(fin||d>=last){S.leagues.forEach(l=>{while(l.played<l.rounds.length)playRound(l)});S.cups.forEach(c=>{while(!c.winner)playCupRound(c)});(S.euro||[]).forEach(e=>{while(!e.winner)euroStep(e)});S.done=true}
   return wk

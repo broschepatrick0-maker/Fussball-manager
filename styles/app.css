@@ -411,3 +411,9 @@ button.clock:hover b{text-decoration:underline}
 .simc .btn{white-space:nowrap}
 .top .clock b{white-space:nowrap}
 @media (max-width:600px){.top .clock .yr{display:none}.top .clock b{font-size:15px}}
+/* Frische */
+.fi{display:inline-flex;align-items:center;gap:6px;min-width:64px;vertical-align:middle}
+.fi i{display:block;height:6px;width:40px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
+.fi u{position:absolute;left:0;top:0;bottom:0;background:currentColor}
+.fi b{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600;min-width:20px;text-align:right}
+.fi.ok{color:#2f9e5b}.fi.mid{color:#c9a227}.fi.low{color:#d0453b}

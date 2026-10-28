@@ -248,6 +248,8 @@ function act(a){
   else if(k==='mstyle'){setTactic('style',v);save()}
   else if(k==='mtrain'){MG().train=v;save()}
   else if(k==='mti'){MG().ti=+v;save()}
+  else if(k==='mrot'){MG().rot=!rotOn();recalc(S.fav);save();toast(rotOn()?'Der Co-Trainer rotiert jetzt automatisch':'Automatische Rotation aus')}
+  else if(k==='mrott'){MG().rotT=+v;recalc(S.fav);save()}
   else if(k==='mbest'){bestXI();recalc(S.fav);save();toast('Beste Elf aufgestellt')}
   else if(k==='watch'){const r=scoutAdd(v);toast(r==='ok'?'Spieler wird jetzt beobachtet':r==='voll'?'Die Beobachtungsliste ist voll – Scouting-Abteilung ausbauen oder Spieler entfernen':'Wird schon beobachtet');save()}
   else if(k==='unwatch'){if(S.scout)delete S.scout.list[v];save()}
