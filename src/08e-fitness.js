@@ -22,6 +22,7 @@ function tire(id,mins){const t=T(id);if(!t||t.tdd===S.day)return;t.tdd=S.day;
   if(id===S.fav&&S.mgr&&t.sq){let fsum=0,n=0;
     if(mins)Object.keys(mins).forEach(pid=>{const p=P()[pid];if(!p)return;const f=curFi(p);if(mins[pid]>=45){fsum+=f;n++}setFi(p,f-costOf(p)*mins[pid]/90)});
     else{const r=mgrXI(id);r.xi.forEach(pid=>{const p=P()[pid];if(!p)return;const f=curFi(p);fsum+=f;n++;setFi(p,f-costOf(p))});r.bench.slice(0,3).forEach(pid=>{const p=P()[pid];if(p)setFi(p,curFi(p)-7)})}
+    try{moodAfterMatch(id,mins)}catch(e){console.warn(e)}
     t.pf=n?fsum/n:100;recalc(id);return}
   const pl=aiPlan(id);t.pf=pl.f;t.tf=+Math.max(20,pl.f-(pl.rot?12:FI_COST)).toFixed(1);t.td=S.day;if(t.tf>=99.5){delete t.tf;delete t.td}}
 // Verletzungsrisiko steigt mit der Müdigkeit vor dem Spiel
@@ -29,8 +30,9 @@ function fatInjMod(id){const t=T(id);const f=t&&t.pf!=null?t.pf:100;return 1+Mat
 // Rotation von Mein Verein: müde Spieler der gewählten Elf durch frischere Ersatzleute derselben Position tauschen
 function rotOn(){const g=S.mgr;return !!(g&&g.rot!==false)}
 function rotT(){return (S.mgr&&S.mgr.rotT)||75}
-function slotEff(pid,sl){const p=P()[pid];return p?p.s*fitMul(curFi(p))-FIT[sl][p.p]:0}
-function rested(){Object.values(S.teams).forEach(t=>{delete t.tf;delete t.td;delete t.tdd;delete t.pf});if(S.pl)for(const p of Object.values(S.pl)){if(p.fi!=null){delete p.fi;delete p.fd}}}
+function slotEff(pid,sl){const p=P()[pid];return p?p.s*fitMul(curFi(p))*(p.hp!=null?hpMul(p):1)-FIT[sl][p.p]:0}
+function rested(){if(S.mgr){S.mgr.talk=[];S.mgr.gp=0}if(S.pl)for(const p of Object.values(S.pl)){if(p.pr||p.tc!=null){delete p.pr;delete p.tc}}
+  Object.values(S.teams).forEach(t=>{delete t.tf;delete t.td;delete t.tdd;delete t.pf});if(S.pl)for(const p of Object.values(S.pl)){if(p.fi!=null){delete p.fi;delete p.fd}}}
 // Ansicht: Frische-Anzeige
 function fiLbl(p){const f=Math.round(curFi(p));const c=f>=88?'ok':f>=75?'mid':'low';return `<span class="fi ${c}" title="Frische ${f} %"><i><u style="width:${f}%"></u></i><b>${f}</b></span>`}
 function restDays(id){const nx=clubFixtures(id).filter(x=>!x.done&&x.day>S.day);if(!nx.length)return null;const d=nx[0].day;const prev=clubFixtures(id).filter(x=>x.done&&x.day!=null&&x.day<d).pop();return {next:nx[0],day:d,rest:prev?d-prev.day-1:null,after:nx[1]?nx[1].day-d-1:null}}

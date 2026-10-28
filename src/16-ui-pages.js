@@ -248,6 +248,9 @@ function act(a){
   else if(k==='mstyle'){setTactic('style',v);save()}
   else if(k==='mtrain'){MG().train=v;save()}
   else if(k==='mti'){MG().ti=+v;save()}
+  else if(k==='talk'){if(!S.mgr)MG();view.ov={t:'talk',pid:v}}
+  else if(k==='talk2'){const msg=talkTo(v,w);recalc(S.fav);save();if(msg)toast(msg)}
+  else if(k==='talkans'){const msg=answerTalk(+v,w);recalc(S.fav);save();if(msg)toast(msg)}
   else if(k==='mrot'){MG().rot=!rotOn();recalc(S.fav);save();toast(rotOn()?'Der Co-Trainer rotiert jetzt automatisch':'Automatische Rotation aus')}
   else if(k==='mrott'){MG().rotT=+v;recalc(S.fav);save()}
   else if(k==='mbest'){bestXI();recalc(S.fav);save();toast('Beste Elf aufgestellt')}

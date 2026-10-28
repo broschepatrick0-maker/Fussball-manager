@@ -143,7 +143,7 @@ function aiTransfer(force){
 }
 function aiOffer(){ // Angebot an Mein Verein
   if(!S.fav||!T(S.fav)||Math.random()>.35) return;
-  const f=T(S.fav),sq=ensureSquad(S.fav).slice().sort((a,b)=>P()[b].s-P()[a].s),pid=sq[Math.floor(Math.random()*Math.min(8,sq.length))];
+  const f=T(S.fav),sq=ensureSquad(S.fav).slice().sort((a,b)=>P()[b].s-P()[a].s),lst=sq.filter(x=>P()[x].tl),pid=lst.length&&Math.random()<.65?lst[Math.floor(Math.random()*lst.length)]:sq[Math.floor(Math.random()*Math.min(8,sq.length))];
   const flv=f.lv||9,cands=buyers().map(x=>x[0]).filter(id=>id!==S.fav&&(T(id).lv||9)<=flv&&(T(id).lv||9)>=flv-1);
   if(!cands.length) return;
   const club=rnd(cands),amt=Math.round(value(pid)*(.9+Math.random()*.5)/1e3)*1e3;

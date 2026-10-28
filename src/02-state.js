@@ -17,11 +17,16 @@ function downLeague(cur,t){
   return c.find(l=>(PRESETS.find(p=>p.name===l.name)||{}).up===cur.name)||c.find(l=>cur.kreis&&l.kreis===cur.kreis)||c.sort((a,b)=>a.teams.length-b.teams.length)[0];
 }
 function enforceReserves(st,log){
+  // zurückgezogene Zweitvertretungen kehren zurück, sobald die Regel es wieder erlaubt
+  if(S.parked&&S.parked.length){const {lv,byName}=deLevels();S.parked=S.parked.filter(x=>{const t=T(x.id),l=L(x.lg);if(!t||!l)return false;
+    if(resMinLevel(t.name,byName,y=>lv[y])<=l.level){l.teams.push(x.id);t.lv=l.level;log.push(`${t.name} kehrt in die ${l.name} zurück`);return false}return true})}
   for(let pass=0;pass<4;pass++){let changed=false;const {lv,lg,byName}=deLevels();
     for(const l of S.leagues.slice()) for(const id of l.teams.slice()){
       const t=T(id); if(!t||!t.vb||!isRes(t.name)) continue;
       const need=resMinLevel(t.name,byName,x=>lv[x]); if(lv[id]>=need) continue;
-      const cur=lg[id],dest=downLeague(cur,t); if(!dest) continue;
+      const cur=lg[id],dest=downLeague(cur,t);
+      if(!dest){if(id===S.fav)continue;cur.teams=cur.teams.filter(x=>x!==id);delete lv[id];(S.parked=S.parked||[]).push({id,lg:cur.id});
+        log.push(`Zwangsabstieg: ${t.name} muss mind. zwei Ligen unter ${resBase(t.name)} spielen und zieht sich in die Oberliga zurück (nicht simuliert)`);changed=true;continue}
       const sub=(st[dest.id]||dest.teams).filter(x=>dest.teams.includes(x)).find(x=>{const n=T(x).name;return !isRes(n)||resMinLevel(n,byName,y=>lv[y])<=cur.level});
       cur.teams=cur.teams.filter(x=>x!==id);dest.teams.push(id);lv[id]=dest.level;lg[id]=dest;
       if(sub){dest.teams=dest.teams.filter(x=>x!==sub);cur.teams.push(sub);lv[sub]=cur.level;lg[sub]=cur}

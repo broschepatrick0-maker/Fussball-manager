@@ -41,7 +41,7 @@ function contractsSeason(log,lvOld){
     t.mo=Math.round(((t.mo??60)+60)/2);t.fm=+((t.fm||0)*0.3).toFixed(2);
     for(const pid of t.sq.slice()){const p=P()[pid];if(!p)continue;ensureContract(pid,t.id);if(p.c>S.season)continue;
       if(t.id===S.fav&&!favAuto()){t.sq=t.sq.filter(x=>x!==pid);freeAgents.push([pid,t.id]);left++;continue}
-      const want=p.a<=32&&p.s>=t.r-6&&Math.random()<.78;
+      const want=p.a<=32&&p.s>=t.r-6&&Math.random()<.78&&!(t.id===S.fav&&hpOf(p)<30);
       if(want){setContract(pid,t.id);renew++}else{t.sq=t.sq.filter(x=>x!==pid);if(p.a>=34){delete P()[pid]}else{freeAgents.push([pid,t.id]);left++}}}
   }
   // Ablösefreie Spieler finden einen neuen Verein auf ähnlichem Niveau
@@ -54,8 +54,8 @@ function contractsSeason(log,lvOld){
   return {renew,left};
 }
 // Vertragsverlängerung für Mein Verein
-function renewalOffer(pid){const p=P()[pid];if(!p||!S.fav)return null;const base=marketWage(pid,S.fav),mo=T(S.fav).mo??60;
-  const f=1.05+(mo<45?0.25:mo<60?0.1:0)+(p.s>=T(S.fav).r+3?0.15:0);return {w:Math.round(base*f/100)*100,maxY:p.a>=32?1:p.a>=29?3:5}}
+function renewalOffer(pid){const p=P()[pid];if(!p||!S.fav)return null;if(hpOf(p)<30)return {no:true,w:0,maxY:0};const base=marketWage(pid,S.fav),mo=T(S.fav).mo??60;
+  const f=1.05+(mo<45?0.25:mo<60?0.1:0)+(p.s>=T(S.fav).r+3?0.15:0)+(hpOf(p)<50?0.15:0);return {w:Math.round(base*f/100)*100,maxY:p.a>=32?1:p.a>=29?3:5}}
 // Scouting (nur für Mein Verein): Einschätzung des verdeckten Potenzials, wird mit der Zeit genauer
 const SCOUT_LV=[{n:'Einzelner Scout',q:.6,max:8,cost:0},{n:'Kleine Scouting-Abteilung',q:1,max:15,cost:.012},{n:'Professionelles Scouting-Netzwerk',q:1.6,max:25,cost:.03}];
 function SC(){if(!S.scout)S.scout={lv:0,list:{}};return S.scout}

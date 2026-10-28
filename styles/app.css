@@ -417,3 +417,7 @@ button.clock:hover b{text-decoration:underline}
 .fi u{position:absolute;left:0;top:0;bottom:0;background:currentColor}
 .fi b{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600;min-width:20px;text-align:right}
 .fi.ok{color:#2f9e5b}.fi.mid{color:#c9a227}.fi.low{color:#d0453b}
+.sqt .tlink{text-decoration:underline dotted;text-underline-offset:3px;font:inherit;color:inherit;cursor:pointer}
+.tag.cap{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.mood{font-size:16px;line-height:1}
+.orow.talk{align-items:flex-start}
