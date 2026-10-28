@@ -356,6 +356,7 @@ function migrateLoaded(){
   if(added){
     if(S.cups.every(c=>c.played===0)) buildCups();
     else{const keep=S.cups.filter(c=>c.played>0||c.type==='dfb');buildCups();S.cups=S.cups.map(c=>keep.find(k=>k.id===c.id)||c)}
+    try{S.cups.forEach(c=>{if(!c.dates)c.dates=cupDates(c)});S.leagues.forEach(l=>{if(!l.dates||l.dates.length!==l.rounds.length)l.dates=leagueDates(l)})}catch(e){}
     save();
   }
 }
