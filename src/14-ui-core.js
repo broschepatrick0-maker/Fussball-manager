@@ -57,7 +57,7 @@ function sideHTML(a){
       const ls=am.filter(l=>l.vb===v).sort((x,y)=>x.level-y.level||x.name.localeCompare(y.name));
       const open=ls.some(l=>l.id===view.id);
       const byLv=[...new Set(ls.map(l=>l.level))].map(lv=>{const g=ls.filter(l=>l.level===lv),on=g.some(l=>l.id===view.id);
-        const items=g.map(l=>navBtn(view.tab==='league'&&view.id===l.id,l.name.replace(/^Bezirksliga /,'BZL ').replace(/^Kreisliga /,'KL ').replace(/^Kreisoberliga /,'KOL ').replace(/^1\. Kreisklasse /,'1.KK '),l.teams.length,'lg:'+l.id)).join('');
+        const items=g.map(l=>navBtn(view.tab==='league'&&view.id===l.id,l.name.replace(/^Bezirksliga /,'BZL ').replace(/^Kreisliga /,'KL ').replace(/^Kreisoberliga /,'KOL ').replace(/^([12])\. Kreisklasse /,'$1.KK '),l.teams.length,'lg:'+l.id)).join('');
         return g.length>4?`<details class="vb lvd"${on?' open':''}><summary>${lv}. Liga · ${LEVELS[lv]} <em class="meta">${g.length}</em></summary><div>${items}</div></details>`:`<div class="lvh">${lv}. Liga · ${LEVELS[lv]}</div>`+items}).join('');
       h+=`<details class="vb"${open?' open':''}><summary>${VB[v]} <em class="meta">${ls.length} ${ls.length===1?'Liga':'Ligen'}</em></summary><div>${byLv}</div></details>`;
     });
@@ -104,7 +104,7 @@ function ctxBar(){
     const top=S.leagues.filter(l=>!l.foreign&&l.level<=4);
     chips=top.map(l=>chip(lg&&lg.id===l.id,l.name.replace('Regionalliga ','RL ').replace('2. Bundesliga','2. BL'),'lg:'+l.id));
     if(lg&&lg.level>=5){const sib=S.leagues.filter(l=>l.vb===lg.vb&&l.level===lg.level&&(lg.level<=6||l.kreis===lg.kreis||!lg.kreis)).slice(0,14);
-      chips=sib.map(l=>chip(l.id===lg.id,l.name.replace(/^(Bezirksliga|Kreisliga|Kreisoberliga|Landesliga|Landesklasse|1\. Kreisklasse) /,''),'lg:'+l.id));
+      chips=sib.map(l=>chip(l.id===lg.id,l.name.replace(/^(Bezirksliga|Kreisliga|Kreisoberliga|Landesliga|Landesklasse|[12]\. Kreisklasse) /,''),'lg:'+l.id));
       const up=S.leagues.find(l=>l.name===((PRESETS.find(p=>p.name===lg.name)||{}).up));
       if(up) chips.unshift(chip(false,'▲ '+up.name,'lg:'+up.id));}
   }

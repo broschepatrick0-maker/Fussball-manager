@@ -1,6 +1,6 @@
 // ---------- Karriere: Vorstand, Saisonziele, Vertrauen, Entlassung, Ruf, Jobangebote, Jugendakademie ----------
 const isCareer=()=>S.mode==='career'&&!!S.career;
-const REQ_REP={1:82,2:66,3:54,4:42,5:32,6:22,7:12,8:0,9:0,10:0};
+const REQ_REP={1:82,2:66,3:54,4:42,5:32,6:22,7:12,8:0,9:0,10:0,11:0};
 function lvOfId(id){const l=lgOf(id);return l?(l.foreign?1:l.level):9}
 function newCareer(name,club,start){S.mode='career';start=start||'club';
   const lic=start==='zero'?0:start==='pro'?2:Math.max(0,LIC.findIndex(L_=>lvOfId(club)>=L_.min));
@@ -52,7 +52,7 @@ function careerSeasonEnd(st,log){if(!isCareer())return;const c=S.career;
   else if(c.jobless)c.offers=jobOffers(3,true);
 }
 function jobOffers(n,jobless){const c=S.career,rep=c.rep+(jobless?6:0),cur=c.club?lvOfId(c.club):9;const out=[];
-  const levels=Object.keys(REQ_REP).map(Number).filter(lv=>lv<=10&&REQ_REP[lv]<=rep&&licOk(lv)&&(jobless||lv<cur||(lv===cur&&Math.random()<.4)));
+  const levels=Object.keys(REQ_REP).map(Number).filter(lv=>lv<=11&&REQ_REP[lv]<=rep&&licOk(lv)&&(jobless||lv<cur||(lv===cur&&Math.random()<.4)));
   if(!levels.length)return out;
   const best=levels.sort((a,b)=>a-b).slice(0,3);
   for(let i=0;i<n*3&&out.length<n;i++){const lv=rpick(best,Math.random);
@@ -109,7 +109,7 @@ function renderAcademy(id){const a=AC(),rev=(FZ(id).h[0]?FZ(id).h[0][1]:estReven
 // ---------- Trainerlizenzen, Gehalt, Bewerbungen ----------
 // Vereinfachte Anlehnung an die DFB-Ausbildung: höhere Lizenzen erlauben höhere Spielklassen
 const LIC=[{k:'0',n:'Keine Lizenz',min:8},{k:'C',n:'C-Lizenz',min:7,dur:10,cost:600,rep:0,seasons:0},{k:'B',n:'B-Lizenz',min:5,dur:18,cost:2500,rep:12,seasons:0},{k:'A',n:'A-Lizenz',min:4,dur:28,cost:7500,rep:28,seasons:1},{k:'P',n:'Pro-Lizenz (Fußballlehrer)',min:1,dur:38,cost:22000,rep:42,seasons:2,exam:.8}];
-const SALARY={1:1.6e6,2:4.2e5,3:1.6e5,4:6e4,5:2.4e4,6:1e4,7:4500,8:1800,9:1000,10:600};
+const SALARY={1:1.6e6,2:4.2e5,3:1.6e5,4:6e4,5:2.4e4,6:1e4,7:4500,8:1800,9:1000,10:600,11:400};
 const licOk=(lv)=>lv>=LIC[S.career.lic||0].min;
 function licRange(i){const m=LIC[i].min;return m===1?'alle Ligen':m===8?'Kreisliga und tiefer':`ab der ${LEVELS[m]||m+'. Liga'} abwärts`}
 function seasonsCoached(){const c=S.career;return c.hist.reduce((a,h)=>a+Math.max(0,h.to-h.from),0)+(c.club?S.season-c.since:0)}
@@ -124,7 +124,7 @@ function courseTick(){const c=S.career;if(!c||!c.course)return;c.course.left-=c.
   c.course=null}
 // Freie Stellen (für Arbeitslose) und Bewerbungen
 function vacancies(){const c=S.career;if(!c.vac||c.vacS!==S.season*100+Math.floor(S.round/4)){c.vacS=S.season*100+Math.floor(S.round/4);
-    const lvls=[1,2,3,4,5,6,7,8,9,10].filter(lv=>licOk(lv)&&REQ_REP[lv]<=c.rep+22).sort((a,b)=>a-b).slice(0,5);const out=[];
+    const lvls=[1,2,3,4,5,6,7,8,9,10,11].filter(lv=>licOk(lv)&&REQ_REP[lv]<=c.rep+22).sort((a,b)=>a-b).slice(0,5);const out=[];
     for(let i=0;i<16&&out.length<6;i++){const lv=rpick(lvls,Math.random);const ls=S.leagues.filter(l=>!l.foreign&&l.level===lv);if(!ls.length)continue;const lg=rpick(ls,Math.random);const tb=table(lg);
       const id=rpick(tb.slice(Math.floor(tb.length*.4)).map(r=>r.id),Math.random);if(id&&!isRes(T(id).name)&&!out.includes(id)&&id!==c.club)out.push(id)}
     c.vac=out}
