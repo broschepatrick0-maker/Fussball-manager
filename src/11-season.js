@@ -44,7 +44,7 @@ function newSeason(){
   for(const d of ams){
     const ups=S.leagues.filter(u=>u.level===d.level-1&&(u.vbs||[u.vb]).includes(d.vb)&&u.level>=5);
     if(!ups.length) continue;
-    const upName=(PRESETS.find(p=>p.name===d.name)||{}).up;
+    const upName=d.up||(PRESETS.find(p=>p.name===d.name)||{}).up;
     const u=ups.find(x=>upName&&x.name===upName)||ups.find(x=>x.kreis&&x.kreis===d.kreis)||ups[0];
     const champ=st[d.id].find(id=>!move[id]&&okAt(id,u.level)); if(!champ) continue;
     if(champ!==st[d.id].find(id=>!move[id]))log.push(`${d.name}: ${T(st[d.id].find(id=>!move[id])).name} darf als Zweitvertretung nicht aufsteigen`);

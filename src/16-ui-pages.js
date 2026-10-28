@@ -121,20 +121,25 @@ function renderCup(c){
 function renderImport(){
   const pre=view.preview||[];
   return `<div class="card"><div class="hd"><div><div class="meta">Datenquelle fussball.de</div><h2>Liga importieren</h2></div></div>
+  <div class="ocrbox"><b>Aus Screenshots</b><p class="meta" style="margin:4px 0 10px">Mach in der fussball.de-App Screenshots der Tabelle (bei langen Tabellen ruhig zwei) und wähle sie hier aus. Die Vereinsnamen werden automatisch erkannt und mit bekannten Vereinen abgeglichen. Beim ersten Mal wird die Texterkennung geladen (ca. 5 MB).</p>
+   <label class="btn pri" style="display:inline-flex;cursor:pointer">📷 Screenshots wählen<input type="file" id="ocrIn" accept="image/*" multiple hidden></label>
+   <span id="ocrSt" class="meta" style="margin-left:10px">${esc(OCR.log||'')}</span></div>
   <ol class="steps">
-    <li>Öffne auf <a href="https://www.fussball.de" target="_blank" rel="noopener">fussball.de</a> deine Staffel (Ligen → Verband → Spielklasse → Gebiet).</li>
-    <li>Markiere die Tabelle von Platz 1 bis zum Letzten und kopiere sie.</li>
-    <li>Füge sie unten ein. Platzierungen und Zahlen werden automatisch entfernt, doppelte Vereinsnamen zusammengeführt. Eine Liste mit einem Verein pro Zeile funktioniert auch.</li>
+    <li>Prüfe die erkannten Vereine im Textfeld unten: ein Verein pro Zeile, Fehler einfach überschreiben. Kopierter Tabellentext von fussball.de funktioniert auch.</li>
+    <li>Wähle Spielklasse, Aufstiegsliga und Namen der Staffel.</li>
   </ol>
   <div class="form">
     <label for="iVb">Landesverband<select id="iVb">${Object.entries(VB).map(([k,v])=>`<option value="${k}"${view.ivb===k?' selected':''}>${v}</option>`).join('')}</select></label>
-    <label for="iLv">Spielklasse<select id="iLv">${[5,6,7,8,9,10].map(l=>`<option value="${l}"${(view.ilv||8)==l?' selected':''}>${l}. Liga · ${LEVELS[l]}</option>`).join('')}</select></label>
+    <label for="iLv">Spielklasse<select id="iLv">${[5,6,7,8,9,10,11].map(l=>`<option value="${l}"${(view.ilv||8)==l?' selected':''}>${l}. Liga · ${LEVELS[l]}</option>`).join('')}</select></label>
     <label for="iName">Name der Staffel<input id="iName" placeholder="z. B. Kreisliga A Euskirchen" value="${esc(view.iname||'')}"></label>
     <label for="iKreis">Kreis (für den Kreispokal)<input id="iKreis" placeholder="z. B. Euskirchen" value="${esc(view.ikreis||'')}"></label>
+    <label for="iUp">Aufstieg in<select id="iUp"><option value="">automatisch</option>${S.leagues.filter(l=>!l.foreign&&(l.vbs||[l.vb]).includes(view.ivb||'BA')&&l.level===(view.ilv||8)-1).sort((a,b)=>a.name.localeCompare(b.name)).map(l=>`<option value="${esc(l.name)}"${view.iup===l.name?' selected':''}>${esc(l.name)}</option>`).join('')}</select></label>
   </div>
   <textarea id="iTxt" placeholder="1.  SV 07 Moringen  12  10  1  1  44 : 12  32  31&#10;2.  SG Rehbachtal  12  10  0  2  35 : 13  22  30&#10;…">${esc(view.itxt||'')}</textarea>
   <div class="ctrls" style="margin-top:10px"><button class="btn" data-act="ipreview">Vorschau</button><button class="btn pri" data-act="icreate">Liga anlegen</button></div>
-  ${pre.length?`<div class="meta" style="margin-top:12px">${pre.length} Vereine erkannt</div><div class="chips">${pre.map(n=>`<span class="chip">${esc(n)}</span>`).join('')}</div>`:''}
+  ${pre.length?(()=>{const inLg=new Map();S.leagues.forEach(l=>l.teams.forEach(id=>{const t=T(id);if(t)inLg.set(t.name,l.name)}));return `<div class="meta" style="margin-top:12px">${pre.length} Vereine erkannt${pre.some(n=>inLg.has(n))?' · rot markierte spielen schon in einer anderen Liga und werden übersprungen':''}</div><div class="chips">${pre.map(n=>`<span class="chip${inLg.has(n)?' dupe':''}" title="${inLg.has(n)?esc('Schon in '+inLg.get(n)):''}">${esc(n)}</span>`).join('')}</div>`})():''}
+  <div class="ctrls" style="margin-top:14px"><button class="btn" data-act="iexport">Importierte Ligen exportieren</button></div>
+  ${view.iexp?`<textarea readonly style="margin-top:8px;height:120px" onclick="this.select()">${esc(view.iexp)}</textarea><p class="meta">Text kopieren oder als Datei speichern und an Claude schicken – dann werden die Ligen fest ins Spiel übernommen.</p>`:''}
   <p class="note" style="margin-top:16px">Neue Ligen spielen ab sofort mit. In Landes- und Kreispokal kommen sie, sobald die erste Runde noch nicht gespielt ist, sonst zur nächsten Saison. Am Saisonende steigt der Meister in die nächsthöhere importierte Liga seines Verbandes auf, ein Oberliga-Meister in die Regionalliga.</p></div>`;
 }
 function renderSeason(){
@@ -184,9 +189,10 @@ function render(){
   {const fl=document.getElementById('finLv');if(fl)fl.onchange=()=>{view.finLv=fl.value;render()}}
   {const cs=document.getElementById('chronSel');if(cs)cs.onchange=()=>{view.chron=+cs.value;render()}}
   const hs=document.getElementById('hallLg'); if(hs) hs.onchange=()=>{view.hallLg=hs.value;render()};
-  if(view.tab==='import'){['iVb','iLv','iName','iKreis','iTxt'].forEach(id=>$(id).oninput=readImport)}
+  if(view.tab==='import'){['iName','iKreis','iTxt','iUp'].forEach(id=>$(id).oninput=readImport);['iVb','iLv'].forEach(id=>$(id).onchange=()=>{readImport();view.iup='';render()});
+    const fi=$('ocrIn');if(fi)fi.onchange=()=>{readImport();const fs=[...fi.files];if(fs.length)ocrFiles(fs)}}
 }
-function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iname=$('iName').value;view.ikreis=$('iKreis').value;view.itxt=$('iTxt').value}
+function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iup=$('iUp')?$('iUp').value:'';view.iname=$('iName').value;view.ikreis=$('iKreis').value;view.itxt=$('iTxt').value}
 function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
@@ -292,11 +298,15 @@ function act(a){
   else if(k==='cupnext'){const c=S.cups.find(c=>c.id===v);if(c&&!c.winner)playCupRound(c);save()}
   else if(k==='newseason'){newSeason();save();toast('Neue Saison gestartet')}
   else if(k==='ipreview'){readImport();view.preview=parseTable(view.itxt||'')}
+  else if(k==='iexport'){view.iexp=exportLeagues();try{navigator.clipboard.writeText(view.iexp);toast('Ligen kopiert')}catch(e){}
+    try{const b=new Blob([view.iexp],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ligen-export.json';document.body.appendChild(a);a.click();a.remove()}catch(e){}}
   else if(k==='icreate'){
-    readImport();const names=parseTable(view.itxt||'');
+    readImport();const all=parseTable(view.itxt||'');const inLg=new Map();S.leagues.forEach(l=>l.teams.forEach(id=>{const t=T(id);if(t)inLg.set(t.name,l.name)}));
+    const dup=all.filter(n=>inLg.has(n)),names=all.filter(n=>!inLg.has(n));if(dup.length)toast(`${dup.length} Verein(e) spielen schon woanders und werden übersprungen: ${dup.slice(0,2).join(', ')}${dup.length>2?' …':''}`);
     if(names.length<4){toast('Mindestens 4 Vereine nötig – Tabelle einfügen und Vorschau prüfen');return}
     const lv=view.ilv||8,name=(view.iname||'').trim()||`${LEVELS[lv]} ${VB[view.ivb||'BA']}`;
-    const lg=addAmateurLeague(name,view.ivb||'BA',lv,(view.ikreis||'').trim(),names,true);
+    const upL=view.iup?S.leagues.find(l=>l.name===view.iup):null;
+    const lg=addAmateurLeague(name,view.ivb||'BA',lv,(view.ikreis||'').trim()||(upL&&upL.kreis)||'',names,true);if(upL)lg.up=upL.name;lg.src=names.slice();
     lg.rounds=schedule(lg.teams);lg.played=0;lg.teams.forEach(id=>T(id).lv=lg.level);
     if(S.cups.every(c=>c.played===0)) buildCups();
     else{ // nur noch ungespielte Amateurpokale neu auslosen
