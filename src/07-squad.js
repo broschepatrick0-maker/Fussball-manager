@@ -46,14 +46,26 @@ function seasonIncome(id,st){ // Prämien & TV-Geld am Saisonende
   let cup=0;S.cups.forEach(c=>{if(c.teams.includes(id)){const r=cupReach(c,id);if(c.type==='dfb')cup+=r==='Sieger'?6e6:r==='Finale'?3e6:r==='Halbfinale'?1.5e6:4e5;else cup+=r==='Sieger'?base*.1:0}});
   return Math.round((base*f+euro+cup)/1e4)*1e4;
 }
+// Langzeit-Balance: Jedes Niveau hat eine Norm-Stärke. Nachwuchs entsteht um diese Norm
+// (gute Vereine liefern etwas besseren Nachwuchs), Spieler wachsen bis ~27 Richtung Potenzial
+// und bauen danach ab. So bleibt die Stärke der Ligen über Jahrzehnte stabil.
+const NORM={1:78.6,2:68.8,3:60,4:51.5,5:46,6:41,7:36,8:31,9:26,10:21,F:78.4};
+const YOUTH_C=+(globalThis.YOUTH_C??-1.2);
+function clubNorm(t){const l=lgOf(t.id);if(!l)return t.r;return l.foreign?NORM.F:(NORM[l.level]||t.r)}
+function youthPot(t){const n=clubNorm(t);let pot=n+(t.r-n)*0.5+YOUTH_C+gauss()*5;if(Math.random()<.03)pot+=8+Math.random()*6;return Math.min(99,pot)}
+function potOf(p){if(p.pot==null)p.pot=+Math.min(99,p.s+Math.max(0,25-p.a)*1.1).toFixed(1);return p.pot}
 function developSquads(){
   for(const t of Object.values(S.teams)){
     if(!t.sq) continue;
-    t.sq=t.sq.filter(pid=>{const p=P()[pid];if(!p)return false;p.a++;
-      const g=p.a<=21?2+Math.random()*3:p.a<=25?Math.random()*2.5:p.a<=29?gauss()*0.8:p.a<=32?-Math.random()*2:-1.5-Math.random()*3;
-      p.s=+clampS(p.s+(g>0?g*Math.min(1,Math.max(0,(99-p.s)/30)):g)).toFixed(1);
+    t.sq=t.sq.filter(pid=>{const p=P()[pid];if(!p)return false;p.a++;const pot=potOf(p);
+      let g;
+      if(p.a<=27){g=(pot-p.s)*(p.a<=20?.35:p.a<=23?.28:.18)+gauss()*0.7;if(p.a<=23)p.pot=+Math.min(99,pot+gauss()*0.8).toFixed(1)}
+      else if(p.a<=30)g=gauss()*0.7-0.2;
+      else if(p.a<=33)g=-(0.6+Math.random()*1.8);
+      else g=-(2+Math.random()*2.5);
+      p.s=+clampS(p.s+g).toFixed(1);
       if(p.a>=36||(p.a>=33&&Math.random()<.35)){delete P()[pid];return false}return true});
-    POS.forEach(pos=>{const need={TW:3,AB:7,MF:7,ST:4}[pos];while(t.sq.filter(pid=>P()[pid].p===pos).length<need)t.sq.push(newPlayer(t,pos,t.r-8+gauss()*4,17+Math.floor(Math.random()*3)))});
+    POS.forEach(pos=>{const need={TW:3,AB:7,MF:7,ST:4}[pos];while(t.sq.filter(pid=>P()[pid].p===pos).length<need){const pot=youthPot(t),age=17+Math.floor(Math.random()*3);const id=newPlayer(t,pos,pot-(7+Math.random()*6)+(age-17)*1.5,age);P()[id].pot=+pot.toFixed(1);t.sq.push(id)}});
     recalc(t.id);
   }
 }

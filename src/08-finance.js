@@ -18,8 +18,8 @@ function FZ(id){const t=T(id);if(!t)return null;if(t.fz)return t.fz;
   delete t.bud;return t.fz;
 }
 function fmed(L_){const k=L_.f?'F':L_.lv,m=S.fmed&&S.fmed[k];return m||(L_.f?MEDF:(MEDV[L_.lv]||1e5))}
-function updMedians(){const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>(o[k]=o[k]||[]).push(clubValue(id)))});S.fmed={};for(const k in o){const a=o[k].sort((x,y)=>x-y);S.fmed[k]=a[a.length>>1]}}
-function estRevenue(id,L_){L_=L_||finLv(id);if(!L_)return 0;const med=fmed(L_),base=med*(L_.f?.24:(WRATIO[L_.lv]||.03))/0.7;
+function updMedians(){const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>(o[k]=o[k]||[]).push(clubValue(id)))});S.fmed={};for(const k in o){const a=o[k].sort((x,y)=>x-y),cut=Math.floor(a.length*.05),b=a.slice(cut,a.length-cut||a.length);S.fmed[k]=b.reduce((x,y)=>x+y,0)/b.length}}
+function estRevenue(id,L_){L_=L_||finLv(id);if(!L_)return 0;const med=fmed(L_),base=med*(L_.f?.24:(WRATIO[L_.lv]||.03))/(L_.lv>=5&&!L_.f?0.64:0.7);
   const attr=Math.max(.2,Math.min(8,clubValue(id)/med));return base*(0.3+0.7*attr)}
 function wage(pid,lv){const p=P()[pid];if(!p)return 0;return value(pid)*(WRATIO[lv]||.03)}
 function wageBill(id,lv){const t=T(id),z=FZ(id);return ensureSquad(id).reduce((a,pid)=>a+wage(pid,lv),0)*((z&&z.wf)||1)}
@@ -98,7 +98,7 @@ function seasonFinances(st,log){
       if(z.c<0){S.fsale=(S.fsale||0)+1;fireSale(id,z.c<-b.rev*.15?1:2);if(z.c<0)ins.push(id);else finLog('neg',id,`${T(id).name}: Notverkäufe, um zahlungsfähig zu bleiben`)}}
     else if(z.d>b.rev*1.2&&z.c<b.ex*.1&&Math.random()<.4) ins.push(id); // überschuldet
     // Gehaltsniveau anpassen (Vereinsführung)
-    if(z.c>b.rev*.5)z.wf=Math.min(inv?1.7:1.35,+(z.wf+0.06).toFixed(2));else if(z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.65,+(z.wf-0.08).toFixed(2));
+    if(z.c>b.rev*.5)z.wf=Math.min(inv?1.7:1.3,+(z.wf+0.04).toFixed(2));else if(z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.65,+(z.wf-0.08).toFixed(2));
     z.h.unshift([S.season,Math.round(b.rev+inj),Math.round(b.ex),Math.round(b.res+inj),Math.round(z.c),Math.round(z.d),l.foreign?1:l.level,b.att]);if(z.h.length>12)z.h.length=12;
     // Investor ungeduldig?
     if(inv&&S.season-inv.since>=inv.pat&&(l.foreign?1:l.level)>inv.amb&&Math.random()<.5) investorLeaves(id,inv,'Ziele verfehlt',log);

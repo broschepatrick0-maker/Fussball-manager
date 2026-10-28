@@ -53,7 +53,7 @@ function newSeason(){
     log.push(`${d.name}: ${T(champ).name} steigt auf in ${u.name}${last?', '+T(last).name+' steigt ab':''}`);
   }
   // Absteiger in die Heimatliga (dort, wo sie herkamen)
-  const homes=id=>T(id).from||(HOME_SEED[T(id).name]?[HOME_SEED[T(id).name]]:[]);
+  const homes=homeLeagues;
   for(const g of Object.values(relGrp)){ if(g.length<2) continue;
     const free=g.map(x=>x.d), lasts=g.map(x=>x.last), out=new Map();
     for(const id of lasts){const h=homes(id);const i=free.findIndex(d=>h.includes(d.name));if(i>=0){out.set(id,free[i]);free.splice(i,1)}}
@@ -77,7 +77,8 @@ function newSeason(){
     while(lg.teams.length>target){
       const victim=order.filter(x=>lg.teams.includes(x)).pop(); if(!victim) break;
       lg.teams=lg.teams.filter(x=>x!==victim);
-      const dest=S.leagues.filter(l=>l.level===5&&(l.vbs||[l.vb]).includes(T(victim).vb)).sort((a,b)=>a.teams.length-b.teams.length)[0];
+      const cands=S.leagues.filter(l=>l.level===5&&(l.vbs||[l.vb]).includes(T(victim).vb)),hl=homeLeagues(victim);
+      const dest=cands.find(l=>hl.includes(l.name))||cands.sort((a,b)=>a.teams.length-b.teams.length)[0];
       if(dest){dest.teams.push(victim);log.push(`Abstieg aus der ${lg.name}: ${T(victim).name} → ${dest.name}`)}
       else log.push(`Abstieg aus der ${lg.name}: ${T(victim).name} (in die Oberliga, nicht eingetragen)`);
     }

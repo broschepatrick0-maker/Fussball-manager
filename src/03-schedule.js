@@ -20,6 +20,7 @@ function dedupeLeagues(){
 }
 function startSeason(){
   dedupeLeagues();
+  noteHomes();
   S.leagues.forEach(l=>{l.pen={}});for(const [id,v] of Object.entries(S.penNext||{})){const l=lgOf(id);if(l)l.pen[id]=v}S.penNext={};
   for(const lg of S.leagues){lg.rounds=schedule(lg.teams);lg.played=0;lg.teams.forEach(id=>T(id).lv=lg.level)}
   S.round=0;S.done=false;
