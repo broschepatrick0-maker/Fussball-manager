@@ -49,7 +49,8 @@ function newSeason(){
     const champ=st[d.id].find(id=>!move[id]&&okAt(id,u.level)); if(!champ) continue;
     if(champ!==st[d.id].find(id=>!move[id]))log.push(`${d.name}: ${T(st[d.id].find(id=>!move[id])).name} darf als Zweitvertretung nicht aufsteigen`);
     downIdx[u.id]=(downIdx[u.id]||0)+1;
-    const last=st[u.id].filter(id=>!move[id]).slice(-downIdx[u.id])[0];
+    let last=st[u.id].filter(id=>!move[id]).slice(-downIdx[u.id])[0];
+    if((u.vbs||[]).length>1){const pool=st[u.id].filter(id=>!move[id]),same=pool.filter(id=>T(id).vb===d.vb),c=same[same.length-1];if(c&&pool.indexOf(c)>=pool.length-4)last=c}
     move[champ]=u.id; if(last){move[last]=d.id;(relGrp[u.id]=relGrp[u.id]||[]).push({d,last})}
     log.push(`${d.name}: ${T(champ).name} steigt auf in ${u.name}${last?', '+T(last).name+' steigt ab':''}`);
   }
@@ -83,6 +84,19 @@ function newSeason(){
       if(dest){dest.teams.push(victim);log.push(`Abstieg aus der ${lg.name}: ${T(victim).name} → ${dest.name}`)}
       else log.push(`Abstieg aus der ${lg.name}: ${T(victim).name} (in die Oberliga, nicht eingetragen)`);
     }
+  }
+  // Oberligen auf Sollgröße: überzählige Schlusslichter steigen in die Verbandsliga ihres Verbands ab
+  for(const ol of S.leagues.filter(l=>l.level===5&&!l.foreign&&l.size)){
+    const order=(st[ol.id]||[]).filter(x=>ol.teams.includes(x));let g=0;
+    while(ol.teams.length>ol.size&&g++<8){
+      const victim=order.slice().reverse().find(x=>ol.teams.includes(x)&&S.leagues.some(l=>l.level===6&&!l.foreign&&(l.vbs||[l.vb]).includes(T(x).vb)));if(!victim)break;
+      const vl=S.leagues.filter(l=>l.level===6&&!l.foreign&&(l.vbs||[l.vb]).includes(T(victim).vb)),hl=homeLeagues(victim);
+      const dest=vl.find(l=>hl.includes(l.name))||vl.sort((a,b)=>a.teams.length-b.teams.length)[0];
+      ol.teams=ol.teams.filter(x=>x!==victim);dest.teams.push(victim);order.splice(order.indexOf(victim),1);log.push(`Abstieg aus der ${ol.name}: ${T(victim).name} → ${dest.name}`)}
+    // zu klein: zusätzliche Aufsteiger aus den Verbandsligen (nach Abschlusstabelle)
+    g=0;while(ol.teams.length<ol.size&&g++<6){const feeders=S.leagues.filter(l=>l.level===6&&!l.foreign&&(l.up===ol.name||(PRESETS.find(p=>p.name===l.name)||{}).up===ol.name));
+      let best=null;for(const f of feeders){const c=(st[f.id]||[]).find(x=>f.teams.includes(x)&&okAt(x,5));if(c&&(!best||table(f).findIndex(r=>r.id===c)<best.i))best={id:c,f,i:table(f).findIndex(r=>r.id===c)}}
+      if(!best)break;best.f.teams=best.f.teams.filter(x=>x!==best.id);ol.teams.push(best.id);log.push(`${ol.name}: ${T(best.id).name} rückt zusätzlich aus der ${best.f.name} nach`)}
   }
   enforceReserves(st,log);
   applyInsolvency(insolvent,st,log);
