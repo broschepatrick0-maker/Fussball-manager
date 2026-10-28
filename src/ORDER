@@ -8,6 +8,7 @@
 08-finance.js
 08b-players.js
 08c-manager.js
+08d-career.js
 09-history.js
 10-live.js
 10b-livedyn.js
@@ -16,4 +17,5 @@
 13-storage.js
 14-ui-core.js
 15-news.js
+15b-menu.js
 16-ui-pages.js

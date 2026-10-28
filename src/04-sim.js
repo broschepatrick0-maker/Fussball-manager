@@ -8,7 +8,7 @@ function play(h,a,neutral){
 }
 function playRound(lg){
   if(lg.played>=lg.rounds.length) return;
-  for(const m of lg.rounds[lg.played]){if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}afterMatch(m,lg.foreign?1:lg.level)}
+  for(const m of lg.rounds[lg.played]){if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}afterMatch(m,lg.foreign?1:lg.level);if(S.career&&(m.h===S.fav||m.a===S.fav))careerAfterMatch(m)}
   lg.played++;
 }
 function table(lg){
@@ -25,7 +25,7 @@ function simDay(){
   if(S.done) return;
   if(typeof view!=='undefined'&&view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done)dynFinish(view.ov);
   const before={L:{},C:{},E:{},EW:{}};S.leagues.forEach(l=>before.L[l.id]=l.played);S.cups.forEach(c=>before.C[c.id]=c.played);(S.euro||[]).forEach(e=>{before.E[e.id]=e.step;before.EW[e.id]=e.winner});
-  try{tickInjuries();tickScouting();simDayCore()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
+  try{tickInjuries();tickScouting();simDayCore();careerDay()}finally{try{newsAfterDay(before)}catch(e){console.warn(e)}}
 }
 function simDayCore(){
   S.round++;

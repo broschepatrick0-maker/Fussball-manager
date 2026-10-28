@@ -86,6 +86,7 @@ function newSeason(){
   enforceReserves(st,log);
   applyInsolvency(insolvent,st,log);
   contractsSeason(log,lvOld);
+  try{careerSeasonEnd(st,log)}catch(e){console.warn(e)}
   // Stärke anpassen
   S.leagues.forEach(l=>l.teams.forEach(id=>{
     const t=T(id),o=lvOld[id]||l.level;
@@ -97,6 +98,7 @@ function newSeason(){
   S.lastL3=st.l3;
   if(S.fav&&T(S.fav)&&FZ(S.fav)&&FZ(S.fav).h[0]){const h=FZ(S.fav).h[0];log.push(`${T(S.fav).name}: Umsatz ${money(h[1])}, Ergebnis ${h[3]>=0?'+':'−'}${money(Math.abs(h[3]))}, Kontostand ${h[4]<0?'−':''}${money(Math.abs(h[4]))}${h[5]?`, Schulden ${money(h[5])}`:''}`)}
   developSquads();
+  if(S.fav&&T(S.fav)&&(S.acad||isCareer()))academyIntake(log);
   (S.pool||[]).forEach(id=>{const t=T(id);if(t&&t.bud!=null)t.bud=Math.min(4e8,t.bud+2e7)});
   S.offers=[];
   S.euroQual=euroQualify(st);
@@ -108,6 +110,7 @@ function newSeason(){
   try{newsSeason(st,oldSeason)}catch(e){}
   S.season++;
   startSeason();
+  if(isCareer()&&S.career.club)setGoal();
   transferDay(140);
   view={tab:'season',id:null};
 }

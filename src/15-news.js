@@ -2,7 +2,7 @@
 function NEWS(){if(!S.news)S.news=[];return S.news}
 function addNews(o){const n=NEWS();n.unshift({s:S.season,r:S.round,...o});if(n.length>500)n.length=500}
 const sl2=s=>`${s}/${String(s+1).slice(2)}`;
-function person(id,role){const t=T(id);if(!t)return '';t.ppl=t.ppl||{};if(!t.ppl[role]){const c=NAMES.DE;const R=srng(hstr(role+id+t.name+(t.ppl[role+'#']||0)));t.ppl[role]=rpick(c.f.split(','),R)+' '+rpick(c.l.split(','),R)}return t.ppl[role]}
+function person(id,role){const t=T(id);if(!t)return '';if(role==='tr'&&S.career&&S.career.club===id)return S.career.name;t.ppl=t.ppl||{};if(!t.ppl[role]){const c=NAMES.DE;const R=srng(hstr(role+id+t.name+(t.ppl[role+'#']||0)));t.ppl[role]=rpick(c.f.split(','),R)+' '+rpick(c.l.split(','),R)}return t.ppl[role]}
 const coach=id=>person(id,'tr'),boss=id=>person(id,'pr'),sd=id=>person(id,'sd');
 function q(id,role,txt){const n=role==='tr'?coach(id):role==='pr'?boss(id):sd(id);const r={tr:'Trainer',pr:'Präsident',sd:'Sportdirektor'}[role];return {who:`${n}, ${r} ${T(id).name}`,txt}}
 const QWIN=['Die Mannschaft hat heute genau das umgesetzt, was wir uns vorgenommen hatten.','Wir haben von der ersten Minute an gezeigt, wer hier gewinnen will. Ein großes Kompliment an die Jungs.','Das war harte Arbeit, aber am Ende verdient. Jetzt gilt es, nachzulegen.','Die Fans haben uns heute getragen. Diese drei Punkte gehören auch ihnen.'];
@@ -54,7 +54,7 @@ function newsAfterDay(before){
         b:`${m.h===S.fav?'Vor heimischer Kulisse':'Auswärts'} ${me>op?'holt':me<op?'kassiert':'holt'} ${T(S.fav).name} ${me>op?'drei Punkte':me<op?'eine Niederlage':'einen Punkt'} und steht nun auf Platz ${pos}.`,
         pr:q(S.fav,'tr',resultQuote(S.fav,m,R)),pr2:q(opp,'tr',resultQuote(opp,m,R)),imp:3,mt:{lg:lg.id,md}})}}
     // Trainerentlassungen (Profiligen)
-    if(!lg.foreign&&lg.level<=3&&md>=5){for(const r of tb.slice(Math.floor(tb.length*.6))){const last=lg.rounds.slice(Math.max(0,md-4),md+1).map(rr=>rr.find(m=>m.h===r.id||m.a===r.id)).filter(Boolean);
+    if(!lg.foreign&&lg.level<=3&&md>=5){for(const r of tb.slice(Math.floor(tb.length*.6)).filter(r=>!(isCareer()&&r.id===S.career.club))){const last=lg.rounds.slice(Math.max(0,md-4),md+1).map(rr=>rr.find(m=>m.h===r.id||m.a===r.id)).filter(Boolean);
       const losses=last.filter(m=>(m.h===r.id?m.hg<m.ag:m.ag<m.hg)).length;const t=T(r.id);
       if(losses>=4&&R()<.35&&(!t.ppl||(t.ppl.trS||0)<S.season*100+md-8)){const old=coach(r.id);t.ppl['tr#']=(t.ppl['tr#']||0)+1;delete t.ppl.tr;t.ppl.trS=S.season*100+md;const neu=coach(r.id);
         addNews({cat:r.id===S.fav?'fav':'pr',lg:lg.id,clubs:[r.id],h:`${t.name} trennt sich von Trainer ${old}`,b:`Nach ${losses} Niederlagen aus den letzten fünf Spielen zieht ${t.name} die Reißleine. Nachfolger wird ${neu}.`,pr:q(r.id,'sd',`Wir danken ${old} für seinen Einsatz. Die sportliche Entwicklung hat uns aber zu diesem Schritt gezwungen. Mit ${neu.split(' ')[0]} wollen wir neue Impulse setzen.`),imp:2,press:true})}}}

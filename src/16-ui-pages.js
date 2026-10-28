@@ -188,6 +188,8 @@ function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.inam
 function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
+  if(k==='menu'){openMenu();return}
+  if(view.ov&&view.ov.t==='menu'&&['mscr','mcont','mstart','mclub','mslot','mtheme','mspeed','mload','mdel','mgo'].includes(k)){menuAct(k,v);return}
   if(view.ov&&view.ov.t==='match'&&view.ov.rep&&view.ov.rep.dyn&&!view.ov.rep.done&&!['mpl','msp','mend','mrep','mtac','msub','mtalk','mcosub','club','fav'].includes(k)){dynFinish(view.ov);toast(`Abpfiff: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag}${view.ov.m.pen?' i.E.':view.ov.m.et?' n.V.':''} ${T(view.ov.m.a).name}`);view.ov.fresh=false;view.ov.playing=false}
   if(k==='ovx'){if(view.ov&&view.ov.t==='match'&&view.ov.fresh&&view.ov.playing)toast(`Endstand: ${T(view.ov.m.h).name} ${view.ov.m.hg}:${view.ov.m.ag} ${T(view.ov.m.a).name}`);view.ov=null;render();return}
   if(k==='mt'){openMatch(+v);render();return}
@@ -207,6 +209,7 @@ function act(a){
   else if(k==='home'){view={...view,tab:'home'}}
   else if(k==='euro'){view={...view,tab:'euro',id:v,emd:null}}
   else if(k==='emd'){const e=S.euro.find(x=>x.id===view.id);const cur=view.emd??Math.max(0,Math.min(e.step,e.nmd)-1);view.emd=Math.max(0,Math.min(e.nmd-1,cur+ +v))}
+  else if(k==='fav'&&isCareer()){toast('In der Karriere wechselst du den Verein über Jobangebote');return}
   else if(k==='fav'){const was=S.fav;S.fav=S.fav===v?null:v;if(S.fav!==was){S.fin={log:[],income:[]};S.invOffer=null;S.mgr=null;S.scout=null;if(S.fav){ensureSquad(S.fav);initBudget()}}save();toast(S.fav?T(v).name+' ist jetzt Mein Verein':'Beobachtung beendet')}
   else if(k==='ftab'){view={...view,tab:'fav',ftab:v,offer:null};window.scrollTo(0,0)}
   else if(k==='sell'){const p=P()[v];if(!p)return;if(!windowOpen()){toast('Das Transferfenster ist geschlossen');return}
@@ -230,6 +233,13 @@ function act(a){
       transferLog({pid:o.pid,n:P()[o.pid].n,from:S.fav,to:o.club,fee:o.amt,out:true});recalc(S.fav);recalc(o.club);toast('Verkauft für '+money(o.amt))}
     save()}
   else if(k==='finv'){view={...view,tab:'fin'}}
+  else if(k==='jobacc'){const o=S.career&&S.career.offers[+v];if(o){takeJob(o.club);view={...view,tab:'fav',ftab:'karriere',ov:null};save();toast(`Willkommen bei ${T(o.club).name}!`)}}
+  else if(k==='course'){const r=startCourse();toast(r==='ok'?'Lehrgang begonnen':r);save()}
+  else if(k==='apply'){const r=applyJob(v);if(r==='ok'){view={...view,tab:'fav',ftab:'karriere',ov:null};toast(`Zusage! Du bist neuer Trainer von ${T(v).name}`)}else toast(r==='nein'?`${T(v).name} hat sich für einen anderen Kandidaten entschieden`:r==='lizenz'?'Dafür fehlt dir die Lizenz':'Du hast dich dort schon beworben');save()}
+  else if(k==='jobdec'){if(S.career)S.career.offers.splice(+v,1);save()}
+  else if(k==='acadlv'){AC().lv=+v;save();toast(ACAD[+v].n+' – Kosten werden am Saisonende verbucht')}
+  else if(k==='ypro'){const a=AC(),t=T(S.fav);if(t.sq.length>=30){toast('Der Kader ist voll (30 Spieler)');return}a.intake=a.intake.filter(x=>x!==v);t.sq.push(v);setContract(v,S.fav,3);P()[v].w=Math.round(P()[v].w*.6/100)*100;recalc(S.fav);save();toast(P()[v].n+' gehört jetzt zum Profikader')}
+  else if(k==='yrel'){const a=AC();a.intake=a.intake.filter(x=>x!==v);delete P()[v];save()}
   else if(k==='mform'){setTactic('form',v);save()}
   else if(k==='mstyle'){setTactic('style',v);save()}
   else if(k==='mtrain'){MG().train=v;save()}
@@ -298,10 +308,7 @@ $('bTen').onclick=()=>sim(5);
 $('bAll').onclick=()=>{sim(99);view={...view,tab:'season'};render();toast('Saison beendet')};
 $('bNew').onclick=()=>act('newseason');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
-async function boot(){
-$('main').innerHTML='<div class="card empty">Spielstand wird geladen …</div>';
-if(!(await loadAsync())) {fresh();save()}
-else{
+function migrateLoaded(){
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
   for(const p of PRESETS) if(!S.leagues.some(l=>l.name===p.name)){
@@ -329,6 +336,12 @@ else{
     save();
   }
 }
+async function boot(){
+$('main').innerHTML='<div class="card empty">Spielstand wird geladen …</div>';
+applyTheme();
+if(!(await loadAsync())) {fresh();S.mode='free';save()}
+else migrateLoaded();
 render();
+if(!navigator.webdriver)openMenu();
 }
 boot();
