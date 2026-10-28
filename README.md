@@ -19,3 +19,4 @@ Ergebnis:
 
 ## Tests
 Playwright-Skripte in `tests/` (aus `dist/app` heraus starten), z. B. `node ../../tests/t13.js`.
+GitHub Pages liefert die App direkt aus dem Hauptverzeichnis aus (index.html, src/, styles/, icons/, sw.js).

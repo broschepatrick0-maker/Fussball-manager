@@ -11,6 +11,8 @@ fs.rmSync('dist',{recursive:true,force:true});
 const files=['index.html','manifest.webmanifest','styles/app.css','src/pwa.js',...order.map(f=>'src/'+f),...fs.readdirSync('icons').map(f=>'icons/'+f)];
 for(const f of files){fs.mkdirSync(path.dirname('dist/app/'+f),{recursive:true});fs.copyFileSync(f,'dist/app/'+f)}
 const ver='fp-'+crypto.createHash('sha1').update(files.map(f=>R(f)).join('')).digest('hex').slice(0,10);
+const swSrc=R('sw.template.js').replace('__VERSION__',ver).replace('__FILES__',JSON.stringify(['./',...files.filter(f=>f!=='index.html')]));
+W('sw.js',swSrc); // für GitHub Pages direkt aus dem Hauptverzeichnis
 W('dist/app/sw.js',R('sw.template.js').replace('__VERSION__',ver).replace('__FILES__',JSON.stringify(['./',...files.filter(f=>f!=='index.html')])));
 // 2) Eine Datei zum Öffnen ohne Server
 const head=html.slice(0,html.indexOf('<link rel="manifest"'));
