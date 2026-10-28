@@ -50,11 +50,13 @@ function seasonIncome(id,st){ // Prämien & TV-Geld am Saisonende
 // (gute Vereine liefern etwas besseren Nachwuchs), Spieler wachsen bis ~27 Richtung Potenzial
 // und bauen danach ab. So bleibt die Stärke der Ligen über Jahrzehnte stabil.
 const NORM={1:78.6,2:68.8,3:60,4:51.5,5:46,6:41,7:36,8:31,9:26,10:21,F:78.4};
-const YOUTH_C=+(globalThis.YOUTH_C??-1.2);
+const YOUTH_C=+(globalThis.YOUTH_C??-3);
 function clubNorm(t){const l=lgOf(t.id);if(!l)return t.r;return l.foreign?NORM.F:(NORM[l.level]||t.r)}
-function youthPot(t){const n=clubNorm(t);let pot=n+(t.r-n)*0.5+YOUTH_C+gauss()*5;if(Math.random()<.03)pot+=8+Math.random()*6;return Math.min(99,pot)}
+function lvKey(t){const l=lgOf(t.id);return l?(l.foreign?'F':l.level):null}
+function youthPot(t){const n=clubNorm(t),k=lvKey(t),drift=S.lvAvg&&k!=null&&S.lvAvg[k]!=null?S.lvAvg[k]-n:0;let pot=n+(t.r-n)*0.5+YOUTH_C-1.5*drift+gauss()*5;if(Math.random()<.03)pot+=8+Math.random()*6;return Math.min(99,pot)}
 function potOf(p){if(p.pot==null)p.pot=+Math.min(99,p.s+Math.max(0,25-p.a)*1.1).toFixed(1);return p.pot}
 function developSquads(){
+  {const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>{(o[k]=o[k]||[]).push(T(id).r)})});S.lvAvg={};for(const k in o)S.lvAvg[k]=o[k].reduce((a,b)=>a+b,0)/o[k].length}
   for(const t of Object.values(S.teams)){
     if(!t.sq) continue;
     t.sq=t.sq.filter(pid=>{const p=P()[pid];if(!p)return false;p.a++;const pot=potOf(p);
@@ -65,6 +67,9 @@ function developSquads(){
       else g=-(2+Math.random()*2.5);
       p.s=+clampS(p.s+g).toFixed(1);
       if(p.a>=36||(p.a>=33&&Math.random()<.35)){delete P()[pid];return false}return true});
+    // Kader auf höchstens 26 begrenzen: überzählige, schwächste Spieler beenden ihre Laufbahn bzw. verlassen das Ligensystem
+    if(t.sq.length>26){const keep=new Set();POS.forEach(pos=>t.sq.filter(pid=>P()[pid].p===pos).sort((a,b)=>P()[b].s-P()[a].s).slice(0,{TW:2,AB:5,MF:5,ST:3}[pos]).forEach(x=>keep.add(x)));
+      const rest=t.sq.filter(x=>!keep.has(x)).sort((a,b)=>P()[a].s-P()[b].s);while(t.sq.length>26&&rest.length){const w=rest.shift();t.sq=t.sq.filter(x=>x!==w);delete P()[w]}}
     POS.forEach(pos=>{const need={TW:3,AB:7,MF:7,ST:4}[pos];while(t.sq.filter(pid=>P()[pid].p===pos).length<need){const pot=youthPot(t),age=17+Math.floor(Math.random()*3);const id=newPlayer(t,pos,pot-(7+Math.random()*6)+(age-17)*1.5,age);P()[id].pot=+pot.toFixed(1);t.sq.push(id)}});
     recalc(t.id);
   }
@@ -113,11 +118,15 @@ function aiTransfer(force){
   const need=posNeed(b),blv=b.lv||9;
   const sellers=shuffle(buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==bid&&(id!==S.fav||favAuto())&&Math.abs((t.lv||9)-blv)<=1&&(Math.random()<.5||sameWorld(t,b))})).slice(0,8);
   const c=[];
-  sellers.forEach(sid=>{ensureSquad(sid).forEach(pid=>{const p=P()[pid];if(p.p===need&&p.s>b.r-1&&p.s<b.r+9&&p.a<=31){const fee=Math.round(value(pid)*(1+Math.random()*.4)/1e3)*1e3;if(fee<=money_)c.push({pid,sid,fee})}})});
+  // Scouting: manchmal sucht ein Verein gezielt Talente (unsichtbares Potenzial, Schätzung mit Unschärfe)
+  const talent=Math.random()<.25,est=p=>potOf(p)+gauss()*3;
+  sellers.forEach(sid=>{ensureSquad(sid).forEach(pid=>{const p=P()[pid];
+    const ok=talent?(p.a<=21&&p.s>=b.r-12&&est(p)>=b.r+2):(p.p===need&&p.s>b.r-1&&p.s<b.r+9&&p.a<=31);
+    if(ok){const fee=Math.round(value(pid)*(talent?1.3+Math.random()*.5:1+Math.random()*.4)/1e3)*1e3;if(fee<=money_)c.push({pid,sid,fee,e:talent?est(p):p.s})}})});
   if(!c.length) return;
-  c.sort((x,y)=>P()[y.pid].s-P()[x.pid].s);
-  const pick=c[Math.floor(Math.random()*Math.min(3,c.length))],st=T(pick.sid);
-  if(st.sq.filter(id=>P()[id].p===need).length<=2) return;
+  c.sort((x,y)=>y.e-x.e);
+  const pick=c[Math.floor(Math.random()*Math.min(3,c.length))],st=T(pick.sid),pp=P()[pick.pid].p;
+  if(st.sq.filter(id=>P()[id].p===pp).length<=2) return;
   if(pick.sid===S.fav&&st.sq.length<=18) return;
   st.sq=st.sq.filter(x=>x!==pick.pid);b.sq.push(pick.pid);addBud(bid,-pick.fee);addBud(pick.sid,pick.fee);
   addTr(pick.pid,pick.sid,bid,pick.fee);
