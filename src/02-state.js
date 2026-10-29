@@ -45,7 +45,7 @@ function addTeam(name,vb,r){const id='t'+(S.next++);S.teams[id]={id,name,vb,r};r
 function L(id){return S.leagues.find(l=>l.id===id)}
 
 function fresh(){
-  S={season:2026,round:0,next:0,teams:{},leagues:[],cups:[],log:[],pokalWinners:{},done:false};
+  S={nmv:2,season:2026,round:0,next:0,teams:{},leagues:[],cups:[],log:[],pokalWinners:{},done:false};
   for(const p of PRO){
     const ids=p.teams.split(';').map(s=>{const [n,v,r]=s.split('|');return addTeam(n,v,+r)});
     S.leagues.push({id:p.id,name:p.name,level:p.level,vb:null,kreis:null,teams:ids,size:ids.length,real:true});

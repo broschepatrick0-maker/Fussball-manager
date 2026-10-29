@@ -239,6 +239,7 @@ function act(a){
     if(k==='mtalk'){if(v==='skip')o.htTalk=false;else dynTalk(o,v);o.playing=true;paintMatch();liveRun();return}
     if(k==='mcosub'){o.rep.dyn.cosub=!o.rep.dyn.cosub;MG().cosub=o.rep.dyn.cosub;paintMatch();return}
     if(k==='msub'){const a=document.getElementById('subOut'),b=document.getElementById('subIn');if(a&&b&&dynSub(o.rep,o.rep.dyn.fav,a.value,b.value,o.rep.ticks[o.i]))toast('Wechsel vollzogen');paintMatch();return}
+    if(k==='mboard'){o.nob=!(o.nob??S.noBoard);S.noBoard=o.nob;paintMatch();return}
     if(k==='mpl'){o.htTalk=false;o.playing=!o.playing;if(o.playing&&o.i>=o.rep.ticks.length-1)o.i=0;paintMatch();liveRun();return}
     if(k==='msp'){o.speed=+v;S.liveSpeed=+v;paintMatch();liveRun();return}
     if(k==='mend'){if(o.rep.dyn&&!o.rep.done)dynFinish(o);o.i=o.rep.ticks.length-1;o.playing=false;clearInterval(LIVE.timer);LIVE.timer=null;paintMatch();if(o.fresh){o.fresh=false;toast(`Abpfiff: ${T(o.m.h).name} ${o.m.hg}:${o.m.ag} ${T(o.m.a).name}`)}return}
@@ -386,6 +387,7 @@ function migrateLoaded(){
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
+  try{if(renamePlayersOnce()){added=true;setTimeout(()=>toast('Neu: Spieler mit vielfältigeren Namen und Nationalitäten'),900)}}catch(e){console.warn(e)}
   if(restorePresets())added=true;
   for(const p of PRESETS){
     const lg=S.leagues.find(l=>l.name===p.name); if(!lg) continue;

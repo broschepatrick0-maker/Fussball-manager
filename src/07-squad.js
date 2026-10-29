@@ -9,10 +9,10 @@ const NAMES={
 };
 const POS=['TW','AB','MF','ST'],POSN={TW:'Torwart',AB:'Abwehr',MF:'Mittelfeld',ST:'Sturm'};
 function gauss(){return (Math.random()+Math.random()+Math.random()-1.5)*2}
-function pname(t){const c=t.cc?(NAMES[t.cc]||NAMES.INT):NAMES.DE;const f=c.f.split(','),l=c.l.split(',');return rnd(f)+' '+rnd(l)}
+function pname(t){return nameFor(rollNat(t))}
 function P(){if(!S.pl)S.pl={};return S.pl}
 const clampS=x=>Math.max(10,Math.min(99,x));
-function newPlayer(t,pos,st,age){st=clampS(st);const id='p'+(S.next++);P()[id]={n:pname(t),p:pos,a:age??(18+Math.floor(Math.random()*16)),s:+st.toFixed(1)};return id}
+function newPlayer(t,pos,st,age){st=clampS(st);const id='p'+(S.next++);const nat=rollNat(t);P()[id]={n:nameFor(nat),nat,p:pos,a:age??(18+Math.floor(Math.random()*16)),s:+st.toFixed(1)};return id}
 function xi(sq){
   const fit=sq.filter(id=>P()[id]&&!P()[id].inj);
   const by=p=>fit.filter(id=>P()[id].p===p).map(id=>P()[id].s).sort((a,b)=>b-a);

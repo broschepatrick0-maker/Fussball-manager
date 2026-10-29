@@ -130,7 +130,7 @@ function matchHTML(){
   const pen=o>=400?(()=>{let a=0,b=0;rep.ev.forEach(e=>{if(e.o<=o&&e.t==='pgoal'){e.s==='h'?a++:b++}});return `<small>i.E. ${a}:${b}</small>`})():'';
   const row=(lbl,a,b,fmt=x=>x)=>{const t=a+b||1;return `<div class="srow"><b>${fmt(a)}</b><span>${lbl}</span><b>${fmt(b)}</b><div class="sbar"><i style="width:${a/t*100}%"></i><i style="width:${b/t*100}%"></i></div></div>`};
   const posNow=i===0?50:Math.round(rep.pos+Math.sin(i/7)*3);
-  const lu=s=>`<div><h4>${esc(T(rep.side[s].id).name)}</h4><ol class="lu">${rep.side[s].xi.map(pid=>`<li><span class="pos-${P()[pid].p}">${P()[pid].p}</span>${esc(P()[pid].n)}</li>`).join('')}</ol></div>`;
+  const lu=s=>`<div><h4>${esc(T(rep.side[s].id).name)}</h4><ol class="lu">${rep.side[s].xi.map(pid=>`<li><span class="pos-${P()[pid].p}">${P()[pid].p}</span>${flagOf(P()[pid])} ${esc(P()[pid].n)}</li>`).join('')}</ol></div>`;
   const speed=L_.speed||1;
   return `<div class="mlive">
   <div class="sb${L_.flash?' flash':''}"><div class="meta sbm">${esc(mctxLabel(ctx))}${m.lv&&!L_.replay?'':''}</div>
@@ -142,6 +142,7 @@ function matchHTML(){
    <div class="seg" style="margin:0">${SPEEDS.map(([k,,t])=>`<button class="${speed===k?'on':''}" data-act="msp:${k}">${t}</button>`).join('')}</div>
    ${end?'':`<button class="btn" data-act="mend">Zum Ende ⏭</button>`}</div>
   ${rep.dyn?dynControls(L_):''}
+  ${pitchCard(L_)}
   <div class="mgrid"><div class="card"><h3 class="ct">Liveticker</h3><div class="tick">${shown.map(e=>`<div class="te t-${e.t}${e.s?' s-'+e.s:''}"><span class="tm_">${e.o>=400?'':e.o===0?'':rep.label(e.o)}</span><span class="ti">${ico[e.t]||'•'}</span><span>${e.t==='goal'?`<b>TOR für ${esc(T(rep.side[e.s].id).name)}!</b> `:''}${esc(e.txt||'')}${e.t==='goal'?` <b>${liveScore(rep,e.o).join(':')}</b>`:''}</span></div>`).join('')||'<div class="empty">Gleich geht es los …</div>'}</div></div>
   <div class="card"><h3 class="ct">Statistik</h3>${row('Ballbesitz',posNow,100-posNow,x=>x+'%')}${row('Torschüsse',st.h.sh,st.a.sh)}${row('Aufs Tor',st.h.on,st.a.on)}${row('Ecken',st.h.co,st.a.co)}${row('Fouls',st.h.fo,st.a.fo)}${row('Abseits',st.h.of,st.a.of)}${row('Gelbe Karten',st.h.ye,st.a.ye)}${st.h.re+st.a.re?row('Rote Karten',st.h.re,st.a.re):''}
    <h3 class="ct" style="margin-top:14px">Aufstellungen</h3><div class="lus">${lu('h')}${lu('a')}</div></div></div></div>`;
@@ -156,7 +157,7 @@ function liveTick(){
   paintMatch();
   if(!o.playing){clearInterval(LIVE.timer);LIVE.timer=null;if(o.fresh){o.fresh=false;toast(`Abpfiff: ${T(o.m.h).name} ${o.m.hg}:${o.m.ag}${o.m.pen?' i.E.':o.m.et?' n.V.':''} ${T(o.m.a).name}`)}}
 }
-function paintMatch(){const c=document.querySelector('#ov .ovc');if(c){c.innerHTML=matchHTML();c.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act))}}
+function paintMatch(){const c=document.querySelector('#ov .ovc');if(c){c.innerHTML=matchHTML();c.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act));try{mountPitch()}catch(e){console.warn(e)}}}
 function liveRun(){clearInterval(LIVE.timer);const o=view.ov;if(!o||!o.playing)return;const ms=(SPEEDS.find(x=>x[0]===(o.speed||1))||SPEEDS[0])[1];LIVE.timer=setInterval(liveTick,ms)}
 function openMatch(ref){
   const r=MREF[ref];if(!r)return;const {m,ctx}=r;let fresh=false;
