@@ -15,6 +15,7 @@ function newSeason(){
   for(const c of S.cups) if(c.type!=='kp'||true) {}
   const dfb=S.cups.find(c=>c.type==='dfb'); if(dfb) log.push(`DFB-Pokalsieger: ${T(dfb.winner).name}`);
   // Relegation
+  S.leagues.forEach(l=>{if(!l.tgt&&!l.foreign)l.tgt=l.teams.length});
   const move={}; // id -> ziel-liga-id
   const DL=deLevels(); const lvF=id=>move[id]?L(move[id]).level:DL.lv[id];
   const okAt=(id,lv)=>lv>=resMinLevel(T(id).name,DL.byName,lvF);
@@ -49,10 +50,16 @@ function newSeason(){
     const champ=st[d.id].find(id=>!move[id]&&okAt(id,u.level)); if(!champ) continue;
     if(champ!==st[d.id].find(id=>!move[id]))log.push(`${d.name}: ${T(st[d.id].find(id=>!move[id])).name} darf als Zweitvertretung nicht aufsteigen`);
     downIdx[u.id]=(downIdx[u.id]||0)+1;
-    let last=st[u.id].filter(id=>!move[id]).slice(-downIdx[u.id])[0];
+    let last=st[u.id].filter(id=>!move[id]).slice(-1)[0];
     if((u.vbs||[]).length>1){const pool=st[u.id].filter(id=>!move[id]),same=pool.filter(id=>T(id).vb===d.vb),c=same[same.length-1];if(c&&pool.indexOf(c)>=pool.length-4)last=c}
     move[champ]=u.id; if(last){move[last]=d.id;(relGrp[u.id]=relGrp[u.id]||[]).push({d,last})}
     log.push(`${d.name}: ${T(champ).name} steigt auf in ${u.name}${last?', '+T(last).name+' steigt ab':''}`);
+    // ab Kreisliga abwärts: Vizemeister spielt Relegation gegen den Vorletzten (max. ¼ der Liga steigt ab)
+    if(d.level>=8&&downIdx[u.id]<Math.max(2,Math.round((u.tgt||u.teams.length)/4))){
+      const vize=st[d.id].find(id=>!move[id]&&okAt(id,u.level)),opp=st[u.id].filter(id=>!move[id]).slice(-1)[0];
+      if(vize&&opp){const r=twoLeg(vize,opp);log.push(`Relegation ${u.name}/${d.name}: ${r.txt}`);
+        if(r.w===vize){downIdx[u.id]++;move[vize]=u.id;move[opp]=d.id;(relGrp[u.id]=relGrp[u.id]||[]).push({d,last:opp});log.push(`${d.name}: ${T(vize).name} steigt über die Relegation auf, ${T(opp).name} steigt ab`)}}
+    }
   }
   // Absteiger in die Heimatliga (dort, wo sie herkamen)
   const homes=homeLeagues;
@@ -99,6 +106,7 @@ function newSeason(){
       if(!best)break;best.f.teams=best.f.teams.filter(x=>x!==best.id);ol.teams.push(best.id);log.push(`${ol.name}: ${T(best.id).name} rückt zusätzlich aus der ${best.f.name} nach`)}
   }
   enforceReserves(st,log);
+  balanceAmateur(st,log);
   applyInsolvency(insolvent,st,log);
   contractsSeason(log,lvOld);
   try{careerSeasonEnd(st,log)}catch(e){console.warn(e)}
@@ -128,4 +136,29 @@ function newSeason(){
   if(isCareer()&&S.career.club)setGoal();
   transferDay(140);
   view={tab:'season',id:null};
+}
+
+// Ligagrößen in den Amateurklassen stabil halten (Sollgröße = Größe beim Anlegen)
+function balanceAmateur(st,log){
+  const feed=u=>S.leagues.filter(d=>!d.foreign&&d.level===u.level+1&&(d.up||(PRESETS.find(p=>p.name===d.name)||{}).up)===u.name);
+  const {lv,byName}=deLevels();const ok=(id,l)=>l>=resMinLevel(T(id).name,byName,y=>lv[y]);
+  const ord=l=>(st[l.id]||[]).filter(x=>l.teams.includes(x)).concat(l.teams.filter(x=>!(st[l.id]||[]).includes(x)));
+  const ams=S.leagues.filter(l=>!l.foreign&&l.level>=6&&l.tgt).sort((a,b)=>a.level-b.level);
+  for(const l of ams){let g=0;
+    // zu groß: Schlusslichter in die kleinste Unterliga, sonst in eine kleinere Nachbarliga im Kreis
+    while(l.teams.length>l.tgt+1&&g++<8){
+      const subs=feed(l).sort((a,b)=>(a.teams.length-a.tgt)-(b.teams.length-b.tgt));
+      const sib=S.leagues.filter(x=>x!==l&&!x.foreign&&x.level===l.level&&x.vb===l.vb&&x.kreis===l.kreis&&x.tgt&&x.teams.length<x.tgt).sort((a,b)=>(a.teams.length-a.tgt)-(b.teams.length-b.tgt));
+      const v=ord(l).filter(x=>x!==S.fav).pop();if(!v)break;
+      const dest=subs[0]||sib[0];if(!dest)break;
+      l.teams=l.teams.filter(x=>x!==v);dest.teams.push(v);lv[v]=dest.level;
+      log.push(dest.level>l.level?`${l.name} zu groß: ${T(v).name} steigt zusätzlich ab → ${dest.name}`:`Umgruppierung: ${T(v).name} wechselt von der ${l.name} in die ${dest.name}`)}
+    // zu klein: beste Nicht-Aufsteiger der Unterligen rücken nach, sonst aus einer vollen Nachbarliga
+    g=0;while(l.teams.length<l.tgt-1&&g++<8){
+      let best=null;for(const f of feed(l)){if(f.teams.length<=Math.max(6,f.tgt-2))continue;const c=ord(f).find(x=>ok(x,l.level));if(!c)continue;const i=ord(f).indexOf(c);if(!best||i<best.i)best={id:c,f,i}}
+      if(best){best.f.teams=best.f.teams.filter(x=>x!==best.id);l.teams.push(best.id);lv[best.id]=l.level;log.push(`${l.name}: ${T(best.id).name} rückt aus der ${best.f.name} nach`);continue}
+      const sib=S.leagues.filter(x=>x!==l&&!x.foreign&&x.level===l.level&&x.vb===l.vb&&x.kreis===l.kreis&&x.tgt&&x.teams.length>x.tgt).sort((a,b)=>(b.teams.length-b.tgt)-(a.teams.length-a.tgt))[0];
+      if(!sib)break;const v=ord(sib).filter(x=>x!==S.fav).pop();if(!v)break;
+      sib.teams=sib.teams.filter(x=>x!==v);l.teams.push(v);log.push(`Umgruppierung: ${T(v).name} wechselt von der ${sib.name} in die ${l.name}`)}
+  }
 }

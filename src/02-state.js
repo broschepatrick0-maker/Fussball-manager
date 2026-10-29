@@ -14,8 +14,9 @@ function downLeague(cur,t){
   if(cur.level===1)return L('bl2'); if(cur.level===2)return L('l3'); if(cur.level===3)return L(REGION[t.vb]||'rlw');
   const c=S.leagues.filter(l=>l.level===cur.level+1&&(l.vbs||[l.vb]).includes(t.vb)); if(!c.length)return null;
   const hl=homeLeagues(t.id);const home=c.find(l=>hl.includes(l.name));if(home)return home;
-  const viaUp=c.find(l=>(l.up||(PRESETS.find(p=>p.name===l.name)||{}).up)===cur.name)||c.find(l=>cur.kreis&&l.kreis===cur.kreis);if(viaUp)return viaUp;
-  if(cur.kreis&&cur.level>=8)return null; // keine Unterliga im eigenen Kreis
+  const feeds=c.filter(l=>(l.up||(PRESETS.find(p=>p.name===l.name)||{}).up)===cur.name);if(feeds.length)return feeds.sort((a,b)=>a.teams.length-b.teams.length)[0];
+  if(cur.kreis&&cur.level>=8)return null; // keine eigene Unterliga: bleibt (unterste Spielklasse)
+  const viaK=c.find(l=>cur.kreis&&l.kreis===cur.kreis);if(viaK)return viaK;
   return c.sort((a,b)=>a.teams.length-b.teams.length)[0];
 }
 function enforceReserves(st,log){
