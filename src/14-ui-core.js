@@ -223,7 +223,8 @@ function resBlocked(lg){if(lg.foreign||lg.level<=1)return [];const D=deLevels(),
     const rl=ref!=null&&D.lg[ref];out.push({id,why:rl?`${T(ref).name} spielt in der ${rl.name}`:'erste Mannschaft spielt zu hoch'})}
   return out}
 function renderLeague(lg){
-  const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='stats'?'on':''}" data-act="lmode:stats">Statistik</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
+  const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='stats'?'on':''}" data-act="lmode:stats">Statistik</button><button class="${view.lmode==='arch'?'on':''}" data-act="lmode:arch">Vorjahre</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
+  if(view.lmode==='arch') return `<div class="card"><div class="hd"><div><div class="meta">${LEVELS[lg.level]||''} · Abschlusstabellen</div><h2>${esc(lg.name)}</h2></div></div>${pyrNav(lg)}${tabs}<div style="margin-top:10px">${archHTML(lg)}</div></div>`;
   if(view.lmode==='ewig') return renderEwig(lg,tabs);
   if(view.lmode==='stats') return `<div class="card"><div class="hd"><div><div class="meta">${LEVELS[lg.level]||''} · Saison ${sl2(S.season)}</div><h2>${esc(lg.name)}</h2></div></div>${pyrNav(lg)}${tabs}<div style="margin-top:10px">${statsHTML(lg)}</div></div>`;
   const t=table(lg),n=t.length;

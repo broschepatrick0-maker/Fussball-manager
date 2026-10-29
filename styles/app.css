@@ -441,3 +441,4 @@ button.clock:hover b{text-decoration:underline}
 .jopts .mbtn>span:first-child{font-size:17px}
 .jopts .mbtn.pri{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
 .jlist{display:flex;flex-direction:column;gap:3px;font-size:13.5px}
+.at{width:100%;table-layout:fixed}.at th:nth-child(1){width:34px}.at th:nth-child(3){width:34px}.at th:nth-child(4){width:58px}.at th:nth-child(5){width:42px}.at td.l{white-space:normal;overflow-wrap:anywhere}.at button.tlink{white-space:normal;overflow-wrap:anywhere;text-align:left}

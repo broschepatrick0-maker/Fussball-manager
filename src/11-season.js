@@ -130,6 +130,7 @@ function newSeason(){
   S.pool&&S.pool.forEach(id=>{const t=T(id);t.r=+(t.r+(Math.random()*3-1.5)).toFixed(1)});
   S.log.unshift({season:S.season,lines:log});if(S.log.length>60)S.log.length=60;
   markMoves(oldSeason);
+  try{archiveSeason(oldSeason,log)}catch(e){console.warn(e)}
   try{newsSeason(st,oldSeason)}catch(e){}
   S.season++;
   startSeason();

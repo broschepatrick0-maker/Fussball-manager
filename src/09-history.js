@@ -23,7 +23,8 @@ function addAll(store,lgName,rows){
     e.sp+=r.sp;e.s+=r.s;e.u+=r.u;e.n+=r.n;e.tf+=r.tf;e.tg+=r.tg;e.p+=r.p;e.z++;if(r.pos===1)e.t++});
 }
 function recordSeason(){
-  const h=H(),season=S.season;
+  const h=H(),season=S.season;S._snap={};
+  for(const lg of S.leagues)if(lg.played>0)S._snap[lg.id]=table(lg).map(r=>[r.id,r.sp,r.s,r.u,r.n,r.tf,r.tg,r.p]);
   for(const lg of S.leagues){
     const t=table(lg).map((r,i)=>({...r,pos:i+1}));
     addAll(h.all,lg.name,t);
@@ -57,3 +58,19 @@ function liveAll(lgName){ // ewige Tabelle inkl. laufender Saison
   return Object.entries(base).map(([id,e])=>({id,...e})).filter(e=>T(e.id)).sort((a,b)=>b.p-a.p||(b.tf-b.tg)-(a.tf-a.tg)||b.tf-a.tf);
 }
 const tl=id=>`<button class="tlink" data-act="club:${id}">${esc(T(id).name)}</button>`;
+
+// Archiv der Abschlusstabellen (letzte 3 Saisons) mit Auf-/Abstieg und Begründung
+function archiveSeason(season,log){const snap=S._snap||{};delete S._snap;S.arch=S.arch||{};
+  const where={};S.leagues.forEach(l=>l.teams.forEach(id=>where[id]=l));
+  for(const [lid,rows] of Object.entries(snap)){const lg=L(lid);if(!lg)continue;
+    const out=rows.map(r=>{const w=where[r[0]];const mv=!w?'out':w.id===lid?'':w.level<lg.level?'up':w.level>lg.level?'down':'side';return [...r,mv,w&&w.id!==lid?w.name:'']});
+    const nm=lg.name,names=new Set(rows.map(r=>T(r[0])&&T(r[0]).name));
+    const notes=log.filter(l=>l.includes(nm)||[...names].some(n=>n&&l.includes(n)&&/Relegation|Zweitvertretung|rückt|Zwangsabstieg|Insolvenz|Umgruppierung|zusätzlich|Aufstieg/.test(l))).slice(0,40);
+    const a=S.arch[lid]=(S.arch[lid]||[]).filter(x=>x.s!==season);a.unshift({s:season,n:nm,lv:lg.level,rows:out,notes});if(a.length>3)a.length=3}}
+function archHTML(lg){const a=(S.arch&&S.arch[lg.id])||[];if(!a.length)return '<div class="empty">Noch keine abgeschlossene Saison – nach dem ersten Saisonwechsel stehen hier die Abschlusstabellen der letzten drei Jahre.</div>';
+  const i=Math.min(view.arch||0,a.length-1),e=a[i];
+  const seg=`<div class="seg">${a.map((x,k)=>`<button class="${k===i?'on':''}" data-act="arch:${k}">${sl2(x.s)}</button>`).join('')}</div>`;
+  const mv=(m,to)=>m==='up'?`<span class="mv up" title="${esc(to)}">▲ ${esc(to)}</span>`:m==='down'?`<span class="mv down" title="${esc(to)}">▼ ${esc(to)}</span>`:m==='side'?`<span class="mv">→ ${esc(to)}</span>`:m==='out'?'<span class="mv">aufgelöst</span>':'';
+  const tb=`<div class="scroll"><table class="at"><thead><tr><th class="l">Pl.</th><th class="l">Verein</th><th>Sp</th><th>Tore</th><th>Pkt</th></tr></thead><tbody>${e.rows.map((r,k)=>`<tr class="${r[8]==='up'?'z-up':r[8]==='down'?'z-down':''}${r[0]===S.fav?' hl':''}"><td class="pos l">${k+1}</td><td class="l" style="white-space:normal;width:100%">${T(r[0])?tl(r[0]):'?'}${isRes((T(r[0])||{}).name||'')?' <span class="meta">(Reserve)</span>':''}<br>${mv(r[8],r[9])}</td><td>${r[1]}</td><td>${r[5]}:${r[6]}</td><td><b>${r[7]}</b></td></tr>`).join('')}</tbody></table></div>`;
+  const why=e.notes.length?`<h3 class="ct" style="margin-top:14px">Warum? – Entscheidungen am Saisonende</h3><div class="notes">${e.notes.map(l=>`<div class="meta" style="padding:3px 0;border-bottom:1px solid var(--line)">${esc(l)}</div>`).join('')}</div>`:'';
+  return seg+(e.n!==lg.name?`<p class="meta">Damals: ${esc(e.n)}</p>`:'')+tb+why}
