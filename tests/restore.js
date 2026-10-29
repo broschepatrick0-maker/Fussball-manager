@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(1000);
+await p.evaluate(()=>{for(let i=0;i<60;i++)simDay()});
+const nm='Kreisliga Erfurt-Sömmerda 2';
+const before=await p.evaluate(nm=>{const l=S.leagues.find(l=>l.name===nm);return {id:l.id,teams:l.teams.slice(),played:l.played}},nm);
+await p.evaluate(id=>{act('lg:'+id)},before.id);await p.waitForTimeout(100);
+await p.click('[data-act^="del:"]');await p.waitForTimeout(100);console.log('btn',await p.$eval('[data-act^="del:"]',e=>e.textContent));
+await p.click('[data-act^="del:"]');await p.waitForTimeout(100);
+console.log('deleted',await p.evaluate(nm=>!S.leagues.some(l=>l.name===nm),nm));
+await p.evaluate(()=>act('import'));await p.waitForTimeout(150);
+console.log('card',await p.evaluate(()=>document.body.innerText.includes('Gelöschte Standard-Ligen')));
+await p.click('[data-act^="restore:"]');await p.waitForTimeout(200);
+const r=await p.evaluate(([nm,old])=>{const l=S.leagues.find(l=>l.name===nm);const same=l.teams.filter(x=>old.includes(x)).length;for(let i=0;i<3;i++)simDay();return {n:l.teams.length,same,dates:!!l.dates,played:l.played,view:view.tab+'/'+view.id===('league/'+l.id),up:l.up}},[nm,before.teams]);
+console.log(JSON.stringify(r),'vorher played',before.played);console.log(errs);await b.close()})();

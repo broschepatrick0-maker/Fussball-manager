@@ -124,9 +124,26 @@ function renderCup(c){
   if(c.type==='lp') h+=`<p class="note" style="margin-top:14px">Teilnehmer: Drittligisten, Regionalligisten und alle Vereine aus Amateurligen, die du für ${VB[c.vb]} importiert hast. Zweitvertretungen sind ausgeschlossen.</p>`;
   return h+`</div>`;
 }
+// Standard-Ligen (aus den Presets) wiederherstellen – Vereine ohne Liga werden wiederverwendet
+function missingPresets(){const have=new Set(S.leagues.map(l=>l.name));return PRESETS.filter(p=>!have.has(p.name))}
+function restorePresets(only){let n=0;
+  for(const p of missingPresets()){if(only&&p.name!==only)continue;
+    const inLg=new Set();S.leagues.forEach(l=>l.teams.forEach(id=>inLg.add(id)));
+    const byName={};Object.values(S.teams).forEach(t=>{if(!t.cc&&!inLg.has(t.id))byName[t.name]=t.id});
+    const busy=new Set();S.leagues.forEach(l=>l.teams.forEach(id=>{const t=T(id);if(t)busy.add(t.name)}));
+    const lg=addAmateurLeague(p.name,p.vb,p.level,p.kreis,[],true);if(p.up)lg.up=p.up;
+    for(const raw of p.teams){const [nm,v]=raw.split('|');if(busy.has(nm)&&!byName[nm])continue;
+      const id=byName[nm]||addTeam(nm,v||p.vb,(BASE[p.level]||30)-1+Math.random()*2);lg.teams.push(id);T(id).lv=p.level}
+    lg.size=lg.teams.length;lg.vbs=[...new Set(lg.teams.map(id=>T(id).vb))];
+    lg.rounds=schedule(lg.teams);lg.played=0;try{if(S.day!=null)lg.dates=leagueDates(lg)}catch(e){}n++}
+  return n}
+function restoreHTML(){const m=missingPresets();if(!m.length)return '';
+  return `<div class="card"><h3 class="ct">Gelöschte Standard-Ligen (${m.length})</h3><p class="note" style="margin:-4px 0 8px">Diese Ligen gehören zum Spiel, fehlen aber in deinem Spielstand. Beim Wiederherstellen werden die alten Vereine (samt Kader und Geschichte) wieder eingesetzt; Vereine, die inzwischen in einer anderen Liga spielen, bleiben dort. Spieltage, die schon vorbei sind, werden nachgeholt.</p>
+  ${m.slice(0,30).map(p=>`<div class="orow"><span><b>${esc(p.name)}</b> <span class="meta">${LEVELS[p.level]||''} · ${VB[p.vb]||p.vb}</span></span><button class="btn sm pri" data-act="restore:${encodeURIComponent(p.name)}">Wiederherstellen</button></div>`).join('')}
+  ${m.length>1?'<button class="btn" data-act="restore:*" style="margin-top:8px">Alle wiederherstellen</button>':''}</div>`}
 function renderImport(){
   const pre=view.preview||[];
-  return `<div class="card"><div class="hd"><div><div class="meta">Datenquelle fussball.de</div><h2>Liga importieren</h2></div></div>
+  return restoreHTML()+`<div class="card"><div class="hd"><div><div class="meta">Datenquelle fussball.de</div><h2>Liga importieren</h2></div></div>
   <div class="ocrbox"><b>Aus Screenshots</b><p class="meta" style="margin:4px 0 10px">Mach in der fussball.de-App Screenshots der Tabelle (bei langen Tabellen ruhig zwei) und wähle sie hier aus. Die Vereinsnamen werden automatisch erkannt und mit bekannten Vereinen abgeglichen. Beim ersten Mal wird die Texterkennung geladen (ca. 5 MB).</p>
    <label class="btn pri" style="display:inline-flex;cursor:pointer">📷 Screenshots wählen<input type="file" id="ocrIn" accept="image/*" multiple hidden></label>
    <span id="ocrSt" class="meta" style="margin-left:10px">${esc(OCR.log||'')}</span></div>
@@ -336,7 +353,11 @@ function act(a){
     }
     view={tab:'league',id:lg.id,md:null};save();toast(`${names.length} Vereine importiert`);
   }
-  else if(k==='del'){S.leagues=S.leagues.filter(l=>l.id!==v);if(S.cups.every(c=>c.played===0))buildCups();view={tab:'league',id:'bl',md:null};save()}
+  else if(k==='restore'){const nm=v==='*'?null:decodeURIComponent(v);const n=restorePresets(nm);
+    if(n){const keep=S.cups.filter(c=>c.played>0||c.type==='dfb');buildCups();S.cups=S.cups.map(c=>keep.find(k=>k.id===c.id)||c);S.cups.forEach(c=>{if(!c.dates)c.dates=cupDates(c)});
+      const lg=nm&&S.leagues.find(l=>l.name===nm);if(lg)view={tab:'league',id:lg.id,md:null};toast(n===1?`${nm||'Liga'} ist wieder da`:`${n} Ligen wiederhergestellt`);save()}}
+  else if(k==='del'&&view.delAsk!==v){view.delAsk=v;toast('Nochmal tippen zum Löschen – das kann nicht rückgängig gemacht werden (Standard-Ligen lassen sich unter „Liga importieren“ wiederherstellen)')}
+  else if(k==='del'){view.delAsk=null;S.leagues=S.leagues.filter(l=>l.id!==v);if(S.cups.every(c=>c.played===0))buildCups();view={tab:'league',id:'bl',md:null};save()}
   else if(k==='reset'){if(view.confirmReset){fresh();view={tab:'league',id:'bl',md:null};save();toast('Neuer Spielstand')}else{view.confirmReset=true;toast('Zum Zurücksetzen nochmal klicken');setTimeout(()=>view.confirmReset=false,3000);return}}
   else return;
   render();
@@ -365,10 +386,7 @@ function migrateLoaded(){
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
-  for(const p of PRESETS) if(!S.leagues.some(l=>l.name===p.name)){
-    const lg=addAmateurLeague(p.name,p.vb,p.level,p.kreis,p.teams,true);
-    lg.rounds=schedule(lg.teams);lg.played=0;lg.teams.forEach(id=>T(id).lv=lg.level);added=true;
-  }
+  if(restorePresets())added=true;
   for(const p of PRESETS){
     const lg=S.leagues.find(l=>l.name===p.name); if(!lg) continue;
     const have=new Set(Object.values(S.teams).map(t=>t.name));
