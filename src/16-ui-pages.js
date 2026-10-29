@@ -259,7 +259,7 @@ function act(a){
   else if(k==='finv'){view={...view,tab:'fin'}}
   else if(k==='jobacc'){const o=S.career&&S.career.offers[+v];if(o){takeJob(o.club);view={...view,tab:'fav',ftab:'karriere',ov:null};save();toast(`Willkommen bei ${T(o.club).name}!`)}}
   else if(k==='course'){const r=startCourse();toast(r==='ok'?'Lehrgang begonnen':r);save()}
-  else if(k==='apply'){const r=applyJob(v);if(r==='ok'){view={...view,tab:'fav',ftab:'karriere',ov:null};toast(`Zusage! Du bist neuer Trainer von ${T(v).name}`)}else toast(r==='nein'?`${T(v).name} hat sich für einen anderen Kandidaten entschieden`:r==='lizenz'?'Dafür fehlt dir die Lizenz':'Du hast dich dort schon beworben');save()}
+  else if(k==='apply'){const r=applyJob(v);if(r==='ok'){view={...view,tab:'fav',ftab:'karriere',ov:null};toast(`Zusage! Du bist neuer Trainer von ${T(v).name}`)}else toast(r==='nein'?(isVacant(v)?`${T(v).name} hat sich für einen anderen Kandidaten entschieden`:`${T(v).name} hält an seinem Trainer fest – Absage`):r==='lizenz'?'Dafür fehlt dir die Lizenz':'Du hast dich dort schon beworben');save()}
   else if(k==='jobdec'){if(S.career)S.career.offers.splice(+v,1);save()}
   else if(k==='acadlv'){AC().lv=+v;save();toast(ACAD[+v].n+' – Kosten werden am Saisonende verbucht')}
   else if(k==='ypro'){const a=AC(),t=T(S.fav);if(t.sq.length>=30){toast('Der Kader ist voll (30 Spieler)');return}a.intake=a.intake.filter(x=>x!==v);t.sq.push(v);setContract(v,S.fav,3);P()[v].w=Math.round(P()[v].w*.6/100)*100;recalc(S.fav);save();toast(P()[v].n+' gehört jetzt zum Profikader')}

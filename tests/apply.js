@@ -1,0 +1,11 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(1000);
+await p.evaluate(()=>{const id=Object.values(S.teams).find(t=>t.name==='FC Rot-Weiß Erfurt').id;newCareer('Test',id,'club');render()});
+const tgt=await p.evaluate(()=>{const l=S.leagues.find(l=>l.level===6&&!l.foreign);const id=l.teams.find(x=>!isRes(T(x).name));act('club:'+id);return T(id).name});
+await p.waitForTimeout(200);console.log('btn',tgt,await p.$eval('[data-act^="apply:"]',e=>e.textContent).catch(()=>'NONE'));
+await p.screenshot({path:'/tmp/claude-0/-home-claude/fefefd0a-d0a2-5c84-8f2a-a9cae70994d7/scratchpad/ap.png'});
+await p.click('[data-act^="apply:"]');await p.waitForTimeout(300);
+console.log(await p.evaluate(()=>JSON.stringify({club:T(S.career.club).name,applied:Object.keys(S.career.applied||{}).length})), await p.$eval('[data-act^="apply:"]',e=>e.textContent).catch(()=>'(kein Button)'));
+await p.evaluate(()=>{act('area:fav');act('ftab:karriere')});await p.waitForTimeout(200);
+console.log('card',await p.evaluate(()=>document.body.innerText.includes('Verein suchen & bewerben')));
+console.log(errs);await b.close()})();

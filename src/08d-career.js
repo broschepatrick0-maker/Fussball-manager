@@ -87,7 +87,9 @@ function renderCareer(id){const c=S.career,g=c.goal,lg=g&&L(g.lg),tb=lg?table(lg
    <div class="facts"><div><small>Ruf</small><b>${Math.round(c.rep)}/100</b></div><div><small>Bei ${esc(T(id).name)}</small><b>seit ${sl2(c.since)}</b></div><div><small>Bilanz</small><b>${st.w}-${st.d}-${st.l}</b></div><div><small>Titel</small><b>${st.titles.length+c.hist.reduce((a,h)=>a+h.titles.length,0)}</b></div></div>
    <p class="note" style="margin-top:8px">Der Ruf steigt mit erreichten Zielen, Titeln und Aufstiegen – je höher die Liga, desto mehr. Mit gutem Ruf melden sich größere Vereine.</p></div></div>
   <div class="grid2"><div class="card"><h3 class="ct">Jobangebote</h3>${offersHTML()}</div>${licenseCard()}</div>
+  <div class="card"><h3 class="ct">Bewerben</h3>${applyIntro()}${vacHTML()}</div>
   <div class="card"><h3 class="ct">Karriere</h3>${careerHist()}</div>`}
+function applyIntro(){return `<p class="note" style="margin:-4px 0 8px">Bewirb dich bei einem freien Posten – oder bei jedem anderen Verein: öffne ihn über die Suche und tippe auf „📨 Bewerben“. Jeder Verein antwortet einmal pro Saison. Hat er schon einen Trainer, sinkt die Chance (außer es läuft dort schlecht).</p><button class="btn" data-act="ov:search" style="margin-bottom:10px">🔎 Verein suchen &amp; bewerben</button>`}
 function licenseCard(){const c=S.career,cur=LIC[c.lic||0],nx=LIC[(c.lic||0)+1];
   return `<div class="card"><div class="hd"><div><div class="meta">Trainerlizenz</div><h3 class="ct" style="margin:0">${cur.n}</h3></div><span class="tag">Privatkonto ${money(c.money||0)}</span></div>
    <p class="note" style="margin:0 0 8px">Erlaubt: ${licRange(c.lic||0)}.</p>
@@ -98,7 +100,7 @@ function vacHTML(){const v=vacancies();return v.length?v.map(id=>{const l=lgOf(i
   return `<div class="orow"><span><b>${esc(T(id).name)}</b> <span class="meta">${l?esc(l.name):''} · Spielstärke ${T(id).r.toFixed(0)} · Chance ${Math.round(ch*100)} %</span></span><span class="ctrls"><button class="btn sm" data-act="club:${id}">Ansehen</button>${done?'<span class="tag">abgelehnt</span>':ok?`<button class="btn sm pri" data-act="apply:${id}">Bewerben</button>`:'<span class="tag">Lizenz fehlt</span>'}</span></div>`}).join(''):'<div class="empty">Gerade keine passenden Stellen frei – simuliere ein paar Spieltage.</div>'}
 function renderJobless(){const c=S.career;return `<div class="card favhead"><div class="hd"><div><div class="meta">Karriere · ${esc(c.name)}</div><h2>Ohne Verein</h2></div><span class="tag">Ruf ${Math.round(c.rep)} · ${repLabel(c.rep)}</span></div>
   <p class="note">Simuliere weiter – Vereine mit freier Trainerstelle melden sich. Je besser dein Ruf, desto größer die Vereine.</p></div>
-  <div class="grid2"><div><div class="card"><h3 class="ct">Jobangebote</h3>${offersHTML()}</div><div class="card"><h3 class="ct">Freie Stellen</h3><p class="note" style="margin:-4px 0 8px">Bewirb dich selbst – jeder Verein antwortet einmal pro Saison. Die Chance hängt von deinem Ruf ab.</p>${vacHTML()}</div></div>
+  <div class="grid2"><div><div class="card"><h3 class="ct">Jobangebote</h3>${offersHTML()}</div><div class="card"><h3 class="ct">Bewerben</h3>${applyIntro()}${vacHTML()}</div></div>
   <div>${licenseCard()}<div class="card"><h3 class="ct">Karriere</h3>${careerHist()}</div></div></div>`}
 function renderAcademy(id){const a=AC(),rev=(FZ(id).h[0]?FZ(id).h[0][1]:estRevenue(id));
   const rows=a.intake.filter(pid=>P()[pid]).map(pid=>({pid,p:P()[pid],r:youthReport(pid)}));
@@ -129,6 +131,14 @@ function vacancies(){const c=S.career;if(!c.vac||c.vacS!==S.season*100+Math.floo
       const id=rpick(tb.slice(Math.floor(tb.length*.4)).map(r=>r.id),Math.random);if(id&&!isRes(T(id).name)&&!out.includes(id)&&id!==c.club)out.push(id)}
     c.vac=out}
   return c.vac.filter(T)}
-function applyChance(id){const lv=lvOfId(id);return Math.max(.04,Math.min(.92,.35+(S.career.rep-REQ_REP[lv])/35))}
+function isVacant(id){return vacancies().includes(id)}
+function applyChance(id){const lv=lvOfId(id),c=S.career;let p=.35+(c.rep-REQ_REP[lv])/35;
+  if(!isVacant(id)){const lg=lgOf(id),tb=lg?table(lg):[],pos=tb.findIndex(r=>r.id===id),n=tb.length||1;p*=pos>=0&&lg.played>=6?.15+.45*pos/n:.25} // Trainer sitzt fest – je schlechter die Lage, desto eher Wechsel
+  if(c.club&&lv>lvOfId(c.club))p*=1.3; // kleinerer Verein greift gern zu
+  return Math.max(.02,Math.min(.92,p))}
+function applyBtn(id){if(!isCareer())return '';const c=S.career,t=T(id),lg=lgOf(id);if(!t||!lg||lg.foreign||isRes(t.name)||c.club===id)return '';
+  if(c.applied&&c.applied[id+':'+S.season])return '<span class="tag">Bewerbung abgelehnt</span>';
+  if(!licOk(lvOfId(id)))return `<span class="tag">Lizenz fehlt (${LIC.find(L_=>lvOfId(id)>=L_.min)?.n||'höher'})</span>`;
+  return `<button class="btn pri" data-act="apply:${id}">📨 Bewerben · ${Math.round(applyChance(id)*100)} %${isVacant(id)?' · Stelle frei':''}</button>`}
 function applyJob(id){const c=S.career;if(!licOk(lvOfId(id)))return 'lizenz';c.applied=c.applied||{};const k=id+':'+S.season;if(c.applied[k])return 'schon';c.applied[k]=1;
   if(Math.random()<applyChance(id)){takeJob(id);return 'ok'}return 'nein'}
