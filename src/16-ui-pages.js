@@ -229,6 +229,8 @@ function act(a){
   if(view.ov&&!['club','fav','sell','accept','decline','simport','md','emd','lmode','mt'].includes(k)) view.ov=null;
   if(k==='lg'){view={...view,tab:'league',id:v,md:null,team:w||null}}
   else if(k==='lmode'){view.lmode=v}
+  else if(k==='scat'){view.scat=v}
+  else if(k==='slast'){view.slast=v==='1'}
   else if(k==='area'){const first={news:{tab:'news'},home:{tab:'home'},fav:{tab:'fav',ftab:'ov'},tr:{tab:'tr'},de:{tab:'league',id:'bl',lmode:'cur'},eu:{tab:'euro',id:'ucl'},cups:{tab:'cup',id:'dfb'},hist:{tab:'hall'}}[v];view={...view,...first,area:v,md:null};window.scrollTo(0,0)}
   else if(k==='home'){view={...view,tab:'home'}}
   else if(k==='euro'){view={...view,tab:'euro',id:v,emd:null}}

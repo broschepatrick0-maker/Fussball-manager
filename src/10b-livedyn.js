@@ -77,7 +77,7 @@ function dynPenStep(ov){const rep=ov.rep,d=rep.dyn,k=d.pk,o=rep.ticks[ov.i];cons
   dynAdd(rep,{o,t:hit?'pgoal':'pmiss',s,txt:`${nmP(p)} ${hit?'verwandelt':'scheitert'} – ${k.h}:${k.a}`});
   const r=Math.max(k.kh,k.ka),decided=(k.kh<=5&&k.ka<=5&&(k.h+(5-k.kh)<k.a||k.a+(5-k.ka)<k.h))||(k.kh===k.ka&&k.kh>=5&&k.h!==k.a);
   if(decided){const w=k.h>k.a?ov.m.h:ov.m.a;dynAdd(rep,{o:o+0.5,t:'end',txt:`${T(w).name} gewinnt das Elfmeterschießen ${k.h}:${k.a}`});dynCommit(ov)}else rep.ticks.push(o+1)}
-function dynCommit(ov){const rep=ov.rep,m=ov.m,d=rep.dyn;if(rep.done)return;const [h,a]=liveScore(rep,9999);m.hg=h;m.ag=a;m.lv=1;
+function dynCommit(ov){const rep=ov.rep,m=ov.m,d=rep.dyn;if(rep.done)return;const [h,a]=liveScore(rep,9999);m.hg=h;m.ag=a;m.lv=1;try{const gs={h:[],a:[]};rep.ev.filter(e=>e.t==='goal'&&!e.og&&e.o<=9999).forEach(e=>gs[e.s].push([e.sc,e.as||null]));m.gs=gs}catch(e){}
   if(rep.et)m.et=true;if(rep.pens)m.pen=[d.pk.h,d.pk.a];
   if(d.cup){m.w=m.pen?(m.pen[0]>m.pen[1]?m.h:m.a):(m.hg>m.ag?m.h:m.a);afterMatch(m,9)}
   try{const end=rep.et?120:90,mins={};Object.keys(d.entered).forEach(pid=>{const a=d.entered[pid]||0,b=d.left[pid]??end;mins[pid]=Math.max(0,Math.min(end,b)-a)*(90/end)*(end>90?1.25:1)});

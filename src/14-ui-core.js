@@ -223,8 +223,9 @@ function resBlocked(lg){if(lg.foreign||lg.level<=1)return [];const D=deLevels(),
     const rl=ref!=null&&D.lg[ref];out.push({id,why:rl?`${T(ref).name} spielt in der ${rl.name}`:'erste Mannschaft spielt zu hoch'})}
   return out}
 function renderLeague(lg){
-  const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
+  const tabs=`<div class="seg" role="tablist"><button class="${view.lmode!=='ewig'?'on':''}" data-act="lmode:cur">Saison ${S.season}/${String(S.season+1).slice(2)}</button><button class="${view.lmode==='stats'?'on':''}" data-act="lmode:stats">Statistik</button><button class="${view.lmode==='ewig'?'on':''}" data-act="lmode:ewig">Ewige Tabelle</button></div>`;
   if(view.lmode==='ewig') return renderEwig(lg,tabs);
+  if(view.lmode==='stats') return `<div class="card"><div class="hd"><div><div class="meta">${LEVELS[lg.level]||''} · Saison ${sl2(S.season)}</div><h2>${esc(lg.name)}</h2></div></div>${pyrNav(lg)}${tabs}<div style="margin-top:10px">${statsHTML(lg)}</div></div>`;
   const t=table(lg),n=t.length;
   if(view.md==null||view.md>=lg.rounds.length) view.md=Math.min(Math.max(lg.played-1,0),lg.rounds.length-1);
   const md=view.md, rd=lg.rounds[md]||[];
@@ -305,7 +306,7 @@ function renderClub(id){
   <div class="card"><h3 class="ct">Trophäenschrank</h3>${tc.length?`<div class="cab">${tc.map(x=>`<div class="tro ${x.k}"><b>${x.n}×</b><span>${esc(x.c)}</span><small>${x.s.map(sl).join(', ')}</small></div>`).join('')}</div>`:'<div class="empty">Noch kein Titel gewonnen.</div>'}</div>
   <div class="card"><h3 class="ct">Saisonverlauf</h3>${car.length?`<div class="scroll"><table><thead><tr><th class="l">Saison</th><th class="l">Liga</th><th>Platz</th><th>Pkt</th><th class="l">Pokale</th><th class="l"></th></tr></thead><tbody>
     ${car.slice().reverse().map(e=>`<tr><td class="l">${sl(e.s)}${e.live?' <span class="tag">läuft</span>':''}</td><td class="l">${esc(e.lg)}</td><td>${e.pos===1&&!e.live?'<b>1. 🏆</b>':e.pos+'.'}</td><td>${e.p}</td><td class="l team">${e.cups.map(c=>`${esc(c.c)}: ${c.r==='Sieger'?'<b>Sieger</b>':c.r}`).join('<br>')||'–'}</td><td class="l">${mv[e.mv]||''}</td></tr>`).join('')}
-    </tbody></table></div>`:'<div class="empty">Noch keine Spiele gespielt.</div>'}</div>${clubSancHTML(id)}`;
+    </tbody></table></div>`:'<div class="empty">Noch keine Spiele gespielt.</div>'}</div>${clubSancHTML(id)}${legendsHTML(id)}`;
 }
 function renderEuro(e){
   const t=euroTable(e),lpDone=e.step>=e.nmd;

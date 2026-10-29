@@ -10,7 +10,7 @@ function play(h,a,neutral){
 }
 function playRound(lg){
   if(lg.played>=lg.rounds.length) return;
-  for(const m of lg.rounds[lg.played]){if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}afterMatch(m,lg.foreign?1:lg.level);if(S.career&&(m.h===S.fav||m.a===S.fav))careerAfterMatch(m)}
+  for(const m of lg.rounds[lg.played]){if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}afterMatch(m,lg.foreign?1:lg.level);try{statMatch(m,lg)}catch(e){console.warn(e)}if(S.career&&(m.h===S.fav||m.a===S.fav))careerAfterMatch(m)}
   lg.played++;
 }
 function table(lg){

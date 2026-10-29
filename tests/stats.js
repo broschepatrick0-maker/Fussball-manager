@@ -1,0 +1,14 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('file://'+process.cwd()+'/index.html');await p.waitForTimeout(1000);
+let t0=Date.now();await p.evaluate(()=>{for(let i=0;i<120;i++)simDay()});console.log('120 Tage ms',Date.now()-t0);
+console.log(await p.evaluate(()=>{const tab=SS().bl;const r=Object.entries(tab).sort((a,b)=>b[1][0]-a[1][0]).slice(0,3).map(([pid,r])=>P()[pid].n+' '+P()[pid].p+' '+r.join('/'));
+ const gl=Object.values(tab).reduce((a,r)=>a+r[0],0),real=L('bl').rounds.slice(0,L('bl').played).flat().reduce((a,m)=>a+m.hg+m.ag,0);return r.join(' | ')+' · Tore '+gl+'/'+real+' · Ligen '+Object.keys(SS()).length}));
+await p.evaluate(()=>{act('lg:bl');act('lmode:stats')});await p.waitForTimeout(200);
+await p.screenshot({path:'/tmp/claude-0/-home-claude/fefefd0a-d0a2-5c84-8f2a-a9cae70994d7/scratchpad/st1.png',fullPage:true});
+await p.evaluate(()=>act('scat:a'));await p.waitForTimeout(100);
+t0=Date.now();await p.evaluate(()=>{let g=0;while(!S.done&&g++<420)simDay();newSeason();for(let k=0;k<1;k++){let g=0;while(!S.done&&g++<420)simDay();newSeason()}});console.log('2 Saisons ms',Date.now()-t0);
+console.log(await p.evaluate(()=>JSON.stringify({tk:(S.tk.bl||[]).slice(0,2),log:S.log[0].lines.filter(l=>l.startsWith('Torschützenkönig'))})));
+await p.evaluate(()=>{const id=L('bl').teams[0];act('club:'+id)});await p.waitForTimeout(200);
+const el=await p.$('text=Vereinslegenden');if(el)await el.scrollIntoViewIfNeeded();await p.screenshot({path:'/tmp/claude-0/-home-claude/fefefd0a-d0a2-5c84-8f2a-a9cae70994d7/scratchpad/st2.png'});
+console.log('size MB',await p.evaluate(()=>(JSON.stringify(S).length/1e6).toFixed(1)));
+console.log(errs);await b.close()})();
