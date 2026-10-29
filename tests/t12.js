@@ -5,4 +5,4 @@ console.log('start viol',(await viol()).length,(await viol()).slice(0,8));
 for(let i=0;i<5;i++){await p.click('#bAll');await p.click('#bNew');await p.waitForTimeout(200);
  const r=await p.evaluate(()=>({n:S.leagues.reduce((a,l)=>a+l.teams.length,0),lines:S.log[0].lines.filter(l=>/Zwangsabstieg|darf als/.test(l)),bl2res:L('bl2').teams.filter(id=>isRes(T(id).name)).map(id=>T(id).name)}));
  console.log('S',i,'teams',r.n,'viol',(await viol()).length,'bl2res',r.bl2res);r.lines.slice(0,6).forEach(l=>console.log('  ',l));}
-console.log((await viol()).filter(x=>!/L(8|9|10|11)</.test(x)));console.log(errs);await b.close()})();
+console.log((await viol()).filter(x=>!/L(8|9|10|11|12)</.test(x)));console.log(errs);await b.close()})();
