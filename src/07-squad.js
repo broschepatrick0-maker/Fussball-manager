@@ -36,7 +36,7 @@ function value(pid){
   const r=v>1e6?1e5:v>1e5?1e4:1e3; return Math.max(1000,Math.round(v/r)*r);
 }
 function clubValue(id){return (T(id).sq||ensureSquad(id)).reduce((a,pid)=>a+value(pid),0)}
-function money(v){return v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace('.',',')+' Mio. €':v>=1e3?Math.round(v/1e3)+' Tsd. €':v+' €'}
+function money(v){return v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace('.',',')+' Mio. €':v>=1e3?Math.round(v/1e3)+' Tsd. €':Math.round(v)+' €'}
 function windowOpen(){return S.done||transferOpenOn(Math.max(0,S.day+1))}
 function FV(){if(!S.fin)S.fin={budget:null,log:[],income:[]};return S.fin}
 function initBudget(){if(S.fav&&T(S.fav))FZ(S.fav)}

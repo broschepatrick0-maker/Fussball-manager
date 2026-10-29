@@ -2,6 +2,11 @@
 const sgn=v=>(v<0?'−':'')+money(Math.abs(Math.round(v)));
 function invOf(z){return z&&z.own&&S.inv?S.inv[z.own]:null}
 function ownerLabel(z){const i=invOf(z);return i?esc(i.n):'Mitgliederverein'}
+function stadCard(id,z,b,lg){const lv=lg?(lg.foreign?1:lg.level):9,att=(z.h[0]?z.h[0][7]:b.att)||b.att||0,fill=z.cap?Math.round(att/z.cap*100):0,up=stadUp(lv),dn=stadDown(lv),keep=Math.round(stadUpkeep(lv,z.cap));
+  const ups=[500,2000,5000].filter(n=>z.cap+n<=81000),downs=[.1,.25].map(f=>Math.round(z.cap*f/50)*50).filter(n=>n>=50&&z.cap-n>=300),fit=Math.max(300,Math.round(att*1.3/50)*50);
+  return `<div class="orow"><span><b>Stadion: ${z.cap.toLocaleString('de-DE')} Plätze</b> <span class="meta">Ø ${att.toLocaleString('de-DE')} Zuschauer (${fill} % Auslastung) · Unterhalt ${money(keep)} pro Saison</span></span></div>
+   <div class="orow"><span><b>Ausbauen</b> <span class="meta">${money(up)} pro Platz · mehr Zuschauereinnahmen, aber höherer Unterhalt</span></span><span class="ctrls">${ups.map(n=>`<button class="btn sm" data-act="stad:${n}"${n*up>z.c?' disabled':''} title="${money(n*up)}">+${n.toLocaleString('de-DE')}</button>`).join('')}</span></div>
+   <div class="orow"><span><b>Rückbauen</b> <span class="meta">${money(dn)} pro Platz · spart pro Platz ${money(Math.round(stadUpkeep(lv,1)))} Unterhalt im Jahr</span></span><span class="ctrls">${downs.map(n=>`<button class="btn sm" data-act="stad:-${n}"${n*dn>Math.max(0,z.c)+creditLimit(id)?' disabled':''}>−${n.toLocaleString('de-DE')}</button>`).join('')}${fit<z.cap-50?`<button class="btn sm" data-act="stad:-${z.cap-fit}" title="Auf Zuschauerschnitt + 30 %">auf ${fit.toLocaleString('de-DE')}</button>`:''}</span></div>`}
 function finPanel(id,own){
   const z=FZ(id);if(!z)return '';const b=finBalance(id),lg=lgOf(id),inv=invOf(z),h=z.h;
   const wfL=z.wf>=1.25?'hoch':z.wf<=.85?'gesenkt':'normal';
@@ -28,6 +33,7 @@ function finPanel(id,own){
      <div class="orow"><span><b>Kredit aufnehmen</b> <span class="meta">Rahmen ${money(lim)} · Zins steigt mit der Verschuldung</span></span><span class="ctrls">${amts.map(a=>`<button class="btn sm" data-act="loan:${a}"${a>lim?' disabled':''}>${money(a)}</button>`).join('')}</span></div>
      ${z.d?`<div class="orow"><span><b>Schulden tilgen</b> <span class="meta">Offen ${money(z.d)}</span></span><span class="ctrls">${[Math.round(z.d/4/1e3)*1e3,z.d].map((a,i)=>`<button class="btn sm" data-act="repay:${a}"${a>z.c?' disabled':''}>${i?'Alles':money(a)}</button>`).join('')}</span></div>`:''}
      ${offer?`<div class="orow offer"><span><b>${esc(offer.n)}</b> (${esc(offer.k)} ${esc(offer.o)}) möchte einsteigen: Schuldenablöse bis ${money(offer.w*1.5)}, danach bis zu ${money(offer.w)} pro Saison. Ziel: ${LEVELS[offer.amb]||offer.amb+'. Liga'}. Verfehlt der Verein das Ziel lange, steigt der Investor wieder aus und fordert einen Teil zurück.</span><span class="ctrls"><button class="btn sm pri" data-act="invacc">Annehmen</button><button class="btn sm" data-act="invdec">Ablehnen</button></span></div>`:''}
+     ${stadCard(id,z,b,lg)}
      ${inv?`<div class="orow"><span><b>${esc(inv.n)}</b> ist seit ${inv.since}/${String(inv.since+1).slice(2)} an Bord · bisher ${money(inv.put)} investiert · Ziel ${LEVELS[inv.amb]||inv.amb+'. Liga'}</span><span class="ctrls"><button class="btn sm" data-act="invkick">Trennung</button></span></div>`:''}</div>`;
   }
   const ev=(S.flog||[]).filter(x=>x.id===id).slice(0,12);
@@ -197,6 +203,9 @@ function act(a){
   const [k,v,w]=a.split(':');
   if(k==='ov'){view.ov={t:v};render();return}
   if(k==='menu'){openMenu();return}
+  if(k==='takeover'){if(isCareer()){toast('In der Karriere wechselst du den Verein über Jobangebote');return}view.ov={t:'takeover',id:v};render();return}
+  if(k==='takeovergo'){const i=document.getElementById('toName'),nm=(i&&i.value||'').trim();if(!nm){toast('Gib deinen Namen ein');return}
+    newCareer(nm,v,'club');save();view={tab:'fav',ftab:'karriere'};view.ov=null;render();toast(`Willkommen bei ${T(v).name}, ${nm}!`);return}
   if(k==='jump'){if(JUMP.run)return;view.ov={t:'jump',n:10};render();return}
   if(k==='jumpn'){view.ov.n=+v;render();return}
   if(k==='jumpgo'){const i=document.getElementById('jumpN');let n=Math.max(1,Math.min(500,Math.round(+(i&&i.value)||view.ov.n||10)));if(i&&+i.value!==view.ov.n)n=Math.max(1,Math.min(500,Math.round(+i.value)));runJump(n);return}
@@ -272,6 +281,10 @@ function act(a){
   else if(k==='nf'){view={...view,tab:'news',nf:v||'',npage:1}}
   else if(k==='nmore'){view.npage=(view.npage||1)+1}
   else if(k==='loan'){const got=takeLoan(S.fav,+v);if(got){finLog('pos',S.fav,`${T(S.fav).name}: Kredit über ${money(got)} aufgenommen`);save();toast('Kredit aufgenommen: '+money(got))}else toast('Der Kreditrahmen ist ausgeschöpft')}
+  else if(k==='stad'){const z=FZ(S.fav),l=lgOf(S.fav),lv=l?(l.foreign?1:l.level):9,n=+v;
+    if(n>0){const c=n*stadUp(lv);if(c>z.c){toast('Nicht genug Geld für den Ausbau');return}z.c-=c;z.cap=Math.min(81000,z.cap+n);finLog('pos',S.fav,`${T(S.fav).name}: Stadionausbau um ${n.toLocaleString('de-DE')} Plätze (${money(c)})`);toast(`Stadion ausgebaut: ${z.cap.toLocaleString('de-DE')} Plätze`)}
+    else{const m=Math.min(-n,z.cap-300),c=m*stadDown(lv);if(m<=0)return;if(c>z.c){const got=takeLoan(S.fav,c-z.c);if(c>z.c){toast('Nicht genug Geld für den Rückbau');return}}z.c-=c;z.cap-=m;finLog('neg',S.fav,`${T(S.fav).name}: Stadion um ${m.toLocaleString('de-DE')} Plätze zurückgebaut (${money(c)})`);toast(`Stadion verkleinert: ${z.cap.toLocaleString('de-DE')} Plätze`)}
+    save()}
   else if(k==='repay'){const z=FZ(S.fav),a=Math.min(+v,z.d,Math.max(0,z.c));if(a<=0){toast('Nicht genug Geld auf dem Konto');return}z.c-=a;z.d-=a;if(z.d<1e3){z.d=0;z.ir=0}save();toast(money(a)+' getilgt')}
   else if(k==='invacc'){const o=S.invOffer&&S.inv[S.invOffer.inv];if(o){const L_=[];takeover(S.fav,o,L_);S.invOffer=null;save();toast(o.n+' steigt ein')}}
   else if(k==='invdec'){S.invOffer=null;save();toast('Angebot abgelehnt')}

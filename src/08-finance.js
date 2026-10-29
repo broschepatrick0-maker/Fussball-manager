@@ -43,12 +43,13 @@ function finBalance(id,perf){
   const inc={tv:pro?rest*.5:lv===4?rest*.12:0,zus,spons:rest*(pro?.32:lv===4?.55:.62),merch:pro?rest*.12:rest*.05,mitgl:pro?rest*.06:rest*(lv===4?.28:.33),praem:pm.euro+pm.cup};
   const wb=wageBill(id,lv);
   const rev=Object.values(inc).reduce((a,b)=>a+b,0);
-  const exp={acad:id===S.fav&&S.acad?total*(ACAD[S.acad.lv]||{cost:0}).cost:0,scout:id===S.fav&&S.scout?total*(SCOUT_LV[S.scout.lv]||{cost:0}).cost:0,geh:wb,stad:z.cap*(lv<=2?45:lv===3?25:lv===4?10:lv<=8?4:lv===9?3.2:lv===10?1.3:.8)+total*.03,verw:total*.09,jugend:total*.03,abg:total*.04,zins:z.d*(z.ir||0)};
+  const exp={acad:id===S.fav&&S.acad?total*(ACAD[S.acad.lv]||{cost:0}).cost:0,scout:id===S.fav&&S.scout?total*(SCOUT_LV[S.scout.lv]||{cost:0}).cost:0,geh:wb,stad:stadUpkeep(lv,z.cap)+total*.03,verw:total*.09,jugend:total*.03,abg:total*.04,zins:z.d*(z.ir||0)};
   const ex=Object.values(exp).reduce((a,b)=>a+b,0);
   return {inc,exp,rev,ex,res:rev-ex,att,share:seasonShare,lv};
 }
 const INC_N={tv:'TV-Gelder',zus:'Zuschauer',spons:'Sponsoring',merch:'Merchandising',mitgl:'Mitglieder & Sonstiges',praem:'Prämien (Pokal & Europa)'};
 const EXP_N={acad:'Jugendakademie',scout:'Scouting-Abteilung',geh:'Spielergehälter',stad:'Stadion & Infrastruktur',verw:'Verwaltung & Personal',jugend:'Nachwuchs',abg:'Abgaben, Steuern, Versicherungen',zins:'Zinsen'};
+const stadUp=lv=>lv<=2?3000:lv<=4?1500:800,stadDown=lv=>lv<=4?60:25,stadUpkeep=(lv,cap)=>cap*(lv<=2?45:lv===3?25:lv===4?10:lv<=8?4:lv===9?3.2:lv===10?1.3:.8);
 function creditLimit(id){const z=FZ(id),b=lastBal(id)||{rev:estRevenue(id)};const bad=(z.ins||[]).some(s=>S.season-s<6)?.4:1;return Math.max(0,(b.rev*0.4+clubValue(id)*0.1)*bad-z.d)}
 function lastBal(id){const z=FZ(id);if(!z||!z.h.length)return null;const h=z.h[0];return {rev:h[1],ex:h[2],res:h[3]}}
 function spendable(id){const z=FZ(id);if(!z)return 0;const b=lastBal(id);const res=b?b.ex*.1:estRevenue(id)*.1;return Math.max(0,Math.round(z.c-res))}
@@ -98,8 +99,11 @@ function seasonFinances(st,log){
       if(z.c<0){S.fsale=(S.fsale||0)+1;fireSale(id,z.c<-b.rev*.15?1:2);if(z.c<0)ins.push(id);else finLog('neg',id,`${T(id).name}: Notverkäufe, um zahlungsfähig zu bleiben`)}}
     else if(z.d>b.rev*1.2&&z.c<b.ex*.1&&Math.random()<.4) ins.push(id); // überschuldet
     // Gehaltsniveau anpassen (Vereinsführung)
+    // Zu großes Stadion: Vereinsführung sperrt/baut Ränge zurück, wenn der Unterhalt den Etat erdrückt
+    if(id!==S.fav&&lv>=3){const att=b.att||0,minC=Math.max(300,Math.round((LCAP[lv]||300)*.8/50)*50),tgt=Math.max(minC,Math.round(att*1.4/50)*50);
+      if(b.exp.stad>b.rev*.12&&z.cap>tgt*1.15){const cut=z.cap-tgt,cost=cut*stadDown(lv);z.cap=tgt;z.c-=cost;if(lv<=4)finLog('neg',id,`${T(id).name}: Stadion auf ${tgt.toLocaleString('de-DE')} Plätze zurückgebaut, um Kosten zu sparen`)}}
     // Investitionen: viel Geld auf dem Konto fließt teilweise in den Stadionausbau
-    if(z.c>b.rev*1.1&&z.cap<81000){const per=lv<=2?3000:lv<=4?1500:800,inv_=Math.round((z.c-b.rev*1.1)*.35/1e3)*1e3,seats=Math.min(81000-z.cap,Math.floor(inv_/per/50)*50);
+    if(z.c>b.rev*1.1&&z.cap<81000){const per=stadUp(lv),inv_=Math.round((z.c-b.rev*1.1)*.35/1e3)*1e3,seats=Math.min(81000-z.cap,Math.floor(inv_/per/50)*50);
       if(seats>=50){z.c-=seats*per;z.cap+=seats;if(lv<=3||id===S.fav)finLog('pos',id,`${T(id).name}: Stadionausbau um ${seats.toLocaleString('de-DE')} Plätze (${money(seats*per)})`)}}
     // Gehaltsniveau für neue Verträge: zurückhaltend erhöhen, bei Verlust sofort bremsen
     if(b.res<0||z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.7,+(z.wf-(b.res<-b.rev*.05?0.08:0.04)).toFixed(2));else if(z.c>b.rev*.45)z.wf=Math.min(inv?1.7:1.45,+(z.wf+0.05).toFixed(2));
@@ -127,7 +131,7 @@ function seasonFinances(st,log){
 function applyInsolvency(ids,st,log){
   if(!S.penNext)S.penNext={};
   for(const id of ids){const z=FZ(id);if(!z)continue;const l=lgOf(id);if(!l)continue;const t=T(id);
-    z.ins.unshift(S.season);t.mo=Math.max(10,(t.mo??60)-20);const cut=Math.round(z.d*.7/1e3)*1e3;z.d-=cut;z.c=Math.max(0,Math.round(lastBal(id)?lastBal(id).ex*.05:0));z.wf=.7;z.ir=z.d?.08:0;
+    z.ins.unshift(S.season);if(z.ins.length>40)z.ins.length=40;t.mo=Math.max(10,(t.mo??60)-20);const cut=Math.round(z.d*.7/1e3)*1e3;z.d-=cut;z.c=Math.max(0,Math.round(lastBal(id)?lastBal(id).ex*.05:0));z.wf=.7;z.ir=z.d?.08:0;
     const inv=z.own&&S.inv&&S.inv[z.own];if(inv){inv.club=null;z.own=null}
     let what;
     const repeat=z.ins.filter(s=>S.season-s<5).length>1;

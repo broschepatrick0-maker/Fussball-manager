@@ -135,6 +135,11 @@ function renderOverlay(){
   let h='';
   if(o.t==='nav') h=`<div class="drawer" role="dialog" aria-label="${esc(AREA_T(view.area))}"><div class="ovh"><b>${esc(AREA_T(view.area))}</b>${x}</div><div class="ovc"><button class="nav-i" data-act="menu" style="font-weight:600;margin-bottom:6px">☰ Hauptmenü <em>Spielstände, neue Karriere</em></button><button class="nav-i" data-act="jump" style="font-weight:600;margin-bottom:6px">⏩ Zeitsprung <em>mehrere Jahre am Stück simulieren</em></button>${sideHTML(view.area)}</div></div>`;
   else if(o.t==='search') h=`<div class="drawer" role="dialog" aria-label="Suche"><div class="ovh"><b>Suche</b>${x}</div><div class="ovc"><div class="side"><input class="search" id="q" placeholder="Verein, Liga oder Pokal suchen …" autocomplete="off"><div class="sres" id="sres"></div></div></div></div>`;
+  else if(o.t==='takeover'&&T(o.id)) h=`<div class="sheet" role="dialog" aria-label="Verein übernehmen"><div class="ovh"><b>${esc(T(o.id).name)} übernehmen</b>${x}</div><div class="ovc">
+    <p class="meta" style="margin-top:0">Du wechselst vom freien Spiel in den Karrieremodus und wirst Trainer von ${esc(T(o.id).name)} (${esc(lgOf(o.id).name)}), mitten in Saison ${sl2(S.season)}. Die Welt mit ihrer ganzen Geschichte bleibt erhalten.</p>
+    <label class="mfield">Dein Name als Trainer<input id="toName" class="search" value="${esc((S.career&&S.career.name)||'')}" placeholder="z. B. Max Mustermann"></label>
+    <p class="note">Du bekommst die passende Trainerlizenz, ein Saisonziel vom Vorstand und alle Karrierefunktionen. Läuft es schlecht, kannst du entlassen werden. Zurück ins freie Spiel geht es über einen neuen Spielstand im Hauptmenü.</p>
+    <button class="btn pri" style="width:100%" data-act="takeovergo:${o.id}">Karriere starten</button></div></div>`;
   else if(o.t==='jump') h=`<div class="sheet" role="dialog" aria-label="Zeitsprung"><div class="ovh"><b>⏩ Zeitsprung</b>${o.running?'':x}</div>${jumpHTML()}</div>`;
   else if(o.t==='talk'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Gespräch"><div class="ovh"><b>Gespräch mit ${esc(P()[o.pid].n)}</b>${x}</div>${talkSheet(o.pid)}</div>`;
   else if(o.t==='menu') h=`<div class="mscreen" role="dialog" aria-label="Hauptmenü">${menuHTML()}</div>`;
@@ -291,7 +296,7 @@ function renderClub(id){
   const mv={up:'<span class="mv up">▲ Aufstieg</span>',down:'<span class="mv down">▼ Abstieg</span>',out:'<span class="mv">aus dem Ligensystem</span>'};
   const sl=s=>`${s}/${String(s+1).slice(2)}`;
   return `<div class="card"><div class="hd"><div><div class="meta">${VB[t.vb]||t.cc||''}${lg?' · '+esc(lg.name):''}${isRes(t.name)?(()=>{const D=deLevels(),m=resMinLevel(t.name,D.byName,x=>D.lv[x]);return ' · Zweitvertretung'+(m?` · höchstens ${LEVELS[m]||'Stufe '+m}`:'')})():''}</div><h2>${esc(t.name)}</h2></div>
-    <div class="ctrls">${isCareer()?(S.fav===id?'<span class="tag real">Dein Verein</span>':''):`<button class="btn${S.fav===id?' pri':''}" data-act="fav:${id}">${S.fav===id?'★ Mein Verein':'☆ Als Mein Verein beobachten'}</button>`}${lg?`<button class="btn" data-act="lg:${lg.id}:${id}">Zur Tabelle</button>`:''}</div></div>
+    <div class="ctrls">${isCareer()?(S.fav===id?'<span class="tag real">Dein Verein</span>':''):`<button class="btn${S.fav===id?' pri':''}" data-act="fav:${id}">${S.fav===id?'★ Mein Verein':'☆ Als Mein Verein beobachten'}</button>${lgOf(id)&&!lgOf(id).foreign?`<button class="btn" data-act="takeover:${id}">🎓 Als Trainer übernehmen</button>`:''}`}${lg?`<button class="btn" data-act="lg:${lg.id}:${id}">Zur Tabelle</button>`:''}</div></div>
     <div class="facts"><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div>${teamFormHTML(id)}<div><small>Titel</small><b>${(H().titles[id]||[]).length}</b></div><div><small>Saisons</small><b>${car.length}</b></div><div><small>Beste Platzierung</small><b>${best?'Platz '+best.pos+' · '+esc(best.lg):'–'}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div></div></div>
   ${lgOf(id)?finPanel(id,false):''}
   ${squadCard(id,false)}
