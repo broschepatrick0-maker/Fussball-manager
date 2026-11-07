@@ -58,3 +58,6 @@ function ensureRealOwners(){if(!S.inv)S.inv={};let n=0;
     if(!inv){const lv=finLv(id)?finLv(id).lv:1;inv=S.inv[key]={id:key,n:r.n,k:OWN_T[r.t],o:'',w:Math.round((REVL[Math.max(1,Math.min(10,lv))]||1e5)*.3/1e3)*1e3,amb:1,pat:9999,club:null,since:S.season,put:0,best:lv,fix:1}}
     if(z.own!==key){if(z.own&&S.inv[z.own])S.inv[z.own].club=null;z.own=key;inv.club=id;n++}}
   return n}
+// 50+1: In Deutschland müssen die Mitglieder einem Investoreneinstieg zustimmen und behalten die Stimmenmehrheit –
+// Einstiege sind deshalb deutlich seltener; bei schon ausgegliederten Profiklubs ist die Hürde etwas geringer
+function own50(id){const r=realOwn(id);return r&&r.t==='aus'?.45:.3}

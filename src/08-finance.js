@@ -68,7 +68,7 @@ function newInvestor(lv){if(!S.inv)S.inv={};const id='i'+(S.next++);const b=rpic
 }
 function takeover(id,inv,log){const z=FZ(id);T(id).mo=Math.min(100,(T(id).mo??60)+10);inv.club=id;inv.since=S.season;inv.best=finLv(id)?finLv(id).lv:9;z.own=inv.id;
   const pay=Math.min(z.d,inv.w*1.5);z.d-=pay;inv.put+=pay;if(!z.d)z.ir=0;z.c+=inv.w*.5;inv.put+=inv.w*.5;z.wf=Math.min(1.6,z.wf+0.15);
-  const txt=`${T(id).name}: ${inv.n} (${inv.k} ${inv.o}) übernimmt den Verein${pay?` und löst ${money(pay)} Schulden ab`:''}`;log&&log.push(txt);finLog('inv',id,txt)}
+  const de=!T(id).cc,flv=finLv(id)?finLv(id).lv:9;const txt=`${T(id).name}: ${inv.n} (${inv.k} ${inv.o}) ${de?(flv<=4?'steigt als Investor ein – wegen 50+1 behält der e.V. die Stimmenmehrheit':'steigt als Mäzen ein'):'übernimmt den Verein'}${pay?` und löst ${money(pay)} Schulden ab`:''}`;log&&log.push(txt);finLog('inv',id,txt)}
 function investorLeaves(id,inv,why,log){const z=FZ(id);if(inv.fix)inv.gone=1;const loan=Math.round(inv.put*.25/1e3)*1e3;z.own=null;inv.club=null;z.d+=loan;if(loan)z.ir=Math.max(z.ir||0,.06);z.wf=Math.max(.8,z.wf-0.2);
   const txt=`${T(id).name}: ${inv.n} steigt aus (${why})${loan?` – ${money(loan)} Gesellschafterdarlehen werden fällig`:''}`;log&&log.push(txt);finLog('out',id,txt)}
 function fireSale(id,n,log){const t=T(id);ensureSquad(id);const sq=t.sq.slice().sort((a,b)=>value(b)-value(a));let got=0;if(Math.random()<.35)return 0; // kein Käufer gefunden
@@ -112,11 +112,11 @@ function seasonFinances(st,log){
     if(inv&&S.season-inv.since>=inv.pat&&(l.foreign?1:l.level)>inv.amb&&Math.random()<.5) investorLeaves(id,inv,'Ziele verfehlt',log);
   }
   // Übernahmen
-  const cand=clubs.filter(([id,l])=>{const z=T(id).fz;return z&&!z.own&&!isRes(T(id).name)&&!realOwn(id)});
+  const cand=clubs.filter(([id,l])=>{const z=T(id).fz;const r=realOwn(id);return z&&!z.own&&!isRes(T(id).name)&&!(r&&r.fix)&&!(l.foreign&&r&&r.t==='ev')});
   for(const [id,l] of shuffle(cand)){
     if(takeovers>=4)break;const z=T(id).fz,lv=l.foreign?1:l.level,b=lastBal(id);if(!b)continue;
     const distress=z.d>b.rev*.6||z.c<b.ex*.05;
-    const p=({1:.012,2:.02,3:.025,4:.015,5:.007,6:.004,7:.002,8:.001}[lv]||.001)*(distress?3:1)*(l.foreign?.6:1);
+    const p=({1:.012,2:.02,3:.025,4:.015,5:.007,6:.004,7:.002,8:.001}[lv]||.001)*(distress?3:1)*(l.foreign?.6:lv<=4?own50(id):1);
     if(Math.random()>p)continue;
     const inv=newInvestor(lv);
     if(id===S.fav){S.invOffer={inv:inv.id,s:S.season};log.push(`${T(id).name}: ${inv.n} (${inv.k} ${inv.o}) möchte einsteigen – Entscheidung unter Mein Verein → Finanzen`);continue}
