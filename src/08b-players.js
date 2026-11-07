@@ -3,8 +3,8 @@
 // Am Verein: fm = Teamform (-3…+3), mo = Moral (0…100)
 const lvOfTeam=id=>{const l=lgOf(id);return l?(l.foreign?1:l.level):6};
 function marketWage(pid,club){const z=T(club)&&T(club).fz;const lv=lvOfTeam(club);return Math.round(value(pid)*(WRATIO[lv]||.03)*((z&&z.wf)||1)/100)*100}
-function ensureContract(pid,club){const p=P()[pid];if(!p)return;if(p.c==null){const R=srng(hstr('c'+pid));p.c=S.season+1+Math.floor(R()*4);p.w=marketWage(pid,club)}}
-function setContract(pid,club,years){const p=P()[pid];if(!p)return;const y=years||(p.a>=31?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*4));
+function ensureContract(pid,club){const p=P()[pid];if(!p)return;if(club&&isAmClub(club)){if(!p.am){p.am=1;delete p.c;p.w=marketWage(pid,club)}return}if(p.am){delete p.am;p.c=null}if(p.c==null){const R=srng(hstr('c'+pid));p.c=S.season+1+Math.floor(R()*4);p.w=marketWage(pid,club)}}
+function setContract(pid,club,years){const p=P()[pid];if(!p)return;if(club&&isAmClub(club)){p.am=1;delete p.c;p.w=Math.round(marketWage(pid,club)*(0.8+Math.random()*0.4)/100)*100;return}delete p.am;const y=years||(p.a>=31?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*4));
   p.c=S.season+y;p.w=Math.round(marketWage(pid,club)*(0.93+Math.random()*0.15)/100)*100}
 function wageOf(pid,club){const p=P()[pid];if(!p)return 0;ensureContract(pid,club);return p.w}
 // Effektive Stärke im Spiel: Grundstärke + Form + Moral
@@ -39,18 +39,31 @@ function contractsSeason(log,lvOld){
     const lvNew=l.foreign?1:l.level,lo=lvOld[t.id];
     if(lo&&lo!==lvNew){const f=(WRATIO[lvNew]||.03)/(WRATIO[lo]||.03);t.sq.forEach(pid=>{const p=P()[pid];if(p&&p.w)p.w=Math.round(p.w*(f<1?Math.max(f,.45):Math.min(f,1.6))/100)*100})}
     t.mo=Math.round(((t.mo??60)+60)/2);t.fm=+((t.fm||0)*0.3).toFixed(2);
+    if(isAmClub(t.id)){ // Amateurfußball: keine Verträge – jeden Sommer wechseln einige Spieler oder hören auf
+      for(const pid of t.sq.slice()){const p=P()[pid];if(!p)continue;ensureContract(pid,t.id);
+        let q=.06+(p.a>=31?.08:0)+(p.a<=21&&p.s>=t.r+4?.12:0)+(t.id===S.fav&&hpOf(p)<40?.25:0)+(t.id===S.fav&&hpOf(p)<25?.25:0);
+        if(t.id===S.fav&&t.sq.length<=18)q*=.3;
+        if(Math.random()<q){t.sq=t.sq.filter(x=>x!==pid);if(p.a>=33&&Math.random()<.6){if(t.id===S.fav)log.push(`${T(S.fav).name}: ${p.n} (${p.a}) hört mit dem Fußball auf`);delete P()[pid]}else{freeAgents.push([pid,t.id]);left++}}}
+      continue}
     for(const pid of t.sq.slice()){const p=P()[pid];if(!p)continue;ensureContract(pid,t.id);if(p.c>S.season)continue;
       if(t.id===S.fav&&!favAuto()){t.sq=t.sq.filter(x=>x!==pid);freeAgents.push([pid,t.id]);left++;continue}
       const want=p.a<=32&&p.s>=t.r-6&&Math.random()<.78&&!(t.id===S.fav&&hpOf(p)<30);
       if(want){setContract(pid,t.id);renew++}else{t.sq=t.sq.filter(x=>x!==pid);if(p.a>=34){delete P()[pid]}else{freeAgents.push([pid,t.id]);left++}}}
   }
   // Ablösefreie Spieler finden einen neuen Verein auf ähnlichem Niveau
-  const bins={};buyers().map(x=>x[0]).forEach(id=>{const t=T(id);if(!t||!t.sq||id===S.fav)return;const k=Math.round(t.r/4);(bins[k]=bins[k]||[]).push(id)});
-  const touched=new Set();
-  for(const [pid,from] of freeAgents){const p=P()[pid];const k=Math.round(p.s/4);const opts=[...(bins[k]||[]),...(bins[k-1]||[]),...(bins[k+1]||[])].filter(id=>id!==from&&T(id).sq.length<26);
+  const bins={},bK={},bV={};const kkOf=id=>{const t=T(id),l=lgOf(id);return t.cc?'cc|'+t.cc:t.vb+'|'+(l&&l.kreis?l.kreis:l?l.id:'')};
+  const push=(o,k,id)=>{(o[k]=o[k]||[]).push(id)};
+  buyers().map(x=>x[0]).forEach(id=>{const t=T(id);if(!t||!t.sq||id===S.fav)return;const k=Math.round(t.r/4);push(bins,k,id);if(!t.cc){push(bK,kkOf(id)+'|'+k,id);push(bV,t.vb+'|'+k,id)}});
+  const touched=new Set();const span=(o,pre,k,w)=>{let a=[];for(let d=-w;d<=w;d++)a=a.concat(o[pre+'|'+(k+d)]||[]);return a};
+  for(const [pid,from] of freeAgents){const p=P()[pid],ft=T(from);const k=Math.round(p.s/4),md=regMax(lvOfTeam(from)),ok=id=>id!==from&&T(id).sq.length<26;
+    let opts=[];if(ft.cc||md>=4)opts=span(bins,'',k,1).filter(ok);
+    else{const kk=kkOf(from),fl=lgOf(from);opts=span(bK,kk,k,1).filter(ok);
+      if(fl&&!fl.kreis&&fl.level>=5){const near=new Set(feederTeams(fl));opts=opts.concat(span(bins,'',k,2).filter(id=>ok(id)&&near.has(id)))}if(!opts.length&&md<=1)opts=span(bK,kk,k,3).filter(ok);
+      if(!opts.length||md>=2&&Math.random()<.4)opts=opts.concat(span(bV,ft.vb,k,1).filter(ok));
+      if(!opts.length&&md>=3)opts=span(bins,'',k,1).filter(id=>ok(id)&&regDist(id,from)<=3)}
     if(!opts.length){delete P()[pid];continue}const to=rnd(opts);T(to).sq.push(pid);if(p.s>=60||from===S.fav||to===S.fav)addTr(pid,from,to,0,true);else setContract(pid,to);touched.add(to)}
   touched.forEach(id=>recalc(id));
-  if(S.fav&&T(S.fav)){const gone=freeAgents.filter(x=>x[1]===S.fav).length;if(gone)log.push(`${T(S.fav).name}: ${gone} Spieler verlassen den Verein nach Vertragsende ablösefrei`)}
+  if(S.fav&&T(S.fav)){const gone=freeAgents.filter(x=>x[1]===S.fav).length;if(gone)log.push(isAmClub(S.fav)?`${T(S.fav).name}: ${gone} Spieler wechseln im Sommer den Verein`:`${T(S.fav).name}: ${gone} Spieler verlassen den Verein nach Vertragsende ablösefrei`)}
   return {renew,left};
 }
 // Vertragsverlängerung für Mein Verein

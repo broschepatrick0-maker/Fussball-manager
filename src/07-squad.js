@@ -116,17 +116,32 @@ function posNeed(t){ // Position mit der größten Lücke zur Teamstärke
   return sc.sort((x,y)=>x[1]-y[1])[0][0];
 }
 function sameWorld(a,b){return !!a.cc===!!b.cc||((a.lv||9)<=2&&(b.lv||9)<=2)}
+// ---------- Regionalität: je tiefer die Liga, desto näher bleibt ein Wechsel ----------
+const VB_NB={BA:'WU,SB,SW,HE,BY',SB:'BA,WU',WU:'BA,SB,BY',BY:'WU,BA,HE,TH,SN',HE:'BA,BY,TH,NI,WF,RL,SW',TH:'BY,HE,NI,ST,SN',SN:'BY,TH,ST,BB',ST:'NI,BB,SN,TH',BB:'BE,MV,ST,SN,NI',BE:'BB',MV:'BB,SH,NI',SH:'HH,NI,MV',HH:'SH,NI',HB:'NI',NI:'HB,HH,SH,MV,BB,ST,TH,HE,WF,NR',WF:'NI,HE,NR,MR,RL',NR:'WF,MR,NI',MR:'NR,WF,RL',RL:'MR,WF,HE,SW,SL',SW:'RL,SL,HE,BA',SL:'SW,RL'};
+function regDist(a,b){const ta=T(a),tb=T(b);if(!ta||!tb)return 4;if(ta.cc||tb.cc)return ta.cc===tb.cc?2:4;
+  const la=lgOf(a),lb=lgOf(b);if(la&&la===lb)return 0;if(ta.vb===tb.vb)return la&&lb&&la.kreis&&la.kreis===lb.kreis?1:2;
+  return (VB_NB[ta.vb]||'').split(',').includes(tb.vb)?3:4}
+// maximale Entfernung, aus der ein Verein dieser Spielklasse Spieler holt (0 Liga,1 Kreis,2 Land,3 Nachbarland,4 überall)
+function regMax(lv){return lv<=3?4:lv===4?3:lv<=6?(Math.random()<.25?3:2):lv===7?2:Math.random()<(lv===8?.12:.04)?2:1}
+// Vereine aus den Zubringer-Ligen (bis 2 Stufen tiefer) – das „Einzugsgebiet“ einer Liga
+const _feed={k:null,m:{}};function feederTeams(lg){const k=S.season+'-'+S.leagues.length+'-'+S.day;if(_feed.k!==k){_feed.k=k;_feed.m={}}
+  if(_feed.m[lg.id])return _feed.m[lg.id];const upOf_=l=>l.up||(PRESETS.find(p=>p.name===l.name)||{}).up;
+  const d1=S.leagues.filter(l=>!l.foreign&&upOf_(l)===lg.name),n1=new Set(d1.map(l=>l.name)),d2=S.leagues.filter(l=>!l.foreign&&n1.has(upOf_(l)));
+  return _feed.m[lg.id]=[...d1,...d2].flatMap(l=>l.teams)}
+const isAmClub=id=>{const l=lgOf(id);return !!l&&!l.foreign&&l.level>=8};
 function aiTransfer(force){
   const bid=force||wpick(buyers()); if(!bid||(bid===S.fav&&!favAuto())) return;
   const b=T(bid); ensureSquad(bid); const money_=bud(bid); if(money_<5e3) return;
   const need=posNeed(b),blv=b.lv||9;
-  const sellers=shuffle(buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==bid&&(id!==S.fav||favAuto())&&Math.abs((t.lv||9)-blv)<=1&&(Math.random()<.5||sameWorld(t,b))})).slice(0,8);
+  const md=regMax(blv);
+  const sellers=shuffle(buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==bid&&(id!==S.fav||favAuto())&&Math.abs((t.lv||9)-blv)<=1&&(Math.random()<.5||sameWorld(t,b))&&regDist(id,bid)<=md})).slice(0,8);
   const c=[];
   // Scouting: manchmal sucht ein Verein gezielt Talente (unsichtbares Potenzial, Schätzung mit Unschärfe)
   const talent=Math.random()<.25,est=p=>potOf(p)+gauss()*3;
   sellers.forEach(sid=>{ensureSquad(sid).forEach(pid=>{const p=P()[pid];
     const ok=talent?(p.a<=21&&p.s>=b.r-12&&est(p)>=b.r+2):(p.p===need&&p.s>b.r-1&&p.s<b.r+9&&p.a<=31);
-    if(ok){const fee=Math.round(value(pid)*(talent?1.3+Math.random()*.5:1+Math.random()*.4)/1e3)*1e3;if(fee<=money_)c.push({pid,sid,fee,e:talent?est(p):p.s})}})});
+    if(ok){const am=isAmClub(sid);if(am&&(T(sid).lv||9)<blv&&Math.random()>.3)return; // Amateure wechseln selten freiwillig nach unten
+      const fee=am?0:Math.round(value(pid)*(talent?1.3+Math.random()*.5:1+Math.random()*.4)/1e3)*1e3;if(fee<=money_)c.push({pid,sid,fee,e:talent?est(p):p.s})}})});
   if(!c.length) return;
   c.sort((x,y)=>y.e-x.e);
   const pick=c[Math.floor(Math.random()*Math.min(3,c.length))],st=T(pick.sid),pp=P()[pick.pid].p;
@@ -136,15 +151,16 @@ function aiTransfer(force){
   addTr(pick.pid,pick.sid,bid,pick.fee);
   if(b.sq.length>27){ // schwächsten Spieler abgeben
     const w=b.sq.slice().sort((x,y)=>P()[x].s-P()[y].s)[0];b.sq=b.sq.filter(x=>x!==w);
-    const lower=buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==S.fav&&(t.lv||9)>=blv+1&&(t.lv||9)<=blv+2&&(t.vb===b.vb||!!t.cc===!!b.cc)});
+    const bl=lgOf(bid);let lower=bl&&!bl.foreign&&bl.level>=4?feederTeams(bl).filter(id=>id!==S.fav&&T(id)):[];
+    if(!lower.length)lower=buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==S.fav&&(t.lv||9)>=blv+1&&(t.lv||9)<=blv+2&&(t.vb===b.vb||!!t.cc===!!b.cc)&&regDist(id,bid)<=Math.max(1,regMax(t.lv||9))});
     if(lower.length){const to=rnd(lower);ensureSquad(to).push(w);addTr(w,bid,to,0,true);recalc(to)}else delete P()[w];
   }
   recalc(bid);recalc(pick.sid);
 }
 function aiOffer(){ // Angebot an Mein Verein
-  if(!S.fav||!T(S.fav)||Math.random()>.35) return;
+  if(!S.fav||!T(S.fav)||Math.random()>.35||isAmClub(S.fav)) return; // Amateure: keine Ablöse-Angebote
   const f=T(S.fav),sq=ensureSquad(S.fav).slice().sort((a,b)=>P()[b].s-P()[a].s),lst=sq.filter(x=>P()[x].tl),pid=lst.length&&Math.random()<.65?lst[Math.floor(Math.random()*lst.length)]:sq[Math.floor(Math.random()*Math.min(8,sq.length))];
-  const flv=f.lv||9,cands=buyers().map(x=>x[0]).filter(id=>id!==S.fav&&(T(id).lv||9)<=flv&&(T(id).lv||9)>=flv-1);
+  const flv=f.lv||9,cands=buyers().map(x=>x[0]).filter(id=>id!==S.fav&&(T(id).lv||9)<=flv&&(T(id).lv||9)>=flv-1&&regDist(id,S.fav)<=regMax(T(id).lv||9));
   if(!cands.length) return;
   const club=rnd(cands),amt=Math.round(value(pid)*(.9+Math.random()*.5)/1e3)*1e3;
   if(amt>bud(club)) return;

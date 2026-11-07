@@ -21,7 +21,7 @@ function moodTick(){if(!S.fav||!S.mgr)return;const id=S.fav,t=T(id);if(!t||!t.sq
     let dt=(ms-e)*10*(r==='erg'||r==='persp'?.5:1);if(p.p==='TW'&&r==='erg')dt*=.5;if(p.pr&&dt<0)dt*=.4;if(p.inj)dt=Math.max(dt,0);
     dt+=((t.mo??60)-60)/30;
     if(p.w&&p.s>=t.r-1&&p.w<marketWage(pid,id)*.7)dt-=.8;
-    if(p.c<=S.season&&p.s>=t.r-2&&r!=='erg')dt-=.6;
+    if(p.c!=null&&p.c<=S.season&&p.s>=t.r-2&&r!=='erg')dt-=.6;
     if(pid===g.cap)dt+=.5;
     dt+=(65-h)*.06+(Math.random()*2-1);
     h=Math.max(0,Math.min(100,h+dt));
@@ -32,7 +32,7 @@ function moodTick(){if(!S.fav||!S.mgr)return;const id=S.fav,t=T(id);if(!t||!t.sq
     const open=g.talk.some(x=>x.pid===pid);if(open||g.talk.length>=3||(p.tc&&d-p.tc<28))continue;
     if(h<22&&r!=='persp'&&Math.random()<.5)addTalk(pid,'leave');
     else if(h<40&&(r==='star'||r==='stamm'||r==='rot')&&ms<e-.18&&!p.pr&&Math.random()<.5)addTalk(pid,'time');
-    else if(p.w&&p.s>=t.r-1&&p.w<marketWage(pid,id)*.7&&p.c>S.season&&Math.random()<.06)addTalk(pid,'pay')}
+    else if(p.w&&p.s>=t.r-1&&p.w<marketWage(pid,id)*.7&&p.c!=null&&p.c>S.season&&Math.random()<.06)addTalk(pid,'pay')}
   // Kabinenklima wirkt auf die Stimmung; ein unzufriedener Kapitän zieht runter
   if(n)t.mo=Math.round(Math.max(5,Math.min(100,(t.mo??60)+(hsum/n-60)/40)));
   const cp=P()[g.cap];if(cp&&hpOf(cp)<35)t.mo=Math.max(5,(t.mo??60)-1);
