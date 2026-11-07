@@ -77,7 +77,7 @@ function sideHTML(a){
   }
   if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['sg','Sportgericht'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
-    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
+    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Spieler anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
   }
   if(a==='tr'){
@@ -120,7 +120,7 @@ function ctxBar(){
     chips=[dfb&&chip(c&&c.id===dfb.id,'DFB-Pokal','cup:'+dfb.id),...same.filter(x=>x.type!=='dfb').map(x=>chip(c&&c.id===x.id,x.name.replace('Kreispokal ',''),'cup:'+x.id))].filter(Boolean);
   }
   if(a==='fav'){cur=S.fav&&T(S.fav)?T(S.fav).name:'Mein Verein';
-    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader',S.mgr&&S.mgr.talk&&S.mgr.talk.length?`Kader (${S.mgr.talk.length})`:'Kader'],['jugend','Jugend'],['markt','Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
+    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader',S.mgr&&S.mgr.talk&&S.mgr.talk.length?`Kader (${S.mgr.talk.length})`:'Kader'],['jugend','Jugend'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
@@ -407,7 +407,10 @@ function renderFav(){
     if(view.offer){const o=view.offer;h+=`<div class="card offer"><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} (Marktwert ${money(value(o.pid))}).<div class="ctrls" style="margin-top:8px"><button class="btn pri" data-act="accept">Annehmen</button><button class="btn" data-act="decline">Ablehnen</button></div></div>`}
     h+=squadCard(id,true);
   }
-  if(ft==='markt'){
+  if(ft==='verein'&&favAm()) h+=renderVereinsleben();
+  if(ft==='markt'&&favAm()&&id===S.fav) h+=renderRecruit();
+  if(ft==='markt'&&favAm()&&id===S.fav) h+=`<div class="pitchbar"><button class="btn sm" data-act="mfull">${view.mfull?'Überregionalen Markt ausblenden':'Überregionalen Transfermarkt zeigen'}</button></div>`;
+  if(ft==='markt'&&(!(favAm()&&id===S.fav)||view.mfull)){
     const lgs=S.leagues.slice().sort((a,b)=>(a.foreign-b.foreign)||a.level-b.level);
     const sel=view.mlg&&L(view.mlg)?view.mlg:(lg?lg.id:'bl');
     const ml=L(sel),fp=view.mpos||'',maxp=+view.mmax||0;

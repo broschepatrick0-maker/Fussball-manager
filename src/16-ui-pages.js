@@ -218,6 +218,9 @@ function render(){
 function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iup=$('iUp')?$('iUp').value:'';view.iname=$('iName').value;view.ikreis=$('iKreis').value;view.itxt=$('iTxt').value}
 function act(a){
   const [k,v,w]=a.split(':');
+  if(k.startsWith('am')&&favAm()&&amAct(k,v,w)){save();render();return}
+  if(k==='rpos'){view.rpos=v||'';render();return}
+  if(k==='mfull'){view.mfull=!view.mfull;render();return}
   if(k==='ov'){view.ov={t:v};render();return}
   if(k==='menu'){openMenu();return}
   if(k==='takeover'){if(isCareer()){toast('In der Karriere wechselst du den Verein über Jobangebote');return}view.ov={t:'takeover',id:v};render();return}
