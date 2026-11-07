@@ -167,9 +167,10 @@ function balanceAmateur(st,log){
   }
 }
 
-const TOWN_STOP=new Set(['SV','TSV','FC','SC','SG','VfB','VfL','VfR','TuS','TSG','FSV','SpVgg','DJK','ASV','ESV','BSV','SSV','TV','FV','SpFr','Sportfreunde','Eintracht','Germania','Concordia','Viktoria','Union','Borussia','Fortuna','Rot-Weiß','Blau-Weiß','Grün-Weiß','Schwarz-Weiß','Empor','Traktor','Turbine','Dynamo','Lok','Motor','Stahl','Chemie','Einheit','Kickers','Sport','Verein','Club','e.V.','II','III','IV','1.','SpG','JSG','Spvgg','SuS','TuRa','TSC','FSG','SVG','SKV','SG.','am','an','der','die','im','in','b.','a.','bei','und','St.']);
+const TOWN_STOP=new Set(['Blau','Weiß','Weiss','Grün','Gelb','Roter','Rote','Stern','Schwarz','Gold','Glück','Fortschritt','Wacker','Germ','Empor','Spg.','Kickers','Preussen','Preußen','Arminia','Aufbau','Rotation','Teutonia','Saxonia','Allemannia','Askania','Edelweiß','Handwerk','Medizin','Heide','Tura','Rasen','Sportring','Spora','TSV','FC','SC','SG','VfB','VfL','VfR','TuS','TSG','FSV','SpVgg','DJK','ASV','ESV','BSV','SSV','TV','FV','SpFr','Sportfreunde','Eintracht','Germania','Concordia','Viktoria','Union','Borussia','Fortuna','Rot-Weiß','Blau-Weiß','Grün-Weiß','Schwarz-Weiß','Empor','Traktor','Turbine','Dynamo','Lok','Motor','Stahl','Chemie','Einheit','Kickers','Sport','Verein','Club','e.V.','II','III','IV','1.','SpG','JSG','Spvgg','SuS','TuRa','TSC','FSG','SVG','SKV','SG.','am','an','der','die','im','in','b.','a.','bei','und','St.']);
 function townTokens(n){return n.replace(/[()]/g,' ').split(/[\s/\-]+/).filter(w=>w.length>=4&&!TOWN_STOP.has(w)&&!/^\d/.test(w))}
 function townScore(name,d){const tk=townTokens(name);if(!tk.length)return 0;let sc=0;const dn=(d.name+' '+(d.kreis||'')).toLowerCase();
-  for(const w of tk){const lw=w.toLowerCase();if(dn.includes(lw))sc+=5;for(const id of d.teams){const t=T(id);if(t&&t.name.toLowerCase().includes(lw))sc+=1}}
+  const upOf_=l=>l.up||(PRESETS.find(p=>p.name===l.name)||{}).up;let lv=[d],all=[...d.teams];for(let k=0;k<3;k++){const nm=new Set(lv.map(l=>l.name));lv=S.leagues.filter(l=>!l.foreign&&nm.has(upOf_(l)));lv.forEach(l=>all.push(...l.teams))}
+  for(const w of tk){const lw=w.toLowerCase();if(dn.includes(lw))sc+=5;for(const id of all){const t=T(id);if(t&&t.name.toLowerCase().includes(lw))sc+=d.teams.includes(id)?1:.5}}
   // gemeinsame Ortsteile im Kreis (Nachbarorte teilen oft Namensbestandteile wie „Bad“, „Neu“…) bewusst ignoriert
   return sc}
