@@ -67,7 +67,7 @@ function newSeason(){
     const free=g.map(x=>x.d), lasts=g.map(x=>x.last), out=new Map();
     for(const id of lasts){const h=homes(id);const i=free.findIndex(d=>h.includes(d.name));if(i>=0){out.set(id,free[i]);free.splice(i,1)}}
     // ohne bekannte Heimat: per Ortsname der passenden Zubringer-Liga zuordnen (z. B. Haßfurt → Kreisliga Schweinfurt)
-    for(const id of lasts){if(out.has(id))continue;let bi=0,bs=-1;free.forEach((d,i)=>{const sc=townScore(T(id).name,d);if(sc>bs){bs=sc;bi=i}});out.set(id,free.splice(bi,1)[0])}
+    for(const id of lasts){if(out.has(id))continue;let bi=0,bs=-1;free.forEach((d,i)=>{const sc=townScore(T(id).name,d)+(d.vb===T(id).vb?100:0);if(sc>bs){bs=sc;bi=i}});out.set(id,free.splice(bi,1)[0])}
     for(const [id,d] of out){move[id]=d.id;const line=log.findIndex(l=>l.endsWith(', '+T(id).name+' steigt ab'));if(line>=0)log[line]=log[line].replace(', '+T(id).name+' steigt ab',', '+T(id).name+' steigt ab → '+d.name)}
   }
   // Bewegungen anwenden
