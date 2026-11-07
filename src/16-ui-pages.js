@@ -112,7 +112,7 @@ function renderSave(){
   <p class="note" style="margin-top:12px">Der Spielstand wird automatisch nach jeder Aktion in diesem Browser gespeichert. Um ihn auf ein anderes Gerät mitzunehmen oder abzusichern, exportiere ihn als Datei oder Text und lade ihn dort wieder.</p></div>
   <div class="grid2"><div class="card"><h3 class="ct">Exportieren</h3><div class="ctrls"><button class="btn pri" data-act="exdl">Als Datei herunterladen</button><button class="btn" data-act="excp">In Zwischenablage kopieren</button></div>
   <p class="note" style="margin-top:8px">Das Herunterladen funktioniert in der eigenständigen App-Datei. Im Chat-Fenster nutze „Kopieren“.</p></div>
-  <div class="card"><h3 class="ct">Importieren</h3><label class="btn" for="imFile" style="display:inline-block">Datei auswählen<input type="file" id="imFile" accept=".json,application/json" hidden></label>
+  <div class="card"><h3 class="ct">Importieren</h3><label class="btn" for="imFile" style="display:inline-block">Datei auswählen<input type="file" id="imFile" accept=".json,.gz,application/json,application/gzip" hidden></label>
   <p class="note" style="margin-top:8px">Oder den kopierten Text unten einfügen und „Laden“ tippen. Der aktuelle Spielstand wird dabei ersetzt.</p></div></div>
   <div class="card"><textarea id="exTxt" placeholder="Spielstand-Text hier einfügen …"></textarea><button class="btn pri" style="margin-top:8px" data-act="impt">Laden</button></div>`;
 }
@@ -203,7 +203,7 @@ function render(){
   $('main').innerHTML=ctxBar()+(view.tab==='fav'?'':favStrip())+h;
   renderOverlay();
   document.querySelectorAll('[data-act]').forEach(b=>{if(!b.onclick)b.onclick=()=>act(b.dataset.act)});
-  {const f=document.getElementById('imFile');if(f)f.onchange=()=>{const file=f.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{importJSON(r.result);view={tab:'home'};render();toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}};r.readAsText(file)}}
+  {const f=document.getElementById('imFile');if(f)f.onchange=()=>{const file=f.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const u=new Uint8Array(r.result);const txt=u[0]===0x1f&&u[1]===0x8b?await ungz(r.result):new TextDecoder().decode(u);importJSON(txt);view={tab:'home'};render();toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}};r.readAsArrayBuffer(file)}}
   [['trS','s'],['trL','lg'],['trP','p'],['trT','t'],['trM','min'],['trO','sort']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view.trf={...(view.trf||{}),[k]:e.value};view.trpage=0;render()}});
   {const e=document.getElementById('trQ');if(e)e.onchange=()=>{view.trf={...(view.trf||{}),q:e.value};view.trpage=0;render()}}
   [['mLg','mlg'],['mPos','mpos'],['mMax','mmax']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
@@ -267,7 +267,7 @@ function act(a){
     transferLog({pid:o.pid,n:P()[o.pid].n,from:S.fav,to:o.club,fee:o.amt,out:true});recalc(S.fav);recalc(o.club);view.offer=null;save();toast('Verkauft für '+money(o.amt))}
   else if(k==='decline'){view.offer=null}
   else if(k==='savev'){view={...view,tab:'save'};est()}
-  else if(k==='exdl'){try{const b=new Blob([exportJSON()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fussball-pyramide-${S.season}-${S.day}.json`;document.body.appendChild(a);a.click();a.remove();toast('Datei wird gespeichert')}catch(e){toast('Download nicht möglich – nutze „Kopieren“')}return}
+  else if(k==='exdl'){(async()=>{try{const z=CANZ?await exportGz():null;const b=z?new Blob([z],{type:'application/gzip'}):new Blob([exportJSON()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`fussball-pyramide-${S.season}-${S.day}.json${z?'.gz':''}`;document.body.appendChild(a);a.click();a.remove();toast(`Datei wird gespeichert (${Math.round(b.size/1024)} KB)`)}catch(e){toast('Download nicht möglich – nutze „Kopieren“')}})();return}
   else if(k==='excp'){const t=exportJSON();navigator.clipboard.writeText(t).then(()=>toast('Spielstand kopiert ('+Math.round(t.length/1024)+' KB)')).catch(()=>{const ta=$('exTxt');ta.value=t;ta.select();toast('Text markiert – jetzt kopieren')});return}
   else if(k==='impt'){try{importJSON($('exTxt').value);view={tab:'home'};toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}}
   else if(k==='auto'){FV().auto=!favAuto();save();toast(favAuto()?'Die Vereinsführung handelt jetzt selbst':'Nur noch du tätigst Transfers')}
@@ -387,6 +387,7 @@ function migrateLoaded(){
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
+  try{if(!S.prv){S.prv=1;if(pruneSquads())added=true}}catch(e){console.warn(e)}
   try{if(renamePlayersOnce()){added=true;setTimeout(()=>toast('Neu: Spieler mit vielfältigeren Namen und Nationalitäten'),900)}}catch(e){console.warn(e)}
   if(restorePresets())added=true;
   for(const p of PRESETS){

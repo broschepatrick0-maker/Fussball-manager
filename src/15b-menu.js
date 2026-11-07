@@ -43,7 +43,7 @@ async function menuAct(k,v){const nw=MENU.nw;
   else if(k==='mtheme'){try{localStorage.setItem('fp-theme',v)}catch(e){}applyTheme()}
   else if(k==='mspeed'){S.liveSpeed=+v;save()}
   else if(k==='mload'){const n=+v;if(n!==SLOT){switchSlot(n);if(!(await loadAsync())){toast('Spielstand nicht gefunden');return}migrateLoaded()}view={tab:S.fav?'fav':'home',ftab:'ov'};view.ov=null;toast('Spielstand '+n+' geladen')}
-  else if(k==='mdel'){const n=+v;if(!confirmTwice('del'+n)){toast('Zum Löschen nochmal tippen');return}const p=n===1?'':`s${n}:`;await Promise.all(['state','hist','meta'].map(x=>DB.del(p+x).catch(()=>{})));await readMetas();toast('Platz '+n+' gelöscht')}
+  else if(k==='mdel'){const n=+v;if(!confirmTwice('del'+n)){toast('Zum Löschen nochmal tippen');return}const p=n===1?'':`s${n}:`;await Promise.all(['state','hist','meta','stateZ','histZ'].map(x=>DB.del(p+x).catch(()=>{})));await readMetas();toast('Platz '+n+' gelöscht')}
   else if(k==='mgo'){readMenuInputs();if(v==='career'&&nw.start==='club'&&!nw.club){toast('Wähle zuerst deinen Verein');return}if(v==='career'&&!nw.name.trim()){toast('Gib deinen Namen ein');return}
     const clubName=nw.club&&T(nw.club)?T(nw.club).name:null;
     switchSlot(nw.slot);fresh();S.liveSpeed=S.liveSpeed||1;

@@ -1,0 +1,10 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const ctx=await b.newContext();const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+const url='file://'+process.cwd()+'/index.html';
+await p.goto(url);await p.waitForTimeout(1200);
+await p.evaluate(()=>{const id=Object.values(S.teams).find(t=>t.name==='SV BS 02 Sömmerda').id;act('fav:'+id);for(let i=0;i<2;i++){let g=0;while(!S.done&&g++<420)simDay();newSeason()}save()});
+await p.waitForTimeout(4000);
+const info=await p.evaluate(async()=>{const z=await DB.get('stateZ'),hz=await DB.get('histZ'),old=await DB.get('state');return {kb:z&&Math.round(z.byteLength/1024),hkb:hz&&Math.round(hz.byteLength/1024),raw:Math.round(JSON.stringify(S).length/1024),old:!!old,season:S.season,fav:T(S.fav).name,pl:Object.keys(S.pl).length}});
+console.log('saved',JSON.stringify(info));
+await p.reload();await p.waitForTimeout(2500);
+console.log('after reload',await p.evaluate(()=>JSON.stringify({season:S.season,fav:S.fav&&T(S.fav).name,hist:!!S.hist&&Object.keys(S.hist.career||{}).length,pl:Object.keys(S.pl).length})));
+console.log(errs.slice(0,3));await b.close()})();

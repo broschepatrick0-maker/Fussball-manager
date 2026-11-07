@@ -129,8 +129,10 @@ function newSeason(){
   S.leagues.filter(l=>l.foreign).forEach(l=>log.push(`${l.title}: ${T(st[l.id][0]).name}`));
   S.pool&&S.pool.forEach(id=>{const t=T(id);t.r=+(t.r+(Math.random()*3-1.5)).toFixed(1)});
   S.log.unshift({season:S.season,lines:log});if(S.log.length>60)S.log.length=60;
+  {const fn=S.fav&&T(S.fav)?T(S.fav).name:null;S.log.forEach((e,i)=>{if(i<8||e.trim)return;e.lines=e.lines.filter(l=>(fn&&l.includes(fn))||/Bundesliga|3\. Liga|Regionalliga|Meister|Pokal|Torschützenkönig|Insolvenz/.test(l)).slice(0,80);e.trim=1})}
   markMoves(oldSeason);
   try{archiveSeason(oldSeason,log)}catch(e){console.warn(e)}
+  try{pruneSquads()}catch(e){console.warn(e)}
   try{newsSeason(st,oldSeason)}catch(e){}
   S.season++;
   startSeason();

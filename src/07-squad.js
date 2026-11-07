@@ -107,8 +107,8 @@ function addBud(id,v){const t=T(id);if(t.fz){t.fz.c+=v;return}const z=lgOf(id)?F
 const LVW={1:6,2:3,3:2.2,4:1.6,5:.8,6:.5,7:.35,8:.25};
 function buyers(){
   if(buyers.c&&buyers.c.k===S.season+'-'+S.leagues.length) return buyers.c.l;
-  const l=[];S.leagues.forEach(lg=>lg.teams.forEach(id=>l.push([id,LVW[lg.level]||.2])));(S.pool||[]).forEach(id=>l.push([id,3]));
-  buyers.c={k:S.season+'-'+S.leagues.length,l};return l;
+  const l=[],by={};S.leagues.forEach(lg=>lg.teams.forEach(id=>{l.push([id,LVW[lg.level]||.2]);const lv=T(id)&&T(id).lv||9;(by[lv]=by[lv]||[]).push(id)}));(S.pool||[]).forEach(id=>{l.push([id,3]);const lv=T(id)&&T(id).lv||9;(by[lv]=by[lv]||[]).push(id)});
+  buyers.c={k:S.season+'-'+S.leagues.length,l,by};return l;
 }
 function wpick(l){const tot=l.reduce((a,x)=>a+x[1],0);let r=Math.random()*tot;for(const x of l){r-=x[1];if(r<=0)return x[0]}return l[l.length-1][0]}
 function posNeed(t){ // Position mit der größten Lücke zur Teamstärke
@@ -134,7 +134,10 @@ function aiTransfer(force){
   const b=T(bid); ensureSquad(bid); const money_=bud(bid); if(money_<5e3) return;
   const need=posNeed(b),blv=b.lv||9;
   const md=regMax(blv);
-  const sellers=shuffle(buyers().map(x=>x[0]).filter(id=>{const t=T(id);return id!==bid&&(id!==S.fav||favAuto())&&Math.abs((t.lv||9)-blv)<=1&&(Math.random()<.5||sameWorld(t,b))&&regDist(id,bid)<=md})).slice(0,8);
+  buyers();const by=buyers.c.by,pool=[...(by[blv-1]||[]),...(by[blv]||[]),...(by[blv+1]||[])];
+  // Stichprobe statt alle Vereine zu prüfen
+  const sellers=[];for(let k=0,tries=0;sellers.length<8&&tries<400;tries++){const id=pool[Math.floor(Math.random()*pool.length)];if(!id||id===bid||sellers.includes(id)||(id===S.fav&&!favAuto()))continue;const t=T(id);if(!t||Math.abs((t.lv||9)-blv)>1)continue;if(!(Math.random()<.5||sameWorld(t,b)))continue;if(regDist(id,bid)>md)continue;sellers.push(id)}
+  if(md<=1&&sellers.length<3){const near=(lgOf(bid)?S.leagues.filter(l=>!l.foreign&&l.vb===b.vb&&l.kreis===(lgOf(bid).kreis)&&Math.abs(l.level-blv)<=1):[]).flatMap(l=>l.teams).filter(id=>id!==bid&&!sellers.includes(id)&&(id!==S.fav||favAuto()));shuffle(near).slice(0,8-sellers.length).forEach(id=>sellers.push(id))}
   const c=[];
   // Scouting: manchmal sucht ein Verein gezielt Talente (unsichtbares Potenzial, Schätzung mit Unschärfe)
   const talent=Math.random()<.25,est=p=>potOf(p)+gauss()*3;
@@ -171,3 +174,21 @@ function aiOffer(){ // Angebot an Mein Verein
 function favAuto(){return !!S.fav&&FV().auto!==false}
 function transferDay(n,offer=true){for(let i=0;i<n;i++)aiTransfer();if(offer)aiOffer();
   const rich=Object.values(S.inv||{}).filter(x=>x.club&&T(x.club)&&x.club!==S.fav);for(let i=0;i<Math.min(6,rich.length);i++)aiTransfer(rpick(rich,Math.random).club)}
+
+// ---------- Speicher schlank halten: Kader weit entfernter Amateur-/Oberliga-Vereine werden verworfen ----------
+// (die Teamstärke bleibt erhalten; schaut man den Verein später an, wird ein neuer Kader auf gleichem Niveau erzeugt)
+function pruneSquads(){if(!S.pl)return 0;const keep=new Set(),keepLg=new Set();
+  const add=id=>{if(id)keep.add(id)};add(S.fav);(S.career&&S.career.club)&&add(S.career.club);
+  Object.values(S.inv||{}).forEach(x=>add(x.club));(S.offers||[]).forEach(o=>add(o.club));
+  const fl=S.fav&&lgOf(S.fav);
+  if(fl){keepLg.add(fl.id);const upOf_=l=>l.up||(PRESETS.find(p=>p.name===l.name)||{}).up;
+    S.leagues.forEach(l=>{if(l.foreign)return;if(l.name===upOf_(fl)||upOf_(l)===fl.name||(fl.kreis&&l.kreis===fl.kreis&&l.vb===fl.vb))keepLg.add(l.id)})}
+  for(const l of S.leagues)if(l.foreign||l.level<=4||l.trk||keepLg.has(l.id))l.teams.forEach(add);
+  const inLg=new Set();S.leagues.forEach(l=>l.teams.forEach(id=>inLg.add(id)));(S.pool||[]).forEach(add);
+  let n=0;
+  for(const t of Object.values(S.teams)){if(!t.sq||keep.has(t.id)||(t.seen!=null&&t.seen>=S.season-1))continue;
+    if(t.sq.some(pid=>S.pl[pid]&&S.pl[pid].real))continue;
+    for(const pid of t.sq){delete S.pl[pid];n++}delete t.sq}
+  if(S.scout)for(const pid in S.scout.list)if(!S.pl[pid])delete S.scout.list[pid];
+  if(S.inj)S.inj=S.inj.filter(e=>S.pl[e[0]]);
+  return n}

@@ -287,7 +287,7 @@ function renderHall(){
   ${list('Amateur-Meister (ab 5. Liga)',by(x=>x.k==='liga'&&x.lv>=5),'n',x=>x.n+'×')}
   </div>`;
 }
-function renderClub(id){
+function renderClub(id){if(T(id))T(id).seen=S.season;
   const t=T(id); if(!t) return '<div class="card empty">Verein nicht gefunden.</div>';
   const lg=S.leagues.find(l=>l.teams.includes(id));
   const car=careerOf(id);
