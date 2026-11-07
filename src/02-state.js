@@ -53,6 +53,7 @@ function fresh(){
   PRESETS.forEach(p=>addAmateurLeague(p.name,p.vb,p.level,p.kreis,p.teams,true));
   addForeign();
   startSeason();
+  try{ensureRealOwners()}catch(e){}
 }
 function addForeign(){
   for(const f of FOREIGN){

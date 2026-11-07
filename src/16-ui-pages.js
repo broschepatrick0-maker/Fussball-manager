@@ -1,7 +1,9 @@
 // ---------- Finanzen: Ansicht ----------
 const sgn=v=>(v<0?'−':'')+money(Math.abs(Math.round(v)));
 function invOf(z){return z&&z.own&&S.inv?S.inv[z.own]:null}
-function ownerLabel(z){const i=invOf(z);return i?esc(i.n):'Mitgliederverein'}
+function ownerLabel(z,id){const i=invOf(z),r=id&&realOwn(id);if(r&&(!i||i.fix))return esc(r.n);return i?esc(i.n):(ownType(id)==='kap'?'Kapitalgesellschaft':'Mitgliederverein')}
+function ownerTag(z,id){const i=invOf(z),r=id&&realOwn(id);if(r&&(!i||i.fix))return OWN_T[r.t];return i?'Investor':OWN_T[ownType(id)]}
+function ownerMeta(z,id){const i=invOf(z),r=id&&realOwn(id);if(r&&(!i||i.fix))return esc(r.d);return i?`${esc(i.k)} ${esc(i.o)}`:''}
 function stadCard(id,z,b,lg){const lv=lg?(lg.foreign?1:lg.level):9,att=(z.h[0]?z.h[0][7]:b.att)||b.att||0,fill=z.cap?Math.round(att/z.cap*100):0,up=stadUp(lv),dn=stadDown(lv),keep=Math.round(stadUpkeep(lv,z.cap));
   const ups=[500,2000,5000].filter(n=>z.cap+n<=81000),downs=[.1,.25].map(f=>Math.round(z.cap*f/50)*50).filter(n=>n>=50&&z.cap-n>=300),fit=Math.max(300,Math.round(att*1.3/50)*50);
   return `<div class="orow"><span><b>Stadion: ${z.cap.toLocaleString('de-DE')} Plätze</b> <span class="meta">Ø ${att.toLocaleString('de-DE')} Zuschauer (${fill} % Auslastung) · Unterhalt ${money(keep)} pro Saison</span></span></div>
@@ -11,10 +13,10 @@ function finPanel(id,own){
   const z=FZ(id);if(!z)return '';const b=finBalance(id),lg=lgOf(id),inv=invOf(z),h=z.h;
   const wfL=z.wf>=1.25?'hoch':z.wf<=.85?'gesenkt':'normal';
   const lim=creditLimit(id);
-  let out=`<div class="card"><div class="hd"><h3 class="ct" style="margin:0">Finanzen</h3><span class="tag">${inv?'Investor':'Mitgliederverein'}</span></div>
+  let out=`<div class="card"><div class="hd"><h3 class="ct" style="margin:0">Finanzen</h3><span class="tag">${ownerTag(z,id)}</span></div>
   <div class="facts"><div><small>Kontostand</small><b class="${z.c<0?'no':''}">${sgn(z.c)}</b></div><div><small>Schulden</small><b class="${z.d>0?'no':''}">${z.d?money(z.d):'keine'}</b>${z.d?`<span class="meta">${(z.ir*100).toFixed(1).replace('.',',')} % Zinsen</span>`:''}</div>
   <div><small>Transferbudget</small><b>${money(spendable(id))}</b></div><div><small>Kreditrahmen</small><b>${money(lim)}</b></div>
-  <div><small>Eigentümer</small><b style="font-size:15px">${ownerLabel(z)}</b>${inv?`<span class="meta">${esc(inv.k)} ${esc(inv.o)}</span>`:''}</div>
+  <div><small>Eigentümer</small><b style="font-size:15px">${ownerLabel(z,id)}</b>${ownerMeta(z,id)?`<span class="meta">${ownerMeta(z,id)}</span>`:''}</div>
   <div><small>Stadion</small><b>${z.cap.toLocaleString('de-DE')}</b><span class="meta">Ø ${(h[0]?h[0][7]:b.att).toLocaleString('de-DE')} Zuschauer</span></div>
   <div><small>Gehaltsniveau</small><b>${wfL}</b><span class="meta">Faktor ${z.wf.toFixed(2).replace('.',',')}</span></div>
   ${z.ins.length?`<div><small>Insolvenzen</small><b class="no">${z.ins.length}×</b><span class="meta">zuletzt ${z.ins[0]}/${String(z.ins[0]+1).slice(2)}</span></div>`:''}</div></div>`;
@@ -388,6 +390,7 @@ $('bAll').onclick=()=>{advance('all');view={...view,tab:'season'};render();toast
 $('bNew').onclick=()=>act('newseason');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov&&!(view.ov.t==='jump'&&view.ov.running)){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
 function migrateLoaded(){
+  try{ensureRealOwners()}catch(e){console.warn(e)}
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }
   let added=false;
