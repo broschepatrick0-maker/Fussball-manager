@@ -50,7 +50,7 @@ async function menuAct(k,v){const nw=MENU.nw;
     const club=clubName?Object.values(S.teams).find(t=>t.name===clubName&&lgOf(t.id)):null;
     if(v==='free'){S.mode='free';if(club){S.fav=club.id;ensureSquad(club.id);initBudget()}}
     else newCareer(nw.name.trim(),nw.start==='club'&&club?club.id:null,nw.start);
-    save();view={tab:S.fav?'fav':(v==='career'?'fav':'home'),ftab:S.career&&!S.career.jobless?'karriere':'ov'};view.ov=null;toast(v==='free'?'Neues Spiel gestartet':`Willkommen, ${S.career.name}!`)}
+    save();view={tab:S.fav?'fav':(v==='career'?'fav':'home'),ftab:S.career&&!S.career.jobless?'karriere':'ov'};view.ov=S.tut?null:{t:'tut',i:0};toast(v==='free'?'Neues Spiel gestartet':`Willkommen, ${S.career.name}!`)}
   render()}
 function readMenuInputs(){const a=document.getElementById('mName'),b=document.getElementById('mQ');if(a)MENU.nw.name=a.value;if(b)MENU.nw.q=b.value}
 function confirmTwice(key){const now=Date.now();if(confirmTwice.k===key&&now-confirmTwice.t<3000){confirmTwice.k=null;return true}confirmTwice.k=key;confirmTwice.t=now;return false}

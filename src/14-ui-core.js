@@ -140,6 +140,7 @@ function renderOverlay(){
     <label class="mfield">Dein Name als Trainer<input id="toName" class="search" value="${esc((S.career&&S.career.name)||'')}" placeholder="z. B. Max Mustermann"></label>
     <p class="note">Du bekommst die passende Trainerlizenz, ein Saisonziel vom Vorstand und alle Karrierefunktionen. Läuft es schlecht, kannst du entlassen werden. Zurück ins freie Spiel geht es über einen neuen Spielstand im Hauptmenü.</p>
     <button class="btn pri" style="width:100%" data-act="takeovergo:${o.id}">Karriere starten</button></div></div>`;
+  else if(o.t==='tut') h=`<div class="sheet" role="dialog" aria-label="Einführung">${tutHTML(o.i||0)}</div>`;
   else if(o.t==='jump') h=`<div class="sheet" role="dialog" aria-label="Zeitsprung"><div class="ovh"><b>⏩ Zeitsprung</b>${o.running?'':x}</div>${jumpHTML()}</div>`;
   else if(o.t==='talk'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Gespräch"><div class="ovh"><b>Gespräch mit ${esc(P()[o.pid].n)}</b>${x}</div>${talkSheet(o.pid)}</div>`;
   else if(o.t==='menu') h=`<div class="mscreen" role="dialog" aria-label="Hauptmenü">${menuHTML()}</div>`;
@@ -430,3 +431,14 @@ function renderFav(){
   }
   return h;
 }
+
+// ---------- Kurze Einführung beim ersten Start ----------
+const TUT=[
+ ['👋 Willkommen bei der Fußball-Pyramide','Hier steckt der deutsche Fußball von der Bundesliga bis zur C-Klasse – über 1.000 echte Ligen, die über Auf- und Abstieg zusammenhängen. Fünf kurze Tipps, dann geht es los.'],
+ ['⭐ Dein Verein','Über die Suche 🔎 findest du jeden Verein. Auf seiner Seite machst du ihn mit ☆ zu „Mein Verein“. Im Karrieremodus bewirbst du dich stattdessen als Trainer – vom Kreisklassen-Club bis zum Bundesligisten.'],
+ ['▶ Die Zeit läuft über den Kalender','Oben: ▶ spielt bis zum nächsten Spiel deines Vereins, „+7 T“ eine Woche, ⏩ die ganze Saison. Jedes Spiel kannst du auch live verfolgen – mit Ticker, 2D-Spielfeld und Coaching.'],
+ ['📊 Ligen, Statistik, Geschichte','Unter „Ligen“ wanderst du mit ▲▼ durch die Pyramide. Jede Liga hat Tabelle, Statistik (Torjäger, Vorlagen), Vorjahre mit Begründung für jeden Auf- und Abstieg und eine ewige Tabelle.'],
+ ['💾 Speichern','Das Spiel speichert automatisch in deinem Browser. Über das Menü ☰ hast du drei Spielstände und kannst eine Sicherungsdatei herunterladen. Viel Spaß!']];
+function tutHTML(i){const [h,b]=TUT[i];return `<div class="ovh"><b>Einführung ${i+1}/${TUT.length}</b><button class="btn sm" data-act="tut:x">Überspringen</button></div><div class="ovc"><div class="card"><h2 style="font-size:22px;margin-bottom:8px">${h}</h2><p>${b}</p>
+  <div style="display:flex;gap:8px;margin-top:14px;justify-content:space-between">${i?`<button class="btn" data-act="tut:${i-1}">Zurück</button>`:'<span></span>'}${i<TUT.length-1?`<button class="btn pri" data-act="tut:${i+1}">Weiter</button>`:'<button class="btn pri" data-act="tut:x">Los geht\'s</button>'}</div>
+  <div style="display:flex;gap:6px;justify-content:center;margin-top:12px">${TUT.map((_,k)=>`<span style="width:8px;height:8px;border-radius:50%;background:${k===i?'var(--acc)':'var(--line)'}"></span>`).join('')}</div></div></div>`}

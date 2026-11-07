@@ -1,5 +1,8 @@
 // ---------- Spielerstatistik (Torjäger, Vorlagen) & Vereinslegenden ----------
-function trackLg(lg){return !!lg&&((lg.foreign?lg.level<=1:lg.level<=4)||lg.trk||(S.fav&&lg.teams.includes(S.fav)))}
+function favNear(){const k=S.season+'-'+S.fav+'-'+S.leagues.length;if(favNear.k===k)return favNear.s;const st=new Set(),fl=S.fav&&lgOf(S.fav);
+  if(fl){const upOf_=l=>l.up||(PRESETS.find(p=>p.name===l.name)||{}).up;S.leagues.forEach(l=>{if(l.foreign)return;if(l===fl||l.name===upOf_(fl)||upOf_(l)===fl.name||(fl.kreis&&l.kreis===fl.kreis&&l.vb===fl.vb))st.add(l.id)})}
+  favNear.k=k;favNear.s=st;return st}
+function trackLg(lg){return !!lg&&((lg.foreign?lg.level<=1:lg.level<=5)||lg.trk||favNear().has(lg.id))}
 function SS(){if(!S.ss)S.ss={};return S.ss} // S.ss[ligaId][pid]=[Tore,Vorlagen,Spiele,Verein]
 function starters(id){if(id===S.fav&&S.mgr){try{const x=mgrXI(id).xi.filter(Boolean);if(x.length>=9)return x}catch(e){}}
   const fit=ensureSquad(id).filter(x=>P()[x]&&!P()[x].inj),by=p=>fit.filter(x=>P()[x].p===p).sort((a,b)=>P()[b].s-P()[a].s);

@@ -66,7 +66,8 @@ function newSeason(){
   for(const g of Object.values(relGrp)){ if(g.length<2) continue;
     const free=g.map(x=>x.d), lasts=g.map(x=>x.last), out=new Map();
     for(const id of lasts){const h=homes(id);const i=free.findIndex(d=>h.includes(d.name));if(i>=0){out.set(id,free[i]);free.splice(i,1)}}
-    for(const id of lasts) if(!out.has(id)) out.set(id,free.shift());
+    // ohne bekannte Heimat: per Ortsname der passenden Zubringer-Liga zuordnen (z. B. Haßfurt → Kreisliga Schweinfurt)
+    for(const id of lasts){if(out.has(id))continue;let bi=0,bs=-1;free.forEach((d,i)=>{const sc=townScore(T(id).name,d);if(sc>bs){bs=sc;bi=i}});out.set(id,free.splice(bi,1)[0])}
     for(const [id,d] of out){move[id]=d.id;const line=log.findIndex(l=>l.endsWith(', '+T(id).name+' steigt ab'));if(line>=0)log[line]=log[line].replace(', '+T(id).name+' steigt ab',', '+T(id).name+' steigt ab → '+d.name)}
   }
   // Bewegungen anwenden
@@ -165,3 +166,10 @@ function balanceAmateur(st,log){
       sib.teams=sib.teams.filter(x=>x!==v);l.teams.push(v);log.push(`Umgruppierung: ${T(v).name} wechselt von der ${sib.name} in die ${l.name}`)}
   }
 }
+
+const TOWN_STOP=new Set(['SV','TSV','FC','SC','SG','VfB','VfL','VfR','TuS','TSG','FSV','SpVgg','DJK','ASV','ESV','BSV','SSV','TV','FV','SpFr','Sportfreunde','Eintracht','Germania','Concordia','Viktoria','Union','Borussia','Fortuna','Rot-Weiß','Blau-Weiß','Grün-Weiß','Schwarz-Weiß','Empor','Traktor','Turbine','Dynamo','Lok','Motor','Stahl','Chemie','Einheit','Kickers','Sport','Verein','Club','e.V.','II','III','IV','1.','SpG','JSG','Spvgg','SuS','TuRa','TSC','FSG','SVG','SKV','SG.','am','an','der','die','im','in','b.','a.','bei','und','St.']);
+function townTokens(n){return n.replace(/[()]/g,' ').split(/[\s/\-]+/).filter(w=>w.length>=4&&!TOWN_STOP.has(w)&&!/^\d/.test(w))}
+function townScore(name,d){const tk=townTokens(name);if(!tk.length)return 0;let sc=0;const dn=(d.name+' '+(d.kreis||'')).toLowerCase();
+  for(const w of tk){const lw=w.toLowerCase();if(dn.includes(lw))sc+=5;for(const id of d.teams){const t=T(id);if(t&&t.name.toLowerCase().includes(lw))sc+=1}}
+  // gemeinsame Ortsteile im Kreis (Nachbarorte teilen oft Namensbestandteile wie „Bad“, „Neu“…) bewusst ignoriert
+  return sc}

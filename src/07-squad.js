@@ -183,7 +183,7 @@ function pruneSquads(){if(!S.pl)return 0;const keep=new Set(),keepLg=new Set();
   const fl=S.fav&&lgOf(S.fav);
   if(fl){keepLg.add(fl.id);const upOf_=l=>l.up||(PRESETS.find(p=>p.name===l.name)||{}).up;
     S.leagues.forEach(l=>{if(l.foreign)return;if(l.name===upOf_(fl)||upOf_(l)===fl.name||(fl.kreis&&l.kreis===fl.kreis&&l.vb===fl.vb))keepLg.add(l.id)})}
-  for(const l of S.leagues)if(l.foreign||l.level<=4||l.trk||keepLg.has(l.id))l.teams.forEach(add);
+  for(const l of S.leagues)if(l.foreign||l.level<=5||l.trk||keepLg.has(l.id))l.teams.forEach(add);
   const inLg=new Set();S.leagues.forEach(l=>l.teams.forEach(id=>inLg.add(id)));(S.pool||[]).forEach(add);
   let n=0;
   for(const t of Object.values(S.teams)){if(!t.sq||keep.has(t.id)||(t.seen!=null&&t.seen>=S.season-1))continue;

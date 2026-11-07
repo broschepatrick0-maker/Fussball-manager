@@ -220,6 +220,7 @@ function act(a){
   const [k,v,w]=a.split(':');
   if(k.startsWith('am')&&favAm()&&amAct(k,v,w)){save();render();return}
   if(k==='rpos'){view.rpos=v||'';render();return}
+  if(k==='tut'){if(v==='x'){S.tut=1;view.ov=null;save()}else view.ov={t:'tut',i:+v};render();return}
   if(k==='mfull'){view.mfull=!view.mfull;render();return}
   if(k==='ov'){view.ov={t:v};render();return}
   if(k==='menu'){openMenu();return}
