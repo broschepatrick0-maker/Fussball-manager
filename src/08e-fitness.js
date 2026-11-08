@@ -30,7 +30,7 @@ function fatInjMod(id){const t=T(id);const f=t&&t.pf!=null?t.pf:100;return 1+Mat
 // Rotation von Mein Verein: müde Spieler der gewählten Elf durch frischere Ersatzleute derselben Position tauschen
 function rotOn(){const g=S.mgr;return !!(g&&g.rot!==false)}
 function rotT(){return (S.mgr&&S.mgr.rotT)||75}
-function slotEff(pid,sl){const p=P()[pid];return p?p.s*fitMul(curFi(p))*(p.hp!=null?hpMul(p):1)-FIT[sl][p.p]:0}
+function slotEff(pid,sl){const p=P()[pid];return p?posStr(p,sl)*fitMul(curFi(p))*(p.hp!=null?hpMul(p):1)-FIT[sl][p.p]*.35:0}
 function rested(){if(S.mgr){S.mgr.talk=[];S.mgr.gp=0}if(S.pl)for(const p of Object.values(S.pl)){if(p.pr||p.tc!=null){delete p.pr;delete p.tc}}
   Object.values(S.teams).forEach(t=>{delete t.tf;delete t.td;delete t.tdd;delete t.pf});if(S.pl)for(const p of Object.values(S.pl)){if(p.fi!=null){delete p.fi;delete p.fd}}}
 // Ansicht: Frische-Anzeige

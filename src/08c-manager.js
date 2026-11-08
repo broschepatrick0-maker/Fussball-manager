@@ -10,7 +10,7 @@ const TRAIN={ausgewogen:'Ausgewogen',angriff:'Angriff',abwehr:'Abwehr',kondition
 function MG(){if(!S.mgr)S.mgr={form:'4-4-2',xi:null,style:'ausgewogen',fam:80,train:'ausgewogen',ti:1,cosub:true};return S.mgr}
 function slotsOf(form){const f=FORMS[form]||FORMS['4-4-2'];return ['TW',...Array(f.AB).fill('AB'),...Array(f.MF).fill('MF'),...Array(f.ST).fill('ST')]}
 const FIT={TW:{TW:0,AB:25,MF:25,ST:25},AB:{TW:25,AB:0,MF:6,ST:12},MF:{TW:25,AB:6,MF:0,ST:5},ST:{TW:25,AB:12,MF:5,ST:0}};
-const slotStr=(pid,slot)=>{const p=P()[pid];return p?p.s-FIT[slot][p.p]:0};
+const slotStr=(pid,slot)=>{const p=P()[pid];return p?posStr(p,slot)-FIT[slot][p.p]*.35:0};
 // Aufstellung für Mein Verein: gewählte Elf, Ausfälle werden automatisch ersetzt
 function mgrXI(id){id=id||S.fav;const g=MG(),slots=slotsOf(g.form),sq=ensureSquad(id).filter(pid=>P()[pid]);
   const fit=sq.filter(pid=>!P()[pid].inj),used=new Set(),xi=new Array(slots.length).fill(null),rot=[];
@@ -33,11 +33,13 @@ function tacStyleOf(id,opp){if(id===S.fav&&S.mgr){const o=view&&view.ov;if(o&&o.
 function tacMul(id,opp,style){style=style||tacStyleOf(id,opp);let [a,d]=(STYLES[style]||STYLES.ausgewogen).m;const diff=effR(opp)-effR(id);
   if(style==='konter'){a=diff>3?1.12:.94;d=diff>3?.9:1.02}
   if(style==='ballbesitz'&&diff>0){a=.97;d=1.04}
+  // passt der Kader zum Spielstil? (Attribute der Startelf)
+  const f=styleFit(id,style);if(f){if(style==='defensiv')d*=1-f*.012;else if(style==='pressing'){a*=1+f*.008;d*=1-f*.008}else a*=1+f*.012}
   return [a,d]}
 // Training: nach jedem Pflichtspiel von Mein Verein
 function trainTick(){const g=S.mgr;if(!g||!S.fav)return;const t=T(S.fav);if(!t||!t.sq)return;const int=[.5,1,1.6][g.ti];
   const focus=p=>g.train==='angriff'?(p.p==='ST'||p.p==='MF'):g.train==='abwehr'?(p.p==='AB'||p.p==='TW'):g.train==='jugend'?p.a<=21:g.train==='ausgewogen';
-  for(const pid of t.sq){const p=P()[pid];if(!p||p.inj||p.a>27)continue;let x=0.028*int*(focus(p)?1:0.35)*(g.train==='jugend'&&p.a<=21?1.6:1);const room=potOf(p)-p.s;if(room>0)p.s=+Math.min(99,p.s+Math.min(x,room)).toFixed(2)}
+  for(const pid of t.sq){const p=P()[pid];if(!p||p.inj||p.a>27)continue;let x=0.028*int*(focus(p)?1:0.35)*(g.train==='jugend'&&p.a<=21?1.6:1);const room=potOf(p)-p.s;if(room>0)p.s=+Math.min(99,p.s+Math.min(x,room)).toFixed(2);trainAttr(p,g.train,int)}
   g.fam=Math.min(100,g.fam+6+(g.train==='taktik'?4:0));
   t.mo=Math.max(5,Math.min(100,(t.mo??60)+(g.ti===2?-0.6:g.ti===0?0.6:0)));
   recalc(S.fav)}
@@ -58,7 +60,7 @@ function renderTactics(id){
    <p class="note" style="margin-top:8px">Verletzte Spieler ersetzt der Co-Trainer automatisch. Der Balken zeigt die Frische, die Stärke ist bereits um die Müdigkeit bereinigt. Spieler auf einer fremden Position verlieren an Stärke (Abwehr ↔ Mittelfeld −6, Mittelfeld ↔ Sturm −5, Abwehr ↔ Sturm −12, Torwart im Feld −25).</p></div>
   ${fitnessCard(id)}</div><div><div class="card"><div class="hd"><h3 class="ct" style="margin:0">Spielstil</h3><span class="tag">Eingespielt ${Math.round(g.fam)} %</span></div>
    <div class="prog" style="margin-bottom:10px"><i style="width:${g.fam}%"></i></div>
-   ${Object.entries(STYLES).map(([k,v])=>`<button class="stage${g.style===k?' on':''}" style="width:100%;margin-bottom:6px" data-act="mstyle:${k}"><small>${g.style===k?'Aktiv':'Spielstil'}</small><b>${v.n}</b><span class="meta">${v.d}</span></button>`).join('')}
+   ${Object.entries(STYLES).map(([k,v])=>{const f=styleFit(S.fav,k),ks=STYLE_ATTR[k]||[];return `<button class="stage${g.style===k?' on':''}" style="width:100%;margin-bottom:6px" data-act="mstyle:${k}"><small>${g.style===k?'Aktiv':'Spielstil'}${ks.length?` · Kader-Passung <span class="${f>=1.5?'ok':f<=-1.5?'no':''}">${f>=1.5?'gut':f<=-1.5?'schwach':'mittel'}</span>`:''}</small><b>${v.n}</b><span class="meta">${v.d}${ks.length?` Braucht: ${ks.map(x=>ATTRN[x]).join(', ')}.`:''}</span></button>`}).join('')}
    <p class="note">Ein Wechsel von Formation oder Spielstil kostet Eingespieltheit (bis zu −4 Stärke). Sie wächst mit jedem Pflichtspiel wieder.</p></div>
    <div class="card"><h3 class="ct">Training</h3>
    <div class="chipbar" style="flex-wrap:wrap">${Object.entries(TRAIN).map(([k,v])=>`<button class="${g.train===k?'on':''}" data-act="mtrain:${k}">${v}</button>`).join('')}</div>

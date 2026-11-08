@@ -9,9 +9,9 @@ function starters(id){if(id===S.fav&&S.mgr){try{const x=mgrXI(id).xi.filter(Bool
   const out=[...by('TW').slice(0,1),...by('AB').slice(0,4),...by('MF').slice(0,4),...by('ST').slice(0,2)];
   if(out.length<11)fit.filter(x=>!out.includes(x)).sort((a,b)=>P()[b].s-P()[a].s).slice(0,11-out.length).forEach(x=>out.push(x));return out}
 const GOALW={TW:.02,AB:.7,MF:2.4,ST:5.5},ASSW={TW:.1,AB:1.3,MF:4,ST:2.2};
-function wpickP(ids,W,ex){let tot=0;const w=ids.map(x=>{const p=P()[x];if(x===ex||!p)return 0;const v=W[p.p]*Math.pow(Math.max(20,p.s)/55,2);tot+=v;return v});
+function wpickP(ids,W,ex,key){let tot=0;const w=ids.map(x=>{const p=P()[x];if(x===ex||!p)return 0;const v=W[p.p]*Math.pow(Math.max(20,key?attr(p,key):p.s)/55,2.4);tot+=v;return v});
   let r=Math.random()*tot;for(let i=0;i<ids.length;i++){r-=w[i];if(r<=0&&w[i])return ids[i]}return ids.find(x=>x!==ex)||null}
-function genGoals(xi,n){const g=[];for(let i=0;i<n;i++){const sc=wpickP(xi,GOALW);g.push([sc,Math.random()<.72?wpickP(xi,ASSW,sc):null])}return g}
+function genGoals(xi,n){const g=[];for(let i=0;i<n;i++){const sc=wpickP(xi,GOALW,null,'abs');g.push([sc,Math.random()<.72?wpickP(xi,ASSW,sc,'pas'):null])}return g}
 function legRec(id,pid,g,a,ap){const t=T(id),p=P()[pid];if(!t||!p)return;t.lgd=t.lgd||{};
   const e=t.lgd[pid]||(t.lgd[pid]={n:p.n,nat:p.nat,p:p.p,ap:0,g:0,a:0,f:S.season,l:S.season});e.ap+=ap;e.g+=g;e.a+=a;e.l=S.season;e.n=p.n}
 function statMatch(m,lg){if(!trackLg(lg)||m.hg==null||m.st)return;m.st=1;const tab=SS()[lg.id]=SS()[lg.id]||{};
