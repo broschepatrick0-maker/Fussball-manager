@@ -40,7 +40,10 @@ function simDayCore(){
   if(transferOpenOn(d)){transferDay(1+(Math.random()<.35?1:0),wk)}
   S.lastPlayed=played?d:S.lastPlayed;
   if(S.fav&&S.mgr&&T(S.fav)&&T(S.fav).sq)recalc(S.fav);
-  const fin=S.leagues.every(l=>l.played>=l.rounds.length)&&S.cups.every(c=>c.winner)&&(S.euro||[]).every(e=>e.winner);
-  if(fin||d>=last){S.leagues.forEach(l=>{while(l.played<l.rounds.length)playRound(l)});S.cups.forEach(c=>{while(!c.winner)playCupRound(c)});(S.euro||[]).forEach(e=>{while(!e.winner)euroStep(e)});S.done=true}
+  const lgDone=S.leagues.every(l=>l.played>=l.rounds.length);
+  if(lgDone&&!relActive())relCreate(d);
+  if(relActive()&&!S.rel.done&&relStep(d))played=true;
+  const fin=lgDone&&S.cups.every(c=>c.winner)&&(S.euro||[]).every(e=>e.winner)&&(!relActive()||S.rel.done);
+  if(fin||d>=last){S.leagues.forEach(l=>{while(l.played<l.rounds.length)playRound(l)});S.cups.forEach(c=>{while(!c.winner)playCupRound(c)});(S.euro||[]).forEach(e=>{while(!e.winner)euroStep(e)});if(!relActive())relCreate(d);relStep(1e9);S.done=true}
   return wk
 }

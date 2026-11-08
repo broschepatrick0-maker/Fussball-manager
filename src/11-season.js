@@ -1,19 +1,23 @@
 // ---------- Saisonwechsel ----------
-function twoLeg(a,b){ // a = Klassentieferer, b = Klassenhöherer (Rückspiel zu Hause)
-  const [x1,y1]=play(a,b),[x2,y2]=play(b,a);
-  const ga=x1+y2, gb=y1+x2;
-  let w = ga>gb?a:gb>ga?b:(Math.random()<.5?a:b);
-  return {w,l:w===a?b:a,txt:`${T(a).name} – ${T(b).name} ${x1}:${y1}, ${x2}:${y2} (${ga}:${gb}${ga===gb?', i.E.':''})`};
+// Relegation: Hin- und Rückspiel (a = Klassentieferer, Hinspiel zu Hause; b = Klassenhöherer, Rückspiel zu Hause)
+// Im Planungsmodus werden nur die Paarungen gesammelt; danach werden die echten Spiele aus S.rel genommen
+let REL_PLAN=null;
+function twoLeg(a,b){
+  if(REL_PLAN){REL_PLAN.push({a,b});return {w:b,l:a,txt:''}}
+  let p=S.rel&&S.rel.season===S.season&&S.rel.pairs.find(x=>x.a===a&&x.b===b);
+  if(!p||!p.w){p=p||relPair(a,b);relLeg(p,1);relLeg(p,2)}
+  return {w:p.w,l:p.w===a?b:a,txt:relTxt(p)};
 }
-function newSeason(){
-  {let g=0;while(!S.done&&g++<400)simDay()}
-  recordSeason();const oldSeason=S.season;
-  const log=[];try{statsSeasonEnd(log)}catch(e){console.warn(e)}try{amSeasonEnd(log)}catch(e){console.warn(e)}const st={};S.leagues.forEach(l=>st[l.id]=table(l).map(r=>r.id));
-  const bl=st.bl,b2=st.bl2,l3=st.l3;
-  log.push(`Deutscher Meister: ${T(bl[0]).name}`);
-  const insolvent=seasonFinances(st,log);
-  for(const c of S.cups) if(c.type!=='kp'||true) {}
-  const dfb=S.cups.find(c=>c.type==='dfb'); if(dfb) log.push(`DFB-Pokalsieger: ${T(dfb.winner).name}`);
+function relPair(a,b){return {a,b,m1:{h:a,a:b,hg:null,ag:null},m2:{h:b,a:a,hg:null,ag:null},w:null}}
+function relLeg(p,leg){const m=leg===1?p.m1:p.m2;if(m.hg==null){const [x,y]=play(m.h,m.a);m.hg=x;m.ag=y}if(leg===2&&!p.w)relResolve(p)}
+function relAgg(p){return [p.m1.hg+p.m2.ag,p.m1.ag+p.m2.hg]}
+function relResolve(p){const m=p.m2;let [ga,gb]=relAgg(p);
+  if(ga===gb&&!m.et){const rb=effR(p.b),ra=effR(p.a);m.hg+=pois(lam(rb,ra,true)/3);m.ag+=pois(lam(ra,rb,false)/3);m.et=true;[ga,gb]=relAgg(p)}
+  if(ga===gb&&!m.pen){const rb=T(p.b).r,ra=T(p.a).r,pb=.74+(rb-ra)/400,pa=.74+(ra-rb)/400;let x=0,y=0;for(let i=0;i<5;i++){if(Math.random()<pb)x++;if(Math.random()<pa)y++}while(x===y){if(Math.random()<pb)x++;if(Math.random()<pa)y++}m.pen=[x,y]}
+  p.w=m.pen?(m.pen[0]>m.pen[1]?p.b:p.a):(ga>gb?p.a:p.b)}
+function relTxt(p){const [ga,gb]=relAgg(p),m=p.m2;return `${T(p.a).name} – ${T(p.b).name} ${p.m1.hg}:${p.m1.ag}, ${m.ag}:${m.hg}${m.et?' n.V.':''} (${ga}:${gb}${m.pen?`, ${m.pen[1]}:${m.pen[0]} i.E.`:''})`}
+// Auf- und Abstiegsentscheidungen (ohne sie anzuwenden) – wird auch vorab genutzt, um die Relegationspaarungen zu planen
+function decideMoves(st,log){const bl=st.bl,b2=st.bl2,l3=st.l3;
   // Relegation
   S.leagues.forEach(l=>{if(!l.tgt&&!l.foreign)l.tgt=l.teams.length});
   const move={}; // id -> ziel-liga-id
@@ -70,6 +74,19 @@ function newSeason(){
     for(const id of lasts){if(out.has(id))continue;let bi=0,bs=-1;free.forEach((d,i)=>{const sc=townScore(T(id).name,d)+(d.vb===T(id).vb?100:0);if(sc>bs){bs=sc;bi=i}});out.set(id,free.splice(bi,1)[0])}
     for(const [id,d] of out){move[id]=d.id;const line=log.findIndex(l=>l.endsWith(', '+T(id).name+' steigt ab'));if(line>=0)log[line]=log[line].replace(', '+T(id).name+' steigt ab',', '+T(id).name+' steigt ab → '+d.name)}
   }
+  return move;
+}
+function newSeason(){
+  {let g=0;while(!S.done&&g++<400)simDay()}
+  recordSeason();const oldSeason=S.season;
+  const log=[];try{statsSeasonEnd(log)}catch(e){console.warn(e)}try{amSeasonEnd(log)}catch(e){console.warn(e)}const st={};S.leagues.forEach(l=>st[l.id]=table(l).map(r=>r.id));
+  const bl=st.bl,b2=st.bl2,l3=st.l3;
+  log.push(`Deutscher Meister: ${T(bl[0]).name}`);
+  const insolvent=seasonFinances(st,log);
+  for(const c of S.cups) if(c.type!=='kp'||true) {}
+  const dfb=S.cups.find(c=>c.type==='dfb'); if(dfb) log.push(`DFB-Pokalsieger: ${T(dfb.winner).name}`);
+  const move=decideMoves(st,log);const homes=homeLeagues;const DL=deLevels(),lvF=id=>move[id]?L(move[id]).level:DL.lv[id],okAt=(id,lv)=>lv>=resMinLevel(T(id).name,DL.byName,lvF);const rls=['rln','rlno','rlw','rlsw','rlby'];
+  S.relLast=S.rel&&S.rel.season===S.season?S.rel:null;S.rel=null;
   // Bewegungen anwenden
   const lvOld={};S.leagues.forEach(l=>l.teams.forEach(id=>lvOld[id]=l.level));
   for(const [id,to] of Object.entries(move)){

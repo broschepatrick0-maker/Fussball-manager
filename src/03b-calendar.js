@@ -52,8 +52,9 @@ function dayEvents(d){const out=[];
   S.leagues.forEach(l=>{const i=l.dates?l.dates.indexOf(d):-1;if(i>=0)out.push({k:'L',l,i})});
   S.cups.forEach(c=>{const i=c.dates?c.dates.indexOf(d):-1;if(i>=0)out.push({k:'C',c,i})});
   (S.euro||[]).forEach(e=>{const i=e.dates?e.dates.indexOf(d):-1;if(i>=0)out.push({k:'E',e,i})});return out}
-function anyMatchOn(d,top){return S.leagues.some(l=>(!top||l.level<=3||l.foreign)&&l.played<l.rounds.length&&l.dates&&l.dates[l.played]===d)||S.cups.some(c=>!c.winner&&c.dates&&c.dates[c.played]===d&&(!top||c.type==='dfb'))||(S.euro||[]).some(e=>!e.winner&&e.dates&&e.dates[e.step]===d)}
+function anyMatchOn(d,top){const r=typeof relActive==='function'&&relActive();if(r&&!r.done&&(d===r.d1||d===r.d2)&&(!top||r.pairs.some(p=>p.lv<=2)))return true;return S.leagues.some(l=>(!top||l.level<=3||l.foreign)&&l.played<l.rounds.length&&l.dates&&l.dates[l.played]===d)||S.cups.some(c=>!c.winner&&c.dates&&c.dates[c.played]===d&&(!top||c.type==='dfb'))||(S.euro||[]).some(e=>!e.winner&&e.dates&&e.dates[e.step]===d)}
 function favPlaysOn(d){const id=S.fav;if(!id)return false;const lg=lgOf(id);
+  if(typeof relFavDay==='function'&&relFavDay()===d)return true;
   if(lg&&lg.played<lg.rounds.length&&lg.dates[lg.played]===d)return true;
   if(S.cups.some(c=>!c.winner&&c.dates&&c.dates[c.played]===d&&c.rounds[c.played]&&c.rounds[c.played].some(m=>!m.bye&&(m.h===id||m.a===id))))return true;
   return (S.euro||[]).some(e=>!e.winner&&e.dates&&e.dates[e.step]===d&&euroHas(e,id))}
@@ -62,5 +63,6 @@ function nextFavDay(){const id=S.fav;if(!id)return null;let best=null;const lg=l
   if(lg&&lg.played<lg.rounds.length)best=lg.dates[lg.played];
   S.cups.forEach(c=>{if(!c.winner&&c.dates&&c.rounds[c.played]&&c.rounds[c.played].some(m=>!m.bye&&(m.h===id||m.a===id))){const d=c.dates[c.played];if(best==null||d<best)best=d}});
   (S.euro||[]).forEach(e=>{if(!e.winner&&e.dates&&e.step<e.nmd&&euroHas(e,id)){const d=e.dates[e.step];if(best==null||d<best)best=d}});
+  {const rd=typeof relFavDay==='function'?relFavDay():null;if(rd!=null&&(best==null||rd<best))best=rd}
   return best}
 function dateLine(){if(S.done)return 'Saisonpause';const d=Math.max(0,S.day);return fmtDay(S.day<0?0:d,{y:true})}

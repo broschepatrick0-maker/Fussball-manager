@@ -197,6 +197,7 @@ function render(){
   else if(view.tab==='import') h=renderImport();
   else if(view.tab==='hall') h=renderHall();
   else if(view.tab==='vl') h=renderClubLife();
+  else if(view.tab==='rel') h=renderRel();
   else if(view.tab==='club') h=renderClub(view.id);
   else if(view.tab==='euro'&&(S.euro||[]).find(e=>e.id===view.id)) h=renderEuro(S.euro.find(e=>e.id===view.id));
   else if(view.tab==='season') h=renderSeason();
@@ -210,6 +211,7 @@ function render(){
   $('main').innerHTML=ctxBar()+(view.tab==='fav'?'':favStrip())+h;
   renderOverlay();
   document.querySelectorAll('[data-act]').forEach(b=>{if(!b.onclick)b.onclick=()=>act(b.dataset.act)});
+  {const q=document.getElementById('relQ');if(q)q.oninput=()=>{view.relq=q.value;clearTimeout(q._t);q._t=setTimeout(()=>{const pos=q.selectionStart;render();const n=document.getElementById('relQ');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},350)}}
   {const s=document.getElementById('vlS'),vv=document.getElementById('vlV'),qq=document.getElementById('vlQ');if(s)s.onchange=()=>{view.vl.s=s.value;render()};if(vv)vv.onchange=()=>{view.vl.vb=vv.value;render()};if(qq){qq.oninput=()=>{view.vl.q=qq.value;clearTimeout(qq._t);qq._t=setTimeout(()=>{const pos=qq.selectionStart;render();const n=document.getElementById('vlQ');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}},350)}}}
   {const f=document.getElementById('crFile');if(f)f.onchange=async()=>{const fs=[...f.files];if(!fs.length)return;toast('Wappen werden geladen …');const r=await importCrestFiles(fs);render();toast(`${r.ok} Wappen geladen${r.miss.length?` · nicht zugeordnet: ${r.miss.slice(0,3).join(', ')}${r.miss.length>3?' …':''}`:''}`)}}
   {const f=document.getElementById('imFile');if(f)f.onchange=()=>{const file=f.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const u=new Uint8Array(r.result);const txt=u[0]===0x1f&&u[1]===0x8b?await ungz(r.result):new TextDecoder().decode(u);importJSON(txt);view={tab:'home'};render();toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}};r.readAsArrayBuffer(file)}}
@@ -347,6 +349,7 @@ function act(a){
     const d=old-xi(t.sq);t.sq.forEach(pid=>P()[pid].s=+(P()[pid].s+d).toFixed(1));recalc(t.id);save();toast(list.length+' echte Spieler übernommen')}
   else if(k==='ewig'){view={...view,tab:'league',id:v,md:null,lmode:'ewig'}}
   else if(k==='hall'){view={...view,tab:'hall'}}
+  else if(k==='relall'){view={tab:'rel'}}
   else if(k==='vl'){view={tab:'vl',vl:view.vl}}
   else if(k==='vlf'){view.vl=view.vl||{};view.vl[v]=w}
   else if(k==='club'){view.ov={t:'club',id:v,top:true}}

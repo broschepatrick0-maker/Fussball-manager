@@ -462,3 +462,4 @@ button.clock:hover b{text-decoration:underline}
 .neg-msg{background:var(--panel2,rgba(127,127,127,.1));border-radius:8px;padding:10px 12px;margin:12px 0 4px}
 .ovc>*{flex-shrink:0}
 .vlrow{align-items:flex-start;gap:10px;justify-content:flex-start;flex-wrap:nowrap!important}.vlrow>span:last-child{flex:1;min-width:0}.vlrow>span:last-child{display:flex;flex-direction:column;gap:2px}.vlk{font-weight:800;font-size:18px;width:20px;flex:none;text-align:center}.vlwhy{font-size:13px;opacity:.85}
+.relp{padding:10px 0;border-bottom:1px solid var(--line)}.relp:last-child{border-bottom:0}.relp.mine{background:rgba(63,178,122,.08);border-radius:8px;padding:10px 8px}.relp .m{margin:4px 0}

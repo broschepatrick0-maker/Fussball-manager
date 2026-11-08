@@ -31,6 +31,7 @@ function areaOf(v){
   if(v.tab==='league'){const l=L(v.id);return l&&l.foreign?'eu':'de'}
   if(v.tab==='euro') return 'eu';
   if(v.tab==='cup') return 'cups';
+  if(v.tab==='rel')return 'de';
   if(v.tab==='hall'||v.tab==='season'||v.tab==='save'||v.tab==='vl') return 'hist';
   if(v.tab==='cal') return 'home';
   if(v.tab==='import') return 'de';
@@ -50,6 +51,7 @@ function sideHTML(a){
   }
   if(a==='de'){
     const pro=S.leagues.filter(l=>l.level<=4&&!l.foreign);
+    if(relActive()||S.relLast)h+=navBtn(view.tab==='rel','Relegation',null,'relall');
     h+=lvGroup('Bundesligen',pro.filter(l=>l.level<=3),l=>l.level)+lvGroup('Regionalligen',pro.filter(l=>l.level===4),()=>4);
     const am=S.leagues.filter(l=>l.level>=5);
     h+=`<h3>Amateure nach Landesverband</h3>`;
@@ -102,7 +104,7 @@ function ctxBar(){
   if(a==='de'){
     const lg=view.tab==='league'&&L(view.id); if(lg) cur=lg.name; else if(view.tab==='import') cur='Liga importieren';
     const top=S.leagues.filter(l=>!l.foreign&&l.level<=4);
-    chips=top.map(l=>chip(lg&&lg.id===l.id,l.name.replace('Regionalliga ','RL ').replace('2. Bundesliga','2. BL'),'lg:'+l.id));
+    chips=top.map(l=>chip(lg&&lg.id===l.id,l.name.replace('Regionalliga ','RL ').replace('2. Bundesliga','2. BL'),'lg:'+l.id));if(relActive()||S.relLast)chips.unshift(chip(view.tab==='rel','Relegation','relall'));if(view.tab==='rel')cur='Relegation';
     if(lg&&lg.level>=5){const sib=S.leagues.filter(l=>l.vb===lg.vb&&l.level===lg.level&&(lg.level<=6||l.kreis===lg.kreis||!lg.kreis)).slice(0,14);
       chips=sib.map(l=>chip(l.id===lg.id,l.name.replace(/^(Bezirksliga|Kreisliga|Kreisoberliga|Landesliga|Landesklasse|[12]\. Kreisklasse) /,''),'lg:'+l.id));
       const up=S.leagues.find(l=>l.name===((PRESETS.find(p=>p.name===lg.name)||{}).up));
@@ -170,6 +172,7 @@ function renderHome(){
   <div class="prog" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
   ${S.done?'<p class="note" style="margin-top:10px">Alle Spiele sind gespielt. Starte oben die neue Saison, dann gibt es Auf- und Abstieg und neue Europapokal-Plätze.</p>':''}
   ${!S.fav?'<p class="note" style="margin-top:10px">Tipp: Tippe oben auf die Lupe, suche deinen Verein und wähle „Als Mein Verein beobachten“ – dann siehst du ihn immer oben.</p>':''}</div>
+  ${relCard(false)}
   ${NEWS().length?`<section><h3 class="sec">Schlagzeilen</h3><div class="heads">${NEWS().filter(x=>x.imp>=2).slice(0,4).map(x=>`<button class="hl1" data-act="area:news"><span class="meta">${NCAT[x.cat]||'News'}</span><b>${esc(x.h)}</b></button>`).join('')}</div></section>`:''}
   <section><h3 class="sec">Deutschland</h3><div class="minis">${de.map(l=>miniTable(l)).join('')}</div></section>
   <section><h3 class="sec">Top-Ligen Europas</h3><div class="minis">${eu.map(l=>miniTable(l)).join('')}</div></section>
@@ -335,6 +338,7 @@ function teamMatches(id){
   const dd=(a,i)=>a&&a[i]!=null?a[i]:null;
   if(lg) lg.rounds.forEach((rd,i)=>rd.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:lg.name,rd:(i+1)+'. Spieltag',m,done:i<lg.played,ord:i,ctx:ctxL(lg,i),day:dd(lg.dates,i),k:'L'})}));
   S.cups.forEach(c=>c.rounds.forEach((rd,k)=>rd.forEach(m=>{if(!m.bye&&(m.h===id||m.a===id)) out.push({comp:c.name,rd:ROUNDN(c.R,k),m,done:m.hg!=null&&k<c.played,cup:true,ctx:ctxC(c,k),day:dd(c.dates,k),k:'C',dfb:c.type==='dfb'})})));
+  {const r=relActive()||(S.relLast&&S.relLast.season===S.season?S.relLast:null);if(r)r.pairs.filter(p=>p.a===id||p.b===id).forEach(p=>{[[p.m1,1,r.d1],[p.m2,2,r.d2]].forEach(([m,leg,day])=>out.push({comp:p.lab,rd:leg===1?'Hinspiel':'Rückspiel',m,done:m.hg!=null,cup:true,ctx:ctxR(p,leg),day,k:'R'}))})}
   (S.euro||[]).forEach(e=>{e.mds.forEach((md,i)=>md.forEach(m=>{if(m.h===id||m.a===id) out.push({comp:e.name,rd:(i+1)+'. Spieltag',m,done:i<e.step,ctx:ctxE(e,i),day:dd(e.dates,i),k:'E'})}));
     e.ko.forEach((r,ri)=>{const st=e.nmd+Math.max(0,KOR.indexOf(r.name));const d2=dd(e.dates,st);r.ties.forEach(x=>{if(x.a===id||x.b===id){out.push({comp:e.name,rd:r.name+(x.final?'':' Hin'),m:x.l1,done:true,ctx:ctxK(e,r,x.final?'':'Hinspiel'),day:d2==null?null:x.final?d2:d2-7,k:'E'});if(x.l2)out.push({comp:e.name,rd:r.name+' Rück',m:x.l2,done:true,ctx:ctxK(e,r,'Rückspiel'),day:d2,k:'E'})}})})});
   return out;
@@ -345,14 +349,14 @@ function favStrip(){
   const lg=S.leagues.find(l=>l.teams.includes(id));
   const tb=lg?table(lg):[],pos=tb.findIndex(r=>r.id===id)+1,row=tb[pos-1];
   const ms=teamMatches(id).filter(x=>!x.cup&&x.comp===(lg&&lg.name));
-  const last=ms.filter(x=>x.done).slice(-5),next=ms.find(x=>!x.done);
+  const last=ms.filter(x=>x.done).slice(-5),next=ms.find(x=>!x.done)||teamMatches(id).find(x=>x.k==='R'&&!x.done);
   const lm=last[last.length-1];
   const opp=m=>m.h===id?T(m.a).name+' (H)':T(m.h).name+' (A)';
   return `<button class="fav" data-act="area:fav"><span class="star">★</span><span class="fn"><b>${esc(T(id).name)}</b><small>${lg?esc(lg.name)+(row&&row.sp?` · ${pos}. Platz · ${row.p} Pkt`:''):'ohne Liga'}</small></span>
   <span class="form">${last.map(x=>`<i class="f-${res(x.m,id)}">${res(x.m,id)}</i>`).join('')}</span>
   <span class="fn fl"><small>Zuletzt</small><b>${lm?`${lm.m.h===id?lm.m.hg+':'+lm.m.ag:lm.m.ag+':'+lm.m.hg} gegen ${esc(opp(lm.m))}`:'–'}</b></span>
   ${(S.offers||[]).filter(o=>T(id).sq&&T(id).sq.includes(o.pid)).length?`<span class="badge">${(S.offers||[]).filter(o=>T(id).sq.includes(o.pid)).length} Angebot(e)</span>`:''}
-  <span class="fn"><small>Als Nächstes</small><b>${next?esc(opp(next.m)):'Saison beendet'}</b></span></button>`;
+  <span class="fn"><small>${next&&next.k==='R'?'Relegation':'Als Nächstes'}</small><b>${next?esc(opp(next.m)):'Saison beendet'}</b></span></button>`;
 }
 function squadCard(id,own){
   const sq=ensureSquad(id).slice().sort((a,b)=>POS.indexOf(P()[a].p)-POS.indexOf(P()[b].p)||P()[b].s-P()[a].s);
