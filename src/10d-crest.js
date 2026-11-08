@@ -27,7 +27,7 @@ const crestOf=id=>T(id)&&T(id).crest||null;
 let CRIMG={};
 async function loadCrests(){try{const v=await DB.get('crestimg');CRIMG=v&&typeof v==='object'?v:{}}catch(e){CRIMG={}}}
 async function saveCrests(){try{await DB.set('crestimg',CRIMG)}catch(e){toast('Wappen konnten nicht gespeichert werden')}}
-function crestImg(id){const t=T(id);if(!t)return null;return CRIMG[t.name]||(isRes(t.name)?CRIMG[resBase(t.name)]:null)||null}
+function crestImg(id){const t=T(id);if(!t)return null;const B=typeof CREST_BUILTIN!=='undefined'?CREST_BUILTIN:{},b=isRes(t.name)?resBase(t.name):null;return CRIMG[t.name]||(b&&CRIMG[b])||B[t.name]||(b&&B[b])||null}
 const hasCrest=id=>!!(crestImg(id)||crestOf(id));
 function crestFor(id,size,cls){const im=crestImg(id);if(im)return `<img class="${cls||'crest'}" width="${size}" height="${size}" alt="" style="object-fit:contain" src="${im.img}">`;const cr=crestOf(id);return cr?crestSVG(cr,size,cls):''}
 const crestMini=id=>crestFor(id,18,'crest crm');
