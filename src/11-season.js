@@ -107,6 +107,7 @@ function newSeason(){
       if(!best)break;best.f.teams=best.f.teams.filter(x=>x!==best.id);ol.teams.push(best.id);log.push(`${ol.name}: ${T(best.id).name} rückt zusätzlich aus der ${best.f.name} nach`)}
   }
   enforceReserves(st,log);
+  try{clubLifecycle(st,log)}catch(e){console.warn(e)}
   balanceAmateur(st,log);
   applyInsolvency(insolvent,st,log);
   contractsSeason(log,lvOld);

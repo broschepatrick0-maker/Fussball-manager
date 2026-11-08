@@ -305,6 +305,8 @@ function act(a){
   else if(k==='mstyle'){setTactic('style',v);save()}
   else if(k==='mtrain'){MG().train=v;save()}
   else if(k==='mti'){MG().ti=+v;save()}
+  else if(k==='neg'){if(!S.mgr)MG();const m=negOpen(v);if(m){toast(m);return}}
+  else if(['ngw','ngy','ngr','ngh','ngo','ngx'].includes(k)){negAct(k,v)}
   else if(k==='talk'){if(!S.mgr)MG();view.ov={t:'talk',pid:v}}
   else if(k==='talk2'){const msg=talkTo(v,w);recalc(S.fav);save();if(msg)toast(msg)}
   else if(k==='talkans'){const msg=answerTalk(+v,w);recalc(S.fav);save();if(msg)toast(msg)}

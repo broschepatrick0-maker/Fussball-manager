@@ -74,5 +74,5 @@ function talkSheet(pid){const p=P()[pid];if(!p)return '';const g=MG(),r=roles()[
     <button class="btn" data-act="talk2:${pid}:crit"${cd?' disabled':''}>Kritisieren</button>
     <button class="btn" data-act="talk2:${pid}:promise"${p.pr?' disabled':''}>Einsatzzeit versprechen</button>
     <button class="btn" data-act="talk2:${pid}:list">${p.tl?'Von der Verkaufsliste nehmen':'Auf die Verkaufsliste setzen'}</button>
-    <button class="btn" data-act="talk2:${pid}:cap"${g.cap===pid?' disabled':''}>Zum Kapitän ernennen</button></div>
+    <button class="btn" data-act="talk2:${pid}:cap"${g.cap===pid?' disabled':''}>Zum Kapitän ernennen</button>${!isAmClub(S.fav)?`<button class="btn pri" data-act="neg:${pid}">📄 Vertragsgespräch${p.c!=null?` <span class="meta">(Vertrag bis ${p.c}/${String(p.c+1).slice(2)})</span>`:''}</button>`:''}</div>
    <p class="note" style="margin-top:10px">${cd?'Loben und Kritisieren geht erst wieder in einigen Tagen. ':''}Lob wirkt nach guten Leistungen, Kritik nach schwachen. Ein Versprechen musst du halten: Bekommt er in sechs Wochen nicht genug Einsätze, ist er schwer enttäuscht. Sehr unzufriedene Spieler spielen schwächer und verlängern ihren Vertrag nicht.</p></div>`}
