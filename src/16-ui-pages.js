@@ -116,7 +116,11 @@ function renderSave(){
   <p class="note" style="margin-top:8px">Das Herunterladen funktioniert in der eigenständigen App-Datei. Im Chat-Fenster nutze „Kopieren“.</p></div>
   <div class="card"><h3 class="ct">Importieren</h3><label class="btn" for="imFile" style="display:inline-block">Datei auswählen<input type="file" id="imFile" accept=".json,.gz,application/json,application/gzip" hidden></label>
   <p class="note" style="margin-top:8px">Oder den kopierten Text unten einfügen und „Laden“ tippen. Der aktuelle Spielstand wird dabei ersetzt.</p></div></div>
-  <div class="card"><textarea id="exTxt" placeholder="Spielstand-Text hier einfügen …"></textarea><button class="btn pri" style="margin-top:8px" data-act="impt">Laden</button></div>`;
+  <div class="card"><textarea id="exTxt" placeholder="Spielstand-Text hier einfügen …"></textarea><button class="btn pri" style="margin-top:8px" data-act="impt">Laden</button></div>
+  <div class="card"><div class="hd"><div><div class="meta">Eigene Daten</div><h2>Vereinswappen</h2></div><span class="tag">${Object.keys(CRIMG).length} Wappen</span></div>
+  <p class="note">Lade ein Wappen-Paket (.json) oder einzelne Bilder. Bei Bildern muss der Dateiname dem Vereinsnamen entsprechen, z. B. <i>Borussia Dortmund.png</i> oder <i>1-fc-koeln.png</i>. Die Wappen bleiben nur auf diesem Gerät, gelten für alle Spielstände und auch für II./III. Mannschaften.</p>
+  <div class="ctrls"><label class="btn pri" style="display:inline-flex;cursor:pointer">Wappen laden<input type="file" id="crFile" accept=".json,application/json,image/*" multiple hidden></label>${Object.keys(CRIMG).length?'<button class="btn" data-act="crclr">Alle entfernen</button>':''}</div>
+  ${Object.keys(CRIMG).length?`<div class="crlist">${Object.keys(CRIMG).sort((a,b)=>a.localeCompare(b,'de')).map(n=>`<span title="${esc(n)}"><img src="${CRIMG[n].img}" alt="">${esc(n)}</span>`).join('')}</div>`:''}</div>`;
 }
 function renderCup(c){
   const sub=c.type==='dfb'?'Bundesweit · 64 Teilnehmer, Amateure mit Heimrecht':c.type==='lp'?`Landespokal · ${VB[c.vb]} · Sieger qualifiziert sich für den DFB-Pokal`:`Kreispokal · ${VB[c.vb]}`;
@@ -205,6 +209,7 @@ function render(){
   $('main').innerHTML=ctxBar()+(view.tab==='fav'?'':favStrip())+h;
   renderOverlay();
   document.querySelectorAll('[data-act]').forEach(b=>{if(!b.onclick)b.onclick=()=>act(b.dataset.act)});
+  {const f=document.getElementById('crFile');if(f)f.onchange=async()=>{const fs=[...f.files];if(!fs.length)return;toast('Wappen werden geladen …');const r=await importCrestFiles(fs);render();toast(`${r.ok} Wappen geladen${r.miss.length?` · nicht zugeordnet: ${r.miss.slice(0,3).join(', ')}${r.miss.length>3?' …':''}`:''}`)}}
   {const f=document.getElementById('imFile');if(f)f.onchange=()=>{const file=f.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const u=new Uint8Array(r.result);const txt=u[0]===0x1f&&u[1]===0x8b?await ungz(r.result):new TextDecoder().decode(u);importJSON(txt);view={tab:'home'};render();toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}};r.readAsArrayBuffer(file)}}
   [['trS','s'],['trL','lg'],['trP','p'],['trT','t'],['trM','min'],['trO','sort']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view.trf={...(view.trf||{}),[k]:e.value};view.trpage=0;render()}});
   {const e=document.getElementById('trQ');if(e)e.onchange=()=>{view.trf={...(view.trf||{}),q:e.value};view.trpage=0;render()}}
@@ -223,6 +228,7 @@ function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iup=
 function act(a){
   const [k,v,w]=a.split(':');
   if(k.startsWith('am')&&favAm()&&amAct(k,v,w)){save();render();return}
+  if(k==='crclr'){CRIMG={};saveCrests();render();toast('Importierte Wappen entfernt');return}
   if(k==='crest'&&S.fav&&T(S.fav)){view.ov={t:'crest',d:{...(T(S.fav).crest||crestDefault(S.fav))}};render();return}
   if(k==='crs'){crestAct(v,w);render();return}
   if(k==='rpos'){view.rpos=v||'';render();return}
@@ -426,6 +432,7 @@ function migrateLoaded(){
 async function boot(){
 $('main').innerHTML='<div class="card empty">Spielstand wird geladen …</div>';
 applyTheme();
+await loadCrests();
 if(!(await loadAsync())) {fresh();S.mode='free';save()}
 else migrateLoaded();
 render();

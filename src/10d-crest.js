@@ -23,9 +23,25 @@ function crestRaw(cr){const size=100,cls='',uid='c',p=CR_PATH[cr.sh]||CR_PATH.sc
    <path d="${p}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="3"/></svg>`}
 function starPts(cx,cy,r){const a=[];for(let i=0;i<10;i++){const rr=i%2?r*.45:r,an=-Math.PI/2+i*Math.PI/5;a.push((cx+rr*Math.cos(an)).toFixed(1)+','+(cy+rr*Math.sin(an)).toFixed(1))}return a.join(' ')}
 const crestOf=id=>T(id)&&T(id).crest||null;
-const crestMini=id=>crestOf(id)?crestSVG(crestOf(id),18,'crest crm'):'';
+// Importierte Wappen (Bilder) – liegen nur lokal im Browser, gelten für alle Spielstände; II/III nutzen das Wappen der 1. Mannschaft
+let CRIMG={};
+async function loadCrests(){try{const v=await DB.get('crestimg');CRIMG=v&&typeof v==='object'?v:{}}catch(e){CRIMG={}}}
+async function saveCrests(){try{await DB.set('crestimg',CRIMG)}catch(e){toast('Wappen konnten nicht gespeichert werden')}}
+function crestImg(id){const t=T(id);if(!t)return null;return CRIMG[t.name]||(isRes(t.name)?CRIMG[resBase(t.name)]:null)||null}
+const hasCrest=id=>!!(crestImg(id)||crestOf(id));
+function crestFor(id,size,cls){const im=crestImg(id);if(im)return `<img class="${cls||'crest'}" width="${size}" height="${size}" alt="" style="object-fit:contain" src="${im.img}">`;const cr=crestOf(id);return cr?crestSVG(cr,size,cls):''}
+const crestMini=id=>crestFor(id,18,'crest crm');
+const normName=s=>s.normalize('NFC').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9]/g,'');
+function matchTeamName(fn){const n=normName(fn.replace(/\.[a-z0-9]+$/i,''));if(n.length<3)return null;const names=[...new Set(Object.values(S.teams).filter(t=>!t.cc||true).map(t=>t.name).filter(x=>!isRes(x)))];
+  const ex=names.find(x=>normName(x)===n);if(ex)return ex;const part=names.filter(x=>normName(x).includes(n)||n.includes(normName(x)));return part.length===1?part[0]:part.sort((a,b)=>Math.abs(normName(a).length-n.length)-Math.abs(normName(b).length-n.length))[0]||null}
+function fileToCrest(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,128/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(c.toDataURL('image/png'))};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Bild'))};im.src=u})}
+async function importCrestFiles(files){let ok=0,miss=[];
+  for(const f of files){try{
+    if(/\.json$/i.test(f.name)||f.type==='application/json'){const o=JSON.parse(await f.text());const list=o&&Array.isArray(o.clubs)?o.clubs:[];for(const c of list){if(!c||!c.name||!/^data:image\//.test(c.img||''))continue;CRIMG[c.name]={img:c.img,c1:c.c1||null,c2:c.c2||null};ok++}continue}
+    const name=matchTeamName(f.name);if(!name){miss.push(f.name);continue}const img=await fileToCrest(f);CRIMG[name]={...(CRIMG[name]||{}),img};ok++}catch(e){console.warn('crest',f.name,e);miss.push(f.name)}}
+  await saveCrests();return {ok,miss}}
 // Trikotfarben fürs 2D-Board: eigene Farbe, sonst Standard; bei zu ähnlichen Farben weicht der Gast aus
-function kitCols(hid,aid){const ch=crestOf(hid),ca=crestOf(aid);let h=ch?ch.c1:'#d64545',a=ca?ca.c1:'#2f6fdf';
+function kitCols(hid,aid){const kc=id=>{const im=crestImg(id);return im&&im.c1?{c1:im.c1,c2:im.c2||'#ffffff'}:crestOf(id)};const ch=kc(hid),ca=kc(aid);let h=ch?ch.c1:'#d64545',a=ca?ca.c1:'#2f6fdf';
   const near=(x,y)=>{const p=parseInt(x.slice(1),16),q=parseInt(y.slice(1),16);return Math.abs((p>>16)-(q>>16))+Math.abs((p>>8&255)-(q>>8&255))+Math.abs((p&255)-(q&255))<120};
   if(near(h,a))a=ca&&!near(h,ca.c2)?ca.c2:near(h,'#2f6fdf')?'#f5f5f5':'#2f6fdf';return {h,a}}
 function crestEditorHTML(o){const d=o.d,id=S.fav,t=T(id);const sw=(k)=>`<div class="crsw">${CR_COL.map(c=>`<button class="crc${d[k]===c?' on':''}" style="background:${c}" data-act="crs:${k}:${c.slice(1)}" aria-label="Farbe ${c}"></button>`).join('')}</div>`;

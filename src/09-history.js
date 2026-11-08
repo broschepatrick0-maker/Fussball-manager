@@ -57,7 +57,7 @@ function liveAll(lgName){ // ewige Tabelle inkl. laufender Saison
   if(lg&&lg.played>0) addAll(base,lgName,table(lg).map((r,i)=>({...r,pos:0})));
   return Object.entries(base).map(([id,e])=>({id,...e})).filter(e=>T(e.id)).sort((a,b)=>b.p-a.p||(b.tf-b.tg)-(a.tf-a.tg)||b.tf-a.tf);
 }
-const tl=id=>`<button class="tlink" data-act="club:${id}">${T(id).crest?crestMini(id):''}${esc(T(id).name)}</button>`;
+const tl=id=>`<button class="tlink" data-act="club:${id}">${hasCrest(id)?crestMini(id):''}${esc(T(id).name)}</button>`;
 
 // Archiv der Abschlusstabellen (letzte 3 Saisons) mit Auf-/Abstieg und Begründung
 function archiveSeason(season,log){const snap=S._snap||{};delete S._snap;S.arch=S.arch||{};
