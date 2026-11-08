@@ -444,3 +444,17 @@ button.clock:hover b{text-decoration:underline}
 .at{width:100%;table-layout:fixed}.at th:nth-child(1){width:34px}.at th:nth-child(3){width:34px}.at th:nth-child(4){width:58px}.at th:nth-child(5){width:42px}.at td.l{white-space:normal;overflow-wrap:anywhere}.at button.tlink{white-space:normal;overflow-wrap:anywhere;text-align:left}
 .flg{font-size:.95em;margin-right:2px}
 .pitchc{padding:10px}.pitchc canvas.pitch{display:block;border-radius:6px;max-width:100%;margin:0 auto}.pitchc .dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px}.pitchbar{margin:6px 0}
+
+/* Wappen */
+.crest{flex:none;vertical-align:middle}
+.crest.crm{width:18px;height:18px;margin-right:5px;vertical-align:-4px}
+.crh{display:flex;align-items:center;gap:10px}
+.crested h4{margin:14px 0 6px;font-size:13px;opacity:.8}
+.crprev{display:flex;gap:16px;align-items:center}
+.crprev .meta{display:block;margin-top:4px}
+.crsw{display:flex;flex-wrap:wrap;gap:6px}
+.crc{width:30px;height:30px;border-radius:50%;border:2px solid rgba(127,127,127,.4);cursor:pointer;padding:0}
+.crc.on{outline:3px solid var(--acc,#3ddc84);outline-offset:2px}
+.crseg{flex-wrap:wrap;margin:0}
+.crrow{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:12px}
+.crrow .mfield{flex:1;min-width:110px}

@@ -80,7 +80,7 @@ function foundStart(){const nw=MENU.nw;let name=(nw.fname||'').replace(/\s+/g,' 
   switchSlot(nw.slot);let fid=null;
   fresh(()=>{const lg=S.leagues.find(l=>l.name===p.name&&!l.foreign);fid=addTeam(name,p.vb,+((BASE[lg.level]||17)-2.5).toFixed(1));lg.teams.push(fid);lg.size=lg.teams.length;T(fid).fnd=S.season});
   S.liveSpeed=S.liveSpeed||1;S.mode='free';S.fav=fid;S.found={season:S.season,mgr:mgr||'Gründer',lg:p.name};
-  const t=T(fid);t.ppl=t.ppl||{};t.ppl.tr=mgr||'Gründer';ensureSquad(fid);recalc(fid);
+  const t=T(fid);t.crest=crestDefault(fid);t.ppl=t.ppl||{};t.ppl.tr=mgr||'Gründer';ensureSquad(fid);recalc(fid);
   const z=FZ(fid);if(z){z.c=2500;z.d=0;z.ir=0;z.cap=150;z.wf=.8}
   try{addNews({cat:'fav',clubs:[fid],h:`Neuer Verein: ${name} gegründet`,b:`${mgr||'Der Gründer'} hebt ${name} aus der Taufe. Der Verein startet in der ${p.name} – mit Freizeitkickern, einem kleinen Sportplatz und großen Träumen.`,imp:3})}catch(e){}
   save();view={tab:'fav',ftab:'ov'};view.ov=S.tut?null:{t:'tut',i:0};toast(`${name} ist gegründet!`);return true}

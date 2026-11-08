@@ -1,0 +1,44 @@
+// ---------- Vereinswappen & Vereinsfarben (selbst gestaltet) ----------
+// t.crest = {sh:Form, pt:Muster, c1:Grundfarbe, c2:Zweitfarbe, ini:Initialen, yr:Gründungsjahr|'' , st:Stern 0/1}
+const CR_SH=[['schild','Schild'],['rund','Rund'],['klassik','Klassisch'],['raute','Raute'],['eck','Eckig']];
+const CR_PT=[['uni','Einfarbig'],['streifen','Streifen'],['halb','Geteilt'],['band','Querband'],['schraeg','Schrägband'],['kreuz','Kreuz'],['ringe','Ringel']];
+const CR_COL=['#c8102e','#e2231a','#8b1e3f','#f28c00','#ffd200','#f2c94c','#2e7d32','#00a650','#0b6e4f','#00a3e0','#1e5aa8','#0b2a6b','#5b2a86','#6d4c41','#111111','#ffffff','#9e9e9e','#c0a062'];
+const CR_PATH={schild:'M10 6h80v34c0 30-20 48-40 56C30 88 10 70 10 40z',rund:'M50 4a46 46 0 1 0 .01 0z',klassik:'M8 8h84v40c0 22-18 40-42 48C26 88 8 70 8 48z',raute:'M50 4L94 50 50 96 6 50z',eck:'M10 8h80v84H10z'};
+function crestDefault(id){const t=T(id),ini=(t.name.match(/[A-ZÄÖÜ][a-zäöüß]*|\d+/g)||['FC']).filter(w=>!/^\d+$/.test(w)).map(w=>w[0]).join('').slice(0,3)||'FC';
+  return {sh:'schild',pt:'streifen',c1:'#1e5aa8',c2:'#ffffff',ini,yr:t.fnd?String(t.fnd):'',st:0}}
+function lum(hex){const n=parseInt(hex.slice(1),16),r=(n>>16)/255,g=(n>>8&255)/255,b=(n&255)/255;return .2126*r+.7152*g+.0722*b}
+// als <img> mit eingebettetem SVG: jedes Wappen ist ein eigenes Dokument, keine ID-Kollisionen beim Neuzeichnen
+function crestSVG(cr,size,cls){if(!cr)return '';return `<img class="${cls||'crest'}" width="${size}" height="${size}" alt="" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(crestRaw(cr))}">`}
+function crestRaw(cr){const size=100,cls='',uid='c',p=CR_PATH[cr.sh]||CR_PATH.schild,c1=cr.c1,c2=cr.c2;
+  const pat={uni:'',streifen:[20,40,60,80].filter((x,i)=>i%2===0).map(x=>`<rect x="${x}" y="0" width="20" height="100" fill="${c2}"/>`).join(''),halb:`<rect x="50" y="0" width="50" height="100" fill="${c2}"/>`,
+    band:`<rect x="0" y="38" width="100" height="22" fill="${c2}"/>`,schraeg:`<path d="M0 22L22 0 100 78 78 100z" fill="${c2}"/>`,kreuz:`<rect x="40" y="0" width="20" height="100" fill="${c2}"/><rect x="0" y="34" width="100" height="20" fill="${c2}"/>`,
+    ringe:[0,1,2,3,4].map(i=>i%2?`<rect x="0" y="${i*20}" width="100" height="20" fill="${c2}"/>`:'').join('')}[cr.pt]||'';
+  const ink=lum(c1)>.55?'#111':'#fff',ini=esc((cr.ini||'').slice(0,3)),fs=ini.length>=3?26:ini.length===2?32:40;
+  const plate=cr.pt==='uni'?'':`<rect x="22" y="${cr.sh==='raute'?36:30}" width="56" height="${fs+6}" rx="6" fill="${c1}" stroke="${c2}" stroke-width="2"/>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100"><defs><clipPath id="${uid}"><path d="${p}"/></clipPath></defs>
+   <g clip-path="url(#${uid})"><rect width="100" height="100" fill="${c1}"/>${pat}</g>${plate}
+   <text x="50" y="${(cr.sh==='raute'?36:30)+fs-2}" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="800" font-size="${fs}" fill="${cr.pt==='uni'?ink:(lum(c1)>.55?'#111':'#fff')}">${ini}</text>
+   ${cr.st?`<polygon points="${starPts(50,cr.sh==='rund'?13:9,7)}" fill="#f2c94c" stroke="#7a5c00" stroke-width="1"/>`:''}
+   ${cr.yr?`<text x="50" y="${cr.sh==='raute'?82:80}" text-anchor="middle" font-family="system-ui,sans-serif" font-weight="700" font-size="12" fill="${lum(c1)>.55&&cr.pt!=='halb'?'#111':'#fff'}" stroke="${lum(c1)>.55?'#fff':'#000'}" stroke-opacity=".35" stroke-width=".6">${esc(cr.yr)}</text>`:''}
+   <path d="${p}" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="3"/></svg>`}
+function starPts(cx,cy,r){const a=[];for(let i=0;i<10;i++){const rr=i%2?r*.45:r,an=-Math.PI/2+i*Math.PI/5;a.push((cx+rr*Math.cos(an)).toFixed(1)+','+(cy+rr*Math.sin(an)).toFixed(1))}return a.join(' ')}
+const crestOf=id=>T(id)&&T(id).crest||null;
+const crestMini=id=>crestOf(id)?crestSVG(crestOf(id),18,'crest crm'):'';
+// Trikotfarben fürs 2D-Board: eigene Farbe, sonst Standard; bei zu ähnlichen Farben weicht der Gast aus
+function kitCols(hid,aid){const ch=crestOf(hid),ca=crestOf(aid);let h=ch?ch.c1:'#d64545',a=ca?ca.c1:'#2f6fdf';
+  const near=(x,y)=>{const p=parseInt(x.slice(1),16),q=parseInt(y.slice(1),16);return Math.abs((p>>16)-(q>>16))+Math.abs((p>>8&255)-(q>>8&255))+Math.abs((p&255)-(q&255))<120};
+  if(near(h,a))a=ca&&!near(h,ca.c2)?ca.c2:near(h,'#2f6fdf')?'#f5f5f5':'#2f6fdf';return {h,a}}
+function crestEditorHTML(o){const d=o.d,id=S.fav,t=T(id);const sw=(k)=>`<div class="crsw">${CR_COL.map(c=>`<button class="crc${d[k]===c?' on':''}" style="background:${c}" data-act="crs:${k}:${c.slice(1)}" aria-label="Farbe ${c}"></button>`).join('')}</div>`;
+  const seg=(k,arr)=>`<div class="seg crseg">${arr.map(([v,n])=>`<button class="${d[k]===v?'on':''}" data-act="crs:${k}:${v}">${n}</button>`).join('')}</div>`;
+  return `<div class="ovc crested"><div class="crprev">${crestSVG(d,132)}<div><b>${esc(t.name)}</b><span class="meta">So erscheint dein Wappen in Tabellen, Spielen und auf dem 2D-Board. Die Grundfarbe ist auch eure Trikotfarbe.</span></div></div>
+   <h4>Form</h4>${seg('sh',CR_SH)}<h4>Muster</h4>${seg('pt',CR_PT)}
+   <h4>Grundfarbe (Trikot)</h4>${sw('c1')}<h4>Zweitfarbe</h4>${sw('c2')}
+   <div class="crrow"><label class="mfield">Initialen<input id="crIni" class="search" maxlength="3" value="${esc(d.ini||'')}"></label><label class="mfield">Jahr<input id="crYr" class="search" maxlength="4" inputmode="numeric" value="${esc(d.yr||'')}" placeholder="optional"></label></div>
+   <label class="tog"><input type="checkbox" id="crSt" ${d.st?'checked':''}> Meisterstern über dem Wappen</label>
+   <div class="crrow"><button class="btn" data-act="crs:reset">Zurücksetzen</button>${t.crest?'<button class="btn" data-act="crs:del">Wappen entfernen</button>':''}<button class="btn pri" data-act="crs:save">Speichern</button></div></div>`}
+function crestRead(o){const a=document.getElementById('crIni'),b=document.getElementById('crYr'),c=document.getElementById('crSt');if(a)o.d.ini=a.value.toUpperCase().replace(/[^A-ZÄÖÜ0-9]/g,'').slice(0,3);if(b)o.d.yr=b.value.replace(/\D/g,'').slice(0,4);if(c)o.d.st=c.checked?1:0}
+function crestAct(v,w){const o=view.ov;if(!o||o.t!=='crest')return;crestRead(o);const t=T(S.fav);
+  if(v==='reset')o.d=crestDefault(S.fav);
+  else if(v==='del'){delete t.crest;view.ov=null;save();toast('Wappen entfernt');return}
+  else if(v==='save'){t.crest={...o.d};view.ov=null;save();toast('Wappen gespeichert');return}
+  else if(v==='c1'||v==='c2')o.d[v]='#'+w;else o.d[v]=w}

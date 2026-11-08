@@ -223,6 +223,8 @@ function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iup=
 function act(a){
   const [k,v,w]=a.split(':');
   if(k.startsWith('am')&&favAm()&&amAct(k,v,w)){save();render();return}
+  if(k==='crest'&&S.fav&&T(S.fav)){view.ov={t:'crest',d:{...(T(S.fav).crest||crestDefault(S.fav))}};render();return}
+  if(k==='crs'){crestAct(v,w);render();return}
   if(k==='rpos'){view.rpos=v||'';render();return}
   if(k==='tut'){if(v==='x'){S.tut=1;view.ov=null;save()}else view.ov={t:'tut',i:+v};render();return}
   if(k==='mfull'){view.mfull=!view.mfull;render();return}

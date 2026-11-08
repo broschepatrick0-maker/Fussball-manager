@@ -6,7 +6,7 @@ function pitchSlots(xi,s){const by={TW:[],AB:[],MF:[],ST:[]};xi.forEach(pid=>{co
   const X={TW:4,AB:20,MF:38,ST:56},out=[];
   for(const k of ['TW','AB','MF','ST']){const g=by[k],n=g.length;g.forEach((pid,i)=>{const y=n===1?32:8+i*(48/(n-1));const x=X[k]+(k!=='TW'&&n>=4&&(i===0||i===n-1)?3:0);out.push({pid,x:s==='h'?x:100-x,y,k})})}
   return out}
-function pitchReset(ov){const rep=ov.rep;PITCH.pl={};
+function pitchReset(ov){const rep=ov.rep;PITCH.pl={};try{PITCH.col=kitCols(rep.side.h.id,rep.side.a.id)}catch(e){PITCH.col=null}
   for(const s of ['h','a'])pitchSlots(rep.side[s].xi,s).forEach((q,i)=>PITCH.pl[q.pid]={s,bx:q.x,by:q.y,x:q.x,y:q.y,k:q.k,no:i+1});
   PITCH.ball={x:50,y:32};PITCH.hold=null;PITCH.lastEv=null;PITCH.cap='';PITCH.capT=0}
 function pitchSync(ov){const rep=ov.rep;const live=new Set([...rep.side.h.xi,...rep.side.a.xi]);
@@ -67,7 +67,7 @@ function drawPitch(ts){const cv=PITCH.cv,W=Math.max(240,Math.min(900,cv.parentEl
   for(const g of [0,1]){const x0=g?99:1,d=g?-1:1;c.strokeRect(Math.min(X(x0),X(x0+d*16)),Y(14),X(16),Y(36));c.strokeRect(Math.min(X(x0),X(x0+d*5.5)),Y(24),X(5.5),Y(16));
     c.fillStyle='rgba(255,255,255,.9)';c.fillRect(g?X(99):X(0),Y(28.5),X(1),Y(7))}
   const r=Math.max(6,W*.021);c.font=`700 ${Math.round(r*1.05)}px system-ui,sans-serif`;c.textAlign='center';c.textBaseline='middle';
-  for(const [pid,v] of Object.entries(PITCH.pl)){c.beginPath();c.arc(X(v.x),Y(v.y),r,0,7);c.fillStyle=v.k==='TW'?PCOL[v.s+'k']:PCOL[v.s];c.fill();
+  for(const [pid,v] of Object.entries(PITCH.pl)){c.beginPath();c.arc(X(v.x),Y(v.y),r,0,7);c.fillStyle=v.k==='TW'?PCOL[v.s+'k']:(PITCH.col||PCOL)[v.s];c.fill();
     c.lineWidth=pid===PITCH.hold?2.5:1;c.strokeStyle=pid===PITCH.hold?'#fff':'rgba(0,0,0,.35)';c.stroke();c.fillStyle='#fff';c.fillText(String(v.no),X(v.x),Y(v.y)+.5)}
   const b=PITCH.ball;c.beginPath();c.arc(X(b.x)+1.5,Y(b.y)+2,r*.5,0,7);c.fillStyle='rgba(0,0,0,.3)';c.fill();
   c.beginPath();c.arc(X(b.x),Y(b.y),r*.52,0,7);c.fillStyle='#fff';c.fill();c.lineWidth=1;c.strokeStyle='#111';c.stroke();
@@ -75,4 +75,4 @@ function drawPitch(ts){const cv=PITCH.cv,W=Math.max(240,Math.min(900,cv.parentEl
     const tw=c.measureText(PITCH.cap).width+20;c.fillStyle='rgba(0,0,0,.6)';c.fillRect(W/2-tw/2,8,tw,W*.06);c.fillStyle='#fff';c.fillText(PITCH.cap,W/2,8+W*.03);c.globalAlpha=1}}
 function pitchCard(ov){if(ov.nob??S.noBoard)return `<div class="pitchbar"><button class="btn sm" data-act="mboard">🟩 2D-Spielfeld zeigen</button></div>`;
   const tn=s=>esc(T(ov.rep.side[s].id).name);
-  return `<div class="card pitchc"><div class="hd" style="margin-bottom:6px"><span class="meta"><span class="dot" style="background:${PCOL.h}"></span> ${tn('h')} → &nbsp; ← <span class="dot" style="background:${PCOL.a}"></span> ${tn('a')}</span><button class="btn sm" data-act="mboard">Ausblenden</button></div><div id="pitchSlot"></div></div>`}
+  return `<div class="card pitchc"><div class="hd" style="margin-bottom:6px"><span class="meta"><span class="dot" style="background:${(PITCH.col||PCOL).h}"></span> ${tn('h')} → &nbsp; ← <span class="dot" style="background:${(PITCH.col||PCOL).a}"></span> ${tn('a')}</span><button class="btn sm" data-act="mboard">Ausblenden</button></div><div id="pitchSlot"></div></div>`}
