@@ -9,11 +9,15 @@ function newClubName(l){const pool=[];l.teams.forEach(id=>{const t=T(id);if(t)to
   const used=new Set(Object.values(S.teams).filter(t=>!t.gone).map(t=>t.name));
   for(let k=0;k<12;k++){const town=rnd(pool),pre=rnd(NEW_PRE),f=Math.random();
     const n=f<.55?`${pre} ${town}`:f<.75?`${pre} ${town} ${S.season+1}`:f<.88?`${town} United`:`FC ${town}er Kickers`;
-    if(!used.has(n)&&!isRes(n))return n}
+    if(!used.has(n)&&!isRes(n)){newClubName.town=town;return n}}
   return null}
 function dissolveTeam(id,l,why,log){const t=T(id);l.teams=l.teams.filter(x=>x!==id);t.gone=S.season;t.goneWhy=why;
   (t.sq||[]).forEach(pid=>{delete P()[pid]});t.sq=[];const z=t.fz;if(z&&z.own&&S.inv&&S.inv[z.own])S.inv[z.own].club=null;
-  if(S.parked)S.parked=S.parked.filter(x=>x.id!==id);log.push(`Abmeldung: ${t.name} (${l.name}) – ${why}`)}
+  if(S.parked)S.parked=S.parked.filter(x=>x.id!==id);log.push(`Abmeldung: ${t.name} (${l.name}) – ${why}`);clubEv('weg',id,l,why)}
+function clubEv(k,id,l,why){(S.clubEv=S.clubEv||[]).unshift({s:S.season,k,id,n:T(id).name,lg:l.name,lv:l.level,vb:T(id).vb||l.vb,why});if(S.clubEv.length>3000)S.clubEv.length=3000}
+function foundWhy(l,name){const town=newClubName.town||'dem Ort',others=l.teams.filter(id=>T(id)&&!isRes(T(id).name)&&T(id).name!==name),o=others.length?T(rnd(others)).name:null;
+  const r=[`Junge Fußballer aus ${town} wollten endlich ihren eigenen Verein`,`Eine Freizeitmannschaft aus ${town} meldet sich zum Spielbetrieb an`,`Ein Unternehmer aus der Region gründet den Verein und stellt den Sportplatz`,`Nach Jahren ohne Fußball in ${town} wird wieder ein Verein gegründet`];
+  if(o)r.push(`Abspaltung: Unzufriedene Spieler von ${o} gründen einen eigenen Verein`,`Ehemalige Spieler von ${o} wollen in ${town} etwas Eigenes aufbauen`);return rnd(r)}
 function clubLifecycle(st,log){const bl=bottomLeaguesNow(),gone=[],born=[];
   const keep=new Set([S.fav,S.career&&S.career.club].filter(Boolean));
   for(const l of bl){const ord=(st[l.id]||[]).filter(x=>l.teams.includes(x)),n=l.teams.length,tgt=l.tgt||l.size||n;
@@ -26,7 +30,7 @@ function clubLifecycle(st,log){const bl=bottomLeaguesNow(),gone=[],born=[];
     // Neugründung
     let q=.04+(l.teams.length<tgt?.04:0)-(l.teams.length>tgt?.02:0);if(l.teams.length>=20)q=0;
     if(Math.random()<q){const name=newClubName(l);if(!name)continue;const vb=l.vb||l.vbs&&l.vbs[0];const id=addTeam(name,vb,+((BASE[l.level]||17)-1.5+Math.random()*2-1).toFixed(1));
-      T(id).fnd=S.season+1;l.teams.push(id);born.push([id,l]);log.push(`Neugründung: ${name} startet in der ${l.name}`)}}
+      T(id).fnd=S.season+1;l.teams.push(id);born.push([id,l]);log.push(`Neugründung: ${name} startet in der ${l.name}`);clubEv('neu',id,l,foundWhy(l,name))}}
   // Nachrichten
   const near=S.fav&&lgOf(S.fav);const mine=x=>near&&x[1]===near;
   [...gone.filter(mine),...born.filter(mine)].forEach(([id,l])=>{const t=T(id);try{addNews({cat:'fav',clubs:[S.fav],h:t.gone?`${t.name} meldet ab`:`Neuer Gegner: ${t.name}`,b:t.gone?`${t.name} ${t.goneWhy}. Die ${l.name} spielt nächste Saison ohne den Verein.`:`In der ${l.name} gibt es nächste Saison einen neuen Verein: ${t.name} wurde gegründet und steigt ganz unten ein.`,imp:2})}catch(e){}});
@@ -78,3 +82,21 @@ function negAct(k,v){const n=view.ov;if(!n||n.t!=='neg')return;const o=n.o;
   if(k==='ngw')o.w=Math.max(500,Math.round(o.w*(1+(+v)/100)/100)*100);
   else if(k==='ngy')o.y=+v;else if(k==='ngr')o.r=v;else if(k==='ngh')o.hg=+v;
   else if(k==='ngo')negOffer();else if(k==='ngx'){view.ov=null}}
+
+// ---------- Ansicht: Vereinsleben (Gründungen & Auflösungen) ----------
+function clubEvAll(){if(!S.clubEv||!S.clubEv.length){const out=[];(S.log||[]).forEach(e=>(e.lines||[]).forEach(x=>{let m=x.match(/^Neugründung: (.+) startet in der (.+)$/);if(m){out.push({s:e.season,k:'neu',n:m[1],lg:m[2],why:'Neugründung'});return}
+  m=x.match(/^Abmeldung: (.+) \((.+)\) – (.+)$/);if(m)out.push({s:e.season,k:'weg',n:m[1],lg:m[2],why:m[3]})}));if(out.length)S.clubEv=out}
+  const ev=(S.clubEv||[]).slice();if(S.found&&S.fav&&T(S.fav)&&!ev.some(x=>x.own))ev.push({s:S.found.season-1,k:'neu',id:S.fav,n:T(S.fav).name,lg:S.found.lg,vb:T(S.fav).vb,why:`Von dir gegründet (${S.found.mgr})`,own:1});return ev}
+function renderClubLife(){const ev=clubEvAll(),f=view.vl||(view.vl={k:'all',s:'all',vb:'all',q:''});
+  const seasons=[...new Set(ev.map(x=>x.s))].sort((a,b)=>b-a),vbs=[...new Set(ev.map(x=>x.vb).filter(Boolean))].sort((a,b)=>(VB[a]||a).localeCompare(VB[b]||b,'de'));
+  const q=(f.q||'').toLowerCase();const list=ev.filter(x=>(f.k==='all'||x.k===f.k)&&(f.s==='all'||x.s===+f.s)&&(f.vb==='all'||x.vb===f.vb)&&(!q||(x.n+' '+x.lg).toLowerCase().includes(q)));
+  const nNeu=list.filter(x=>x.k==='neu').length,nWeg=list.length-nNeu;
+  const row=x=>{const lk=x.id&&T(x.id)?`<button class="tlink" data-act="club:${x.id}">${hasCrest(x.id)?crestMini(x.id):''}${esc(x.n)}</button>`:`<b>${esc(x.n)}</b>`;
+    return `<div class="orow vlrow"><span class="vlk ${x.k==='neu'?'ok':'no'}">${x.k==='neu'?'＋':'－'}</span><span>${lk} <span class="meta">${x.k==='neu'?`gegründet zur Saison ${x.s+1}/${String(x.s+2).slice(2)}`:`abgemeldet nach der Saison ${x.s}/${String(x.s+1).slice(2)}`} · ${esc(x.lg)}${x.vb&&VB[x.vb]?' · '+esc(VB[x.vb]):''}</span><span class="vlwhy">${esc(x.why||'')}</span></span></div>`};
+  return `<div class="card"><div class="hd"><div><div class="meta">Historie</div><h2>Vereinsleben</h2></div><span class="tag">${nNeu} gegründet · ${nWeg} abgemeldet</span></div>
+   <p class="note">Jeden Sommer entstehen in den untersten Ligen neue Vereine, andere melden ihre Mannschaft ab – meist aus Spielermangel, wegen Schulden oder weil eine Zweitvertretung nicht mehr genug Spieler hat.</p>
+   <div class="seg" style="margin-top:10px">${[['all','Alle'],['neu','Gründungen'],['weg','Abmeldungen']].map(([k,n])=>`<button class="${f.k===k?'on':''}" data-act="vlf:k:${k}">${n}</button>`).join('')}</div>
+   <div class="crrow" style="margin-top:0"><label class="mfield">Saison<select id="vlS" class="search"><option value="all">Alle Spielzeiten</option>${seasons.map(s=>`<option value="${s}"${String(f.s)===String(s)?' selected':''}>Sommer ${s+1}</option>`).join('')}</select></label>
+   <label class="mfield">Landesverband<select id="vlV" class="search"><option value="all">Alle</option>${vbs.map(v=>`<option value="${v}"${f.vb===v?' selected':''}>${esc(VB[v]||v)}</option>`).join('')}</select></label>
+   <label class="mfield">Suche<input id="vlQ" class="search" value="${esc(f.q||'')}" placeholder="Verein oder Liga"></label></div></div>
+   <div class="card">${list.length?list.slice(0,300).map(row).join('')+(list.length>300?`<p class="note">… und ${list.length-300} weitere – filtere nach Saison oder Verband.</p>`:''):'<p class="note">Noch keine Gründungen oder Abmeldungen – die ersten gibt es nach dem Ende der ersten Saison.</p>'}</div>`}
