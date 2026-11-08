@@ -133,7 +133,7 @@ function matchHTML(){
   const lu=s=>`<div><h4>${esc(T(rep.side[s].id).name)}</h4><ol class="lu">${rep.side[s].xi.map(pid=>`<li><span class="pos-${P()[pid].p}">${P()[pid].p}</span>${flagOf(P()[pid])} ${esc(P()[pid].n)}</li>`).join('')}</ol></div>`;
   const speed=L_.speed||1;
   return `<div class="mlive">
-  <div class="sb${L_.flash?' flash':''}"><div class="meta sbm">${esc(mctxLabel(ctx))}${m.lv&&!L_.replay?'':''}</div>
+  <div class="sb${L_.flash?' flash':''}"><div class="meta sbm">${esc(mctxLabel(ctx))}${derbyOf(m.h,m.a)?' · 🔥 '+esc(derbyOf(m.h,m.a).n):''}${m.lv&&!L_.replay?'':''}</div>
    <div class="sbr"><div class="tm"><button class="tlink" data-act="club:${m.h}">${esc(T(m.h).name)}</button>${reds('h')?' <span class="rc">'+'▮'.repeat(reds('h'))+'</span>':''}<small>${scorers('h')}</small></div>
    <div class="sc"><b>${sh}:${sa}</b>${pen}<span class="clk${end?'':' run'}">${clock}</span></div>
    <div class="tm a"><button class="tlink" data-act="club:${m.a}">${esc(T(m.a).name)}</button>${reds('a')?' <span class="rc">'+'▮'.repeat(reds('a'))+'</span>':''}<small>${scorers('a')}</small></div></div>

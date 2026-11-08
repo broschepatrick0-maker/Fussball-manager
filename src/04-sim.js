@@ -3,7 +3,7 @@ function pois(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(
 function lam(a,b,home){const d=a-b+(home?4:0);return Math.min(9,Math.max(.1,(home?1.35:1.2)*Math.exp(d/26)))}
 function play(h,a,neutral){
   if(S.fav&&S.mgr&&(h===S.fav||a===S.fav))recalc(S.fav);
-  const rh=effR(h)-fatPen(h)+(Math.random()*4-2), ra=effR(a)-fatPen(a)+(Math.random()*4-2);
+  let rh=effR(h)-fatPen(h)+(Math.random()*4-2), ra=effR(a)-fatPen(a)+(Math.random()*4-2);[rh,ra]=derbyBoost(h,a,rh,ra);
   const [ah,dh]=tacMul(h,a),[aa,da]=tacMul(a,h);
   const r=[pois(Math.min(9,lam(rh,ra,!neutral)*ah*da)),pois(Math.min(9,lam(ra,rh,false)*aa*dh))];
   tire(h);tire(a);return r;

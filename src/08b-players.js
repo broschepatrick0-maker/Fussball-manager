@@ -12,6 +12,7 @@ function effR(id){const t=T(id);return t.r+(t.fm||0)*0.5+(((t.mo??60)-60)/15)+fa
 // Nach jedem Pflichtspiel: Form, Moral, Verletzungen
 const INJ=[['Prellung',1,2,30],['Grippaler Infekt',1,2,18],['Zerrung',2,4,22],['Muskelfaserriss',3,6,14],['Bänderdehnung',2,5,8],['Sprunggelenksverletzung',4,8,4],['Muskelbündelriss',6,10,2],['Meniskusschaden',8,16,1],['Bänderriss',10,18,.6],['Mittelfußbruch',12,20,.4],['Kreuzbandriss',30,45,.5]];
 function afterMatch(m,lv){
+  try{derbyAfter(m)}catch(e){console.warn(e)}
   const res=m.hg>m.ag?[1,-1]:m.hg<m.ag?[-1,1]:[0,0];
   [[m.h,res[0],m.hg-m.ag],[m.a,res[1],m.ag-m.hg]].forEach(([id,r,gd])=>{const t=T(id);if(!t)return;
     t.fm=+((t.fm||0)*0.72+r*0.85+Math.max(-1,Math.min(1,gd/4))*0.3).toFixed(2);
