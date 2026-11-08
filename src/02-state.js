@@ -44,7 +44,7 @@ function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Ma
 function addTeam(name,vb,r){const id='t'+(S.next++);S.teams[id]={id,name,vb,r};return id}
 function L(id){return S.leagues.find(l=>l.id===id)}
 
-function fresh(){
+function fresh(pre){
   S={nmv:2,season:2026,round:0,next:0,teams:{},leagues:[],cups:[],log:[],pokalWinners:{},done:false};
   for(const p of PRO){
     const ids=p.teams.split(';').map(s=>{const [n,v,r]=s.split('|');return addTeam(n,v,+r)});
@@ -52,6 +52,7 @@ function fresh(){
   }
   PRESETS.forEach(p=>addAmateurLeague(p.name,p.vb,p.level,p.kreis,p.teams,true));
   addForeign();
+  if(pre)pre();
   startSeason();
   try{ensureRealOwners()}catch(e){}
 }

@@ -3,7 +3,7 @@ const MENU={metas:{},scr:'main',nw:{name:'',start:'zero',club:null,slot:null,q:'
 function applyTheme(){let t='auto';try{t=localStorage.getItem('fp-theme')||'auto'}catch(e){}if(t==='auto')delete document.documentElement.dataset.theme;else document.documentElement.dataset.theme=t}
 async function readMetas(){for(const n of [1,2,3]){try{const k=n===1?'meta':`s${n}:meta`;let m=await DB.get(k);if(!m&&n===1){const st=await DB.get('state');if(st)m={season:st.season,round:st.round,mode:st.mode||'free',club:st.fav&&st.teams[st.fav]?st.teams[st.fav].name:null}}MENU.metas[n]=m||null}catch(e){MENU.metas[n]=null}}}
 async function openMenu(scr){MENU.scr=scr||'main';await readMetas();view.ov={t:'menu'};render()}
-function metaLine(m){if(!m)return '<span class="meta">Leer</span>';const mode=m.mode==='career'?'Karriere':'Freies Spiel';
+function metaLine(m){if(!m)return '<span class="meta">Leer</span>';const mode=m.found?'Eigener Verein':m.mode==='career'?'Karriere':'Freies Spiel';
   return `<b>${m.mgr?esc(m.mgr)+' · ':''}${m.club?esc(m.club):m.jobless?'ohne Verein':'kein Verein'}</b><span class="meta">${mode} · Saison ${sl2(m.season)}${m.day!=null&&m.day>=0?' · '+fmtDay(m.day,{wd:false})+' '+(m.day>=184?m.season+1:m.season):m.round?' · '+m.round+'. Spieltag':''}${m.saved?' · gespeichert '+new Date(m.saved).toLocaleDateString('de-DE'):''}</span>`}
 function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
   const back=`<button class="btn" data-act="mscr:main">‹ Zurück</button>`;
@@ -11,6 +11,7 @@ function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
    <div class="mlist">
     ${cur?`<button class="mbtn pri" data-act="mcont"><span>Weiterspielen</span>${metaLine(cur)}</button>`:''}
     <button class="mbtn" data-act="mscr:new"><span>Neue Karriere</span><span class="meta">Als Trainer starten – mit Lizenzen, Vorstand und Jobangeboten</span></button>
+    <button class="mbtn" data-act="mscr:found"><span>Verein gründen</span><span class="meta">Gründe deinen eigenen Verein und starte ganz unten in der Kreisklasse</span></button>
     <button class="mbtn" data-act="mscr:free"><span>Freies Spiel</span><span class="meta">Ohne Karriere: jeden Verein beobachten und steuern</span></button>
     <button class="mbtn" data-act="mscr:slots"><span>Spielstände</span><span class="meta">Drei Speicherplätze laden, wechseln oder löschen</span></button>
     <button class="mbtn" data-act="mscr:set"><span>Einstellungen</span><span class="meta">Darstellung und Live-Tempo</span></button>
@@ -20,6 +21,7 @@ function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
   if(scr==='set'){let t='auto';try{t=localStorage.getItem('fp-theme')||'auto'}catch(e){}
     return `<div class="menu"><div class="mhead">${back}<h2>Einstellungen</h2></div><div class="mlist"><div class="mslot"><div><b>Darstellung</b><span class="meta">Hell, dunkel oder wie das Gerät</span></div><div class="seg" style="margin:0">${[['auto','Automatisch'],['light','Hell'],['dark','Dunkel']].map(([k,n])=>`<button class="${t===k?'on':''}" data-act="mtheme:${k}">${n}</button>`).join('')}</div></div>
      <div class="mslot"><div><b>Live-Tempo</b><span class="meta">Standard für Live-Spiele</span></div><div class="seg" style="margin:0">${SPEEDS.map(([k,,n])=>`<button class="${(S.liveSpeed||1)===k?'on':''}" data-act="mspeed:${k}">${n}</button>`).join('')}</div></div></div></div>`}
+  if(scr==='found')return foundHTML(back);
   // Neues Spiel (Karriere oder frei)
   const nw=MENU.nw,free=scr==='free',slots=[1,2,3];if(nw.slot==null)nw.slot=slots.find(n=>!MENU.metas[n])||SLOT;
   const modes=[['zero','Arbeitslos, ohne Lizenz','Du fängst bei null an: keine Lizenz, kein Ruf, 3.000 € auf dem Konto. Bewirb dich bei Kreisligisten und mach deinen Trainerschein.'],['pro','Ex-Profi','Nach der Spielerkarriere: B-Lizenz, etwas Ruf und 250.000 € Erspartes. Angebote bis zur Oberliga.'],['club','Wunschverein','Du übernimmst direkt einen Verein deiner Wahl, die passende Lizenz bekommst du dazu.']];
@@ -35,7 +37,7 @@ function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
    <button class="mbtn pri" data-act="mgo:${free?'free':'career'}"><span>${free?'Spiel starten':'Karriere starten'}</span><span class="meta">Eine neue Welt mit allen Ligen wird erstellt</span></button>
   </div></div>`}
 async function menuAct(k,v){const nw=MENU.nw;
-  if(k==='mscr'){MENU.scr=v;if(v==='new'||v==='free'){nw.club=null;nw.q=''}}
+  if(k==='mscr'){MENU.scr=v;if(v==='found'){const sl=[1,2,3];if(nw.slot==null)nw.slot=sl.find(n=>!MENU.metas[n])||SLOT}if(v==='new'||v==='free'){nw.club=null;nw.q=''}}
   else if(k==='mcont'){view.ov=null;view={tab:S.fav?'fav':'home',ftab:'ov'}}
   else if(k==='mstart'){readMenuInputs();nw.start=v}
   else if(k==='mclub'){readMenuInputs();nw.club=v}
@@ -44,6 +46,7 @@ async function menuAct(k,v){const nw=MENU.nw;
   else if(k==='mspeed'){S.liveSpeed=+v;save()}
   else if(k==='mload'){const n=+v;if(n!==SLOT){switchSlot(n);if(!(await loadAsync())){toast('Spielstand nicht gefunden');return}migrateLoaded()}view={tab:S.fav?'fav':'home',ftab:'ov'};view.ov=null;toast('Spielstand '+n+' geladen')}
   else if(k==='mdel'){const n=+v;if(!confirmTwice('del'+n)){toast('Zum Löschen nochmal tippen');return}const p=n===1?'':`s${n}:`;await Promise.all(['state','hist','meta','stateZ','histZ'].map(x=>DB.del(p+x).catch(()=>{})));await readMetas();toast('Platz '+n+' gelöscht')}
+  else if(k==='mgo'&&v==='found'){readMenuInputs();if(!foundStart())return}
   else if(k==='mgo'){readMenuInputs();if(v==='career'&&nw.start==='club'&&!nw.club){toast('Wähle zuerst deinen Verein');return}if(v==='career'&&!nw.name.trim()){toast('Gib deinen Namen ein');return}
     const clubName=nw.club&&T(nw.club)?T(nw.club).name:null;
     switchSlot(nw.slot);fresh();S.liveSpeed=S.liveSpeed||1;
@@ -52,5 +55,33 @@ async function menuAct(k,v){const nw=MENU.nw;
     else newCareer(nw.name.trim(),nw.start==='club'&&club?club.id:null,nw.start);
     save();view={tab:S.fav?'fav':(v==='career'?'fav':'home'),ftab:S.career&&!S.career.jobless?'karriere':'ov'};view.ov=S.tut?null:{t:'tut',i:0};toast(v==='free'?'Neues Spiel gestartet':`Willkommen, ${S.career.name}!`)}
   render()}
-function readMenuInputs(){const a=document.getElementById('mName'),b=document.getElementById('mQ');if(a)MENU.nw.name=a.value;if(b)MENU.nw.q=b.value}
+function readMenuInputs(){const a=document.getElementById('mName'),b=document.getElementById('mQ'),c=document.getElementById('fName'),d=document.getElementById('fCity');if(a)MENU.nw.name=a.value;if(b)MENU.nw.q=b.value;if(c)MENU.nw.fname=c.value;if(d)MENU.nw.fcity=d.value}
+// ---------- Verein gründen ----------
+// unterste Ligen eines Verbands: Ligen ab Stufe 8, in die keine andere Liga aufsteigt
+function bottomLeagues(vb){const ups=new Set(PRESETS.map(p=>p.up).filter(Boolean));return PRESETS.filter(p=>p.vb===vb&&p.level>=8&&!ups.has(p.name)).sort((a,b)=>(a.kreis||'').localeCompare(b.kreis||'','de')||a.name.localeCompare(b.name,'de'))}
+function foundVbs(){return Object.keys(VB).filter(k=>bottomLeagues(k).length).sort((a,b)=>VB[a].localeCompare(VB[b],'de'))}
+function foundHTML(back){const nw=MENU.nw,vbs=foundVbs();if(!nw.fvb||!vbs.includes(nw.fvb))nw.fvb=vbs.includes('BY')?'BY':vbs[0];
+  const lgs=bottomLeagues(nw.fvb);if(!nw.flg||!lgs.some(p=>p.name===nw.flg))nw.flg=lgs[0]&&lgs[0].name;const sel=lgs.find(p=>p.name===nw.flg);
+  return `<div class="menu"><div class="mhead">${back}<h2>Verein gründen</h2></div><div class="mlist">
+   <p class="note" style="margin:0">Du bist Gründer, Vorsitzender und Trainer in einem. Dein Verein startet mit einem Kader aus Freizeitkickern, einem kleinen Sportplatz und fast leerer Vereinskasse in der untersten Liga deiner Region. Entlassen kann dich niemand – der Weg nach oben liegt bei dir.</p>
+   <label class="mfield">Vereinsname<input id="fName" class="search" maxlength="40" value="${esc(nw.fname||'')}" placeholder="z. B. FC Musterstadt 2026" autocomplete="off"></label>
+   <label class="mfield">Dein Name<input id="mName" class="search" maxlength="40" value="${esc(nw.name||'')}" placeholder="z. B. Max Mustermann" autocomplete="off"></label>
+   <label class="mfield">Landesverband<select id="fVb" class="search">${vbs.map(k=>`<option value="${k}"${k===nw.fvb?' selected':''}>${esc(VB[k])} (${bottomLeagues(k).length} Startligen)</option>`).join('')}</select></label>
+   <label class="mfield">Startliga<select id="fLg" class="search">${lgs.map(p=>`<option value="${esc(p.name)}"${p.name===nw.flg?' selected':''}>${esc(p.name)}${p.kreis&&!p.name.includes(p.kreis)?' · '+esc(p.kreis):''}</option>`).join('')}</select></label>
+   ${sel?`<span class="meta">${sel.teams.length} Gegner · Aufstieg in die ${esc(sel.up||'nächsthöhere Liga')}</span>`:''}
+   <div class="mslot"><div><b>Speicherplatz</b><span class="meta">${MENU.metas[nw.slot]?'Achtung: Der vorhandene Spielstand wird überschrieben':'Freier Platz'}</span></div><div class="seg" style="margin:0">${[1,2,3].map(n=>`<button class="${nw.slot===n?'on':''}" data-act="mslot:${n}">Platz ${n}${MENU.metas[n]?' ●':''}</button>`).join('')}</div></div>
+   <button class="mbtn pri" data-act="mgo:found"><span>Verein gründen</span><span class="meta">Eine neue Welt mit allen Ligen wird erstellt, dein Verein spielt ab dem 1. Spieltag mit</span></button>
+  </div></div>`}
+function foundStart(){const nw=MENU.nw;let name=(nw.fname||'').replace(/\s+/g,' ').trim(),mgr=(nw.name||'').trim();
+  if(name.length<3){toast('Gib deinem Verein einen Namen (mind. 3 Zeichen)');return false}
+  if(isRes(name)){toast('Der Name darf nicht auf II/III enden – das ist für Zweitvertretungen reserviert');return false}
+  const p=PRESETS.find(x=>x.name===nw.flg);if(!p){toast('Wähle eine Startliga');return false}
+  if(PRESETS.some(x=>x.teams.some(t=>t.split('|')[0]===name))||PRO.some(x=>x.teams.split(';').some(t=>t.split('|')[0]===name))){toast('Diesen Verein gibt es schon – wähle einen anderen Namen');return false}
+  switchSlot(nw.slot);let fid=null;
+  fresh(()=>{const lg=S.leagues.find(l=>l.name===p.name&&!l.foreign);fid=addTeam(name,p.vb,+((BASE[lg.level]||17)-2.5).toFixed(1));lg.teams.push(fid);lg.size=lg.teams.length;T(fid).fnd=S.season});
+  S.liveSpeed=S.liveSpeed||1;S.mode='free';S.fav=fid;S.found={season:S.season,mgr:mgr||'Gründer',lg:p.name};
+  const t=T(fid);t.ppl=t.ppl||{};t.ppl.tr=mgr||'Gründer';ensureSquad(fid);recalc(fid);
+  const z=FZ(fid);if(z){z.c=2500;z.d=0;z.ir=0;z.cap=150;z.wf=.8}
+  try{addNews({cat:'fav',clubs:[fid],h:`Neuer Verein: ${name} gegründet`,b:`${mgr||'Der Gründer'} hebt ${name} aus der Taufe. Der Verein startet in der ${p.name} – mit Freizeitkickern, einem kleinen Sportplatz und großen Träumen.`,imp:3})}catch(e){}
+  save();view={tab:'fav',ftab:'ov'};view.ov=S.tut?null:{t:'tut',i:0};toast(`${name} ist gegründet!`);return true}
 function confirmTwice(key){const now=Date.now();if(confirmTwice.k===key&&now-confirmTwice.t<3000){confirmTwice.k=null;return true}confirmTwice.k=key;confirmTwice.t=now;return false}

@@ -208,6 +208,8 @@ function render(){
   {const f=document.getElementById('imFile');if(f)f.onchange=()=>{const file=f.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const u=new Uint8Array(r.result);const txt=u[0]===0x1f&&u[1]===0x8b?await ungz(r.result):new TextDecoder().decode(u);importJSON(txt);view={tab:'home'};render();toast('Spielstand geladen')}catch(e){toast('Das ist kein gültiger Spielstand')}};r.readAsArrayBuffer(file)}}
   [['trS','s'],['trL','lg'],['trP','p'],['trT','t'],['trM','min'],['trO','sort']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view.trf={...(view.trf||{}),[k]:e.value};view.trpage=0;render()}});
   {const e=document.getElementById('trQ');if(e)e.onchange=()=>{view.trf={...(view.trf||{}),q:e.value};view.trpage=0;render()}}
+  {const e=document.getElementById('fVb');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.fvb=e.value;MENU.nw.flg=null;render()}}
+  {const e=document.getElementById('fLg');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.flg=e.value;render()}}
   [['mLg','mlg'],['mPos','mpos'],['mMax','mmax']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
   document.querySelectorAll('select[data-slot]').forEach(sel=>sel.onchange=()=>{const g=MG(),r=mgrXI();const xi=r.xi.slice(),i=+sel.dataset.slot,j=xi.indexOf(sel.value);if(j>=0&&j!==i)xi[j]=xi[i];xi[i]=sel.value;g.xi=xi;recalc(S.fav);save();render()});
   {const pl=document.getElementById('progLg');if(pl)pl.onchange=()=>{view.progLg=pl.value;render()}}
