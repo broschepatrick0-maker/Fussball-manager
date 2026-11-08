@@ -34,7 +34,17 @@ const crestMini=id=>crestFor(id,18,'crest crm');
 const normName=s=>s.normalize('NFC').toLowerCase().replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9]/g,'');
 function matchTeamName(fn){const n=normName(fn.replace(/\.[a-z0-9]+$/i,''));if(n.length<3)return null;const names=[...new Set(Object.values(S.teams).filter(t=>!t.cc||true).map(t=>t.name).filter(x=>!isRes(x)))];
   const ex=names.find(x=>normName(x)===n);if(ex)return ex;const part=names.filter(x=>normName(x).includes(n)||n.includes(normName(x)));return part.length===1?part[0]:part.sort((a,b)=>Math.abs(normName(a).length-n.length)-Math.abs(normName(b).length-n.length))[0]||null}
-function fileToCrest(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,128/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(c.toDataURL('image/png'))};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Bild'))};im.src=u})}
+// Hintergrund entfernen: helle Flächen, die vom Bildrand aus zusammenhängen, werden transparent (Innenflächen bleiben),
+// Kanten werden weich ausgeblendet und das Bild auf das Wappen zugeschnitten
+function stripBg(c){const w=c.width,h=c.height,x=c.getContext('2d'),D=x.getImageData(0,0,w,h),p=D.data,dw=i=>765-p[i]-p[i+1]-p[i+2];
+  const cor=[0,(w-1)*4,(h-1)*w*4,((h-1)*w+w-1)*4];if(!cor.some(i=>p[i+3]<20||(p[i+3]>200&&dw(i)<90)))return c;
+  const seen=new Uint8Array(w*h),rm=new Uint8Array(w*h),st=[];for(let i=0;i<w;i++){st.push(i,(h-1)*w+i)}for(let j=0;j<h;j++){st.push(j*w,j*w+w-1)}
+  while(st.length){const k=st.pop();if(seen[k])continue;seen[k]=1;const i=k*4;if(p[i+3]<20||dw(i)<75){rm[k]=1;const X=k%w,Y=(k-X)/w;if(X>0)st.push(k-1);if(X<w-1)st.push(k+1);if(Y>0)st.push(k-w);if(Y<h-1)st.push(k+w)}}
+  for(let k=0;k<w*h;k++)if(rm[k])p[k*4+3]=0;
+  for(let k=0;k<w*h;k++){if(rm[k])continue;const X=k%w;if((X>0&&rm[k-1])||(X<w-1&&rm[k+1])||(k>=w&&rm[k-w])||(k<w*h-w&&rm[k+w])){const i=k*4,dd=dw(i);if(dd<220)p[i+3]=Math.min(p[i+3],Math.round(255*dd/220))}}
+  let x0=w,y0=h,x1=-1,y1=-1;for(let k=0;k<w*h;k++)if(p[k*4+3]>10){const X=k%w,Y=(k-X)/w;if(X<x0)x0=X;if(X>x1)x1=X;if(Y<y0)y0=Y;if(Y>y1)y1=Y}
+  x.putImageData(D,0,0);if(x1<0)return c;const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;o.getContext('2d').drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);return o}
+function fileToCrest(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,128/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*k)),h=Math.max(1,Math.round(im.height*k)),c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0,w,h);URL.revokeObjectURL(u);res(stripBg(c).toDataURL('image/png'))};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('Bild'))};im.src=u})}
 async function importCrestFiles(files){let ok=0,miss=[];
   for(const f of files){try{
     if(/\.json$/i.test(f.name)||f.type==='application/json'){const o=JSON.parse(await f.text());const list=o&&Array.isArray(o.clubs)?o.clubs:[];for(const c of list){if(!c||!c.name||!/^data:image\//.test(c.img||''))continue;CRIMG[c.name]={img:c.img,c1:c.c1||null,c2:c.c2||null};ok++}continue}
