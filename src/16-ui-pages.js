@@ -232,6 +232,8 @@ function readImport(){view.ivb=$('iVb').value;view.ilv=+$('iLv').value;view.iup=
 function act(a){
   const [k,v,w]=a.split(':');
   if(k.startsWith('am')&&favAm()&&amAct(k,v,w)){save();render();return}
+  if(k==='kited'&&S.fav&&T(S.fav)){const K=kitsOf(S.fav);view.ov={t:'kit',tab:'h',d:{h:{...K.h},a:{...K.a},x:{...K.x}}};render();return}
+  if(k==='kts'){kitAct(v,w);render();return}
   if(k==='crclr'){CRIMG={};saveCrests();render();toast('Importierte Wappen entfernt');return}
   if(k==='crest'&&S.fav&&T(S.fav)){view.ov={t:'crest',d:{...(T(S.fav).crest||crestDefault(S.fav))}};render();return}
   if(k==='crs'){crestAct(v,w);render();return}

@@ -55,10 +55,6 @@ async function importCrestFiles(files){let ok=0,miss=[];
     if(/\.json$/i.test(f.name)||f.type==='application/json'){const o=JSON.parse(await f.text());const list=o&&Array.isArray(o.clubs)?o.clubs:[];for(const c of list){if(!c||!c.name||!/^data:image\//.test(c.img||''))continue;CRIMG[c.name]={img:c.img,c1:c.c1||null,c2:c.c2||null};ok++}continue}
     const name=matchTeamName(f.name);if(!name){miss.push(f.name);continue}const img=await fileToCrest(f);CRIMG[name]={...(CRIMG[name]||{}),img};ok++}catch(e){console.warn('crest',f.name,e);miss.push(f.name)}}
   await saveCrests();return {ok,miss}}
-// Trikotfarben fürs 2D-Board: eigene Farbe, sonst Standard; bei zu ähnlichen Farben weicht der Gast aus
-function kitCols(hid,aid){const kc=id=>{const im=crestImg(id);return im&&im.c1?{c1:im.c1,c2:im.c2||'#ffffff'}:crestOf(id)};const ch=kc(hid),ca=kc(aid);let h=ch?ch.c1:'#d64545',a=ca?ca.c1:'#2f6fdf';
-  const near=(x,y)=>{const p=parseInt(x.slice(1),16),q=parseInt(y.slice(1),16);return Math.abs((p>>16)-(q>>16))+Math.abs((p>>8&255)-(q>>8&255))+Math.abs((p&255)-(q&255))<120};
-  if(near(h,a))a=ca&&!near(h,ca.c2)?ca.c2:near(h,'#2f6fdf')?'#f5f5f5':'#2f6fdf';return {h,a}}
 function crestEditorHTML(o){const d=o.d,id=S.fav,t=T(id);const sw=(k)=>`<div class="crsw">${CR_COL.map(c=>`<button class="crc${d[k]===c?' on':''}" style="background:${c}" data-act="crs:${k}:${c.slice(1)}" aria-label="Farbe ${c}"></button>`).join('')}</div>`;
   const seg=(k,arr)=>`<div class="seg crseg">${arr.map(([v,n])=>`<button class="${d[k]===v?'on':''}" data-act="crs:${k}:${v}">${n}</button>`).join('')}</div>`;
   return `<div class="ovc crested"><div class="crprev">${crestSVG(d,132)}<div><b>${esc(t.name)}</b><span class="meta">So erscheint dein Wappen in Tabellen, Spielen und auf dem 2D-Board. Die Grundfarbe ist auch eure Trikotfarbe.</span></div></div>
