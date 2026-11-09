@@ -424,16 +424,18 @@ function renderFav(){
   if(ft==='markt'&&(!(favAm()&&id===S.fav)||view.mfull)){
     const lgs=S.leagues.slice().sort((a,b)=>(a.foreign-b.foreign)||a.level-b.level);
     const sel=view.mlg&&L(view.mlg)?view.mlg:(lg?lg.id:'bl');
-    const ml=L(sel),fp=view.mpos||'',maxp=+view.mmax||0;
+    const ml=L(sel),fp=view.mpos||'',maxp=+view.mmax||0,fa=view.matt||'',fv=+view.mattv||0;
     let rows=[];ml.teams.filter(x=>x!==id).forEach(tid=>ensureSquad(tid).forEach(pid=>rows.push({pid,tid})));
-    rows=rows.filter(r=>(!fp||P()[r.pid].p===fp)).map(r=>({...r,fee:Math.round(value(r.pid)*1.25/1e3)*1e3})).filter(r=>!maxp||r.fee<=maxp).sort((a,b)=>P()[b.pid].s-P()[a.pid].s).slice(0,80);
+    rows=rows.filter(r=>(!fp||P()[r.pid].p===fp)&&(!fa||!fv||attrEst(P()[r.pid],r.pid,fa).v>=fv)).map(r=>({...r,fee:Math.round(value(r.pid)*1.25/1e3)*1e3})).filter(r=>!maxp||r.fee<=maxp).sort((a,b)=>P()[b.pid].s-P()[a.pid].s).slice(0,80);
     h+=`<div class="card"><div class="hd"><h3 class="ct" style="margin:0">Transfermarkt</h3><span class="tag">Budget ${money(bud(id))}</span></div>
     <div class="form"><label for="mLg">Liga<select id="mLg">${lgs.map(l=>`<option value="${l.id}"${l.id===sel?' selected':''}>${esc(l.name)}</option>`).join('')}</select></label>
     <label for="mPos">Position<select id="mPos"><option value="">Alle</option>${POS.map(p=>`<option value="${p}"${p===fp?' selected':''}>${POSN[p]}</option>`).join('')}</select></label>
-    <label for="mMax">Höchstens<select id="mMax"><option value="0">Egal</option>${[5e4,2e5,1e6,5e6,2e7,5e7].map(v=>`<option value="${v}"${v===maxp?' selected':''}>${money(v)}</option>`).join('')}<option value="${bud(id)}"${maxp===bud(id)?' selected':''}>Mein Budget</option></select></label></div>
+    <label for="mMax">Höchstens<select id="mMax"><option value="0">Egal</option>${[5e4,2e5,1e6,5e6,2e7,5e7].map(v=>`<option value="${v}"${v===maxp?' selected':''}>${money(v)}</option>`).join('')}<option value="${bud(id)}"${maxp===bud(id)?' selected':''}>Mein Budget</option></select></label>
+    <label for="mAtt">Attribut<select id="mAtt"><option value="">Egal</option>${ATTR.map(([k,l])=>`<option value="${k}"${k===fa?' selected':''}>${l}</option>`).join('')}</select></label>
+    <label for="mAttV">mindestens<select id="mAttV">${[0,50,60,65,70,75,80,85].map(v=>`<option value="${v}"${v===fv?' selected':''}>${v||'–'}</option>`).join('')}</select></label></div>
     ${wo?'':'<p class="note" style="margin-top:10px">Das Transferfenster ist geschlossen. Es ist vom Saisonende bis 1. September und vom 1. Januar bis 1. Februar geöffnet.</p>'}
-    <div class="scroll" style="margin-top:12px"><table><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th class="l">Verein</th><th>Alter</th><th>Stärke</th><th>Ablöse</th><th></th></tr></thead><tbody>
-    ${rows.map(r=>{const p=P()[r.pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team">${esc(p.n)}</td><td class="l team">${tl(r.tid)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td>${money(r.fee)}</td><td class="l"><button class="btn sm${S.scout&&S.scout.list[r.pid]?' pri':''}" data-act="${S.scout&&S.scout.list[r.pid]?'unwatch':'watch'}:${r.pid}" title="Beobachten">👁</button> <button class="btn sm${r.fee>bud(id)||!wo?'':' pri'}" data-act="buy:${r.pid}:${r.tid}">Kaufen</button></td></tr>`}).join('')}
+    <div class="scroll" style="margin-top:12px"><table><thead><tr><th class="l">Pos.</th><th class="l">Spieler</th><th class="l">Verein</th><th>Alter</th><th>Stärke</th><th class="l">Stärken (geschätzt)</th><th>Ablöse</th><th></th></tr></thead><tbody>
+    ${rows.map(r=>{const p=P()[r.pid];return `<tr><td class="l"><span class="pos-${p.p}">${p.p}</span></td><td class="l team"><button class="tlink" data-act="pi:${r.pid}">${esc(p.n)}</button></td><td class="l team">${tl(r.tid)}</td><td>${p.a}</td><td>${p.s.toFixed(1)}</td><td class="l meta nw">${(fa?[[fa,ATTRN[fa],ATTR.find(x=>x[0]===fa)[2],attrEst(p,r.pid,fa)]]:attrTopEst(p,r.pid,2)).map(x=>`${x[2]} ${attrTxt(x[3])}`).join(' · ')}</td><td>${money(r.fee)}</td><td class="l"><button class="btn sm${S.scout&&S.scout.list[r.pid]?' pri':''}" data-act="${S.scout&&S.scout.list[r.pid]?'unwatch':'watch'}:${r.pid}" title="Beobachten">👁</button> <button class="btn sm${r.fee>bud(id)||!wo?'':' pri'}" data-act="buy:${r.pid}:${r.tid}">Kaufen</button></td></tr>`}).join('')}
     </tbody></table></div><p class="note" style="margin-top:8px">Ablöse = Marktwert + 25 %. Starke Spieler lehnen Wechsel in Ligen ab, die mehr als zwei Stufen tiefer liegen. Neue Spieler ändern sofort die Spielstärke deines Vereins (Ø der besten Elf im 4-4-2).</p></div>`;
   }
   if(ft==='fin'){

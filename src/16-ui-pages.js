@@ -219,7 +219,7 @@ function render(){
   {const e=document.getElementById('trQ');if(e)e.onchange=()=>{view.trf={...(view.trf||{}),q:e.value};view.trpage=0;render()}}
   {const e=document.getElementById('fVb');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.fvb=e.value;MENU.nw.flg=null;render()}}
   {const e=document.getElementById('fLg');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.flg=e.value;render()}}
-  [['mLg','mlg'],['mPos','mpos'],['mMax','mmax']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
+  [['mLg','mlg'],['mPos','mpos'],['mMax','mmax'],['mAtt','matt'],['mAttV','mattv']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
   document.querySelectorAll('select[data-slot]').forEach(sel=>sel.onchange=()=>{const g=MG(),r=mgrXI();const xi=r.xi.slice(),i=+sel.dataset.slot,j=xi.indexOf(sel.value);if(j>=0&&j!==i)xi[j]=xi[i];xi[i]=sel.value;g.xi=xi;recalc(S.fav);save();render()});
   {const pl=document.getElementById('progLg');if(pl)pl.onchange=()=>{view.progLg=pl.value;render()}}
   {const fl=document.getElementById('finLv');if(fl)fl.onchange=()=>{view.finLv=fl.value;render()}}
