@@ -62,7 +62,7 @@ const NORM={1:78.6,2:68.8,3:60,4:51.5,5:46,6:41,7:36,8:31,9:26,10:21,11:17,12:14
 const YOUTH_C=+(globalThis.YOUTH_C??-3);
 function clubNorm(t){const l=lgOf(t.id);if(!l)return t.r;return l.foreign?NORM.F:(NORM[l.level]||t.r)}
 function lvKey(t){const l=lgOf(t.id);return l?(l.foreign?'F':l.level):null}
-function youthPot(t){const n=clubNorm(t),k=lvKey(t),drift=S.lvAvg&&k!=null&&S.lvAvg[k]!=null?S.lvAvg[k]-n:0;let pot=n+(t.r-n)*0.5+YOUTH_C-1.5*drift+gauss()*5;if(Math.random()<.03)pot+=8+Math.random()*6;return Math.min(99,pot)}
+function youthPot(t){const n=clubNorm(t),k=lvKey(t),drift=S.lvAvg&&k!=null&&S.lvAvg[k]!=null?S.lvAvg[k]-n:0;const up=Math.max(0,t.r-n);let pot=n+(t.r-n)*0.5+up*0.3+YOUTH_C-1.5*drift+gauss()*5;if(Math.random()<.03+Math.min(.05,up*.004))pot+=8+Math.random()*6;return Math.min(99,pot)}
 function potOf(p){if(p.pot==null)p.pot=+Math.min(99,p.s+Math.max(0,25-p.a)*1.1).toFixed(1);return p.pot}
 function developSquads(){
   {const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>{(o[k]=o[k]||[]).push(T(id).r)})});S.lvAvg={};for(const k in o)S.lvAvg[k]=o[k].reduce((a,b)=>a+b,0)/o[k].length}
