@@ -467,3 +467,10 @@ button.clock:hover b{text-decoration:underline}
 .attrs{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}.attr{display:grid;grid-template-columns:86px 1fr 44px;align-items:center;gap:6px;font-size:13px}.attr.key span{font-weight:700}.attr i{height:7px;background:rgba(127,127,127,.2);border-radius:4px;overflow:hidden;display:block}.attr i b{display:block;height:100%}.attr em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}.nw{white-space:nowrap}@media(max-width:520px){.attrs{grid-template-columns:1fr}}
 .tag.derby{background:#e8583a;color:#fff;border-color:#e8583a;margin-left:6px}
 .attr i{position:relative}.attr i b.rng{position:absolute;top:0;opacity:.35}
+
+/* Spielerbilder */
+.face{display:inline-block;border-radius:50%;vertical-align:middle;background:#2a3a31;flex-shrink:0}
+.face.sm{width:24px;height:24px;margin-right:6px}
+.face.lg{width:88px;height:88px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.pihead{display:flex;gap:12px;align-items:stretch}.pihead .facts{flex:1}
+@media (max-width:520px){.face.lg{width:72px;height:72px}}

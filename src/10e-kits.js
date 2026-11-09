@@ -3,7 +3,7 @@
 const KIT_PAT=[['uni','Einfarbig'],['streifen','Streifen'],['nadel','Nadelstreifen'],['ringel','Ringel'],['halb','Halbiert'],['schraeg','Schärpe'],['brustring','Brustring'],['aermel','Ärmel']];
 // typische Vereinsfarben (nicht das exakte Design der aktuellen Saison): "Hemd,Besatz,Muster,Hose,Stutzen" je Heim;Auswärts;Ausweich
 const KIT_REAL={
- 'FC Bayern München':'dc052d,ffffff,uni,dc052d,dc052d;ffffff,0a1e5c,uni,0a1e5c,ffffff;2b1d4d,f05a28,uni,2b1d4d,0a1e5c',
+ 'Real Madrid':'ffffff,d4af37,uni,ffffff,ffffff;1b2a4a,ffffff,uni,1b2a4a,1b2a4a;111111,d4af37,uni,111111,111111','FC Barcelona':'a50044,004d98,streifen,004d98,a50044;f5d300,a50044,uni,f5d300,f5d300;1b1b1b,a50044,uni,1b1b1b,1b1b1b','Liverpool FC':'c8102e,ffffff,uni,c8102e,c8102e;ffffff,c8102e,uni,ffffff,ffffff;0b1e3a,00b2a9,uni,0b1e3a,0b1e3a','Chelsea FC':'034694,ffffff,uni,034694,ffffff;f2f2f2,034694,uni,f2f2f2,f2f2f2;111111,d1d3d4,uni,111111,111111','Newcastle United':'111111,ffffff,streifen,111111,111111;ffffff,111111,uni,ffffff,ffffff;0f6e5a,ffffff,uni,0f6e5a,0f6e5a','FC Bayern München':'dc052d,ffffff,uni,dc052d,dc052d;ffffff,0a1e5c,uni,0a1e5c,ffffff;2b1d4d,f05a28,uni,2b1d4d,0a1e5c',
  'Borussia Dortmund':'fde100,000000,uni,000000,fde100;111111,fde100,uni,111111,111111;ffffff,fde100,uni,ffffff,ffffff',
  'RB Leipzig':'ffffff,dd0741,uni,ffffff,ffffff;0c2043,dd0741,uni,0c2043,0c2043;dd0741,ffffff,uni,dd0741,dd0741',
  'Bayer 04 Leverkusen':'e32221,000000,uni,000000,e32221;ffffff,e32221,uni,ffffff,ffffff;111111,e32221,uni,111111,111111',
