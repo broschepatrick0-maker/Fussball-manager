@@ -1,0 +1,325 @@
+{
+ "basisStaerkeJeStufe": {
+  "5": 46,
+  "6": 41,
+  "7": 36,
+  "8": 31,
+  "9": 26,
+  "10": 21,
+  "11": 17,
+  "12": 14
+ },
+ "positionsGewichte": {
+  "TW": {
+   "tw": 0.85,
+   "men": 0.1,
+   "pas": 0.05
+  },
+  "AB": {
+   "zwk": 0.3,
+   "kop": 0.2,
+   "tem": 0.15,
+   "pas": 0.15,
+   "men": 0.1,
+   "aus": 0.1
+  },
+  "MF": {
+   "pas": 0.3,
+   "tec": 0.25,
+   "aus": 0.15,
+   "men": 0.1,
+   "zwk": 0.1,
+   "tem": 0.1
+  },
+  "ST": {
+   "abs": 0.35,
+   "tem": 0.2,
+   "tec": 0.2,
+   "kop": 0.15,
+   "men": 0.1
+  }
+ },
+ "attribute": [
+  {
+   "key": "tem",
+   "name": "Tempo",
+   "kurz": "TEM"
+  },
+  {
+   "key": "tec",
+   "name": "Technik",
+   "kurz": "TEC"
+  },
+  {
+   "key": "pas",
+   "name": "Passspiel",
+   "kurz": "PAS"
+  },
+  {
+   "key": "abs",
+   "name": "Abschluss",
+   "kurz": "ABS"
+  },
+  {
+   "key": "zwk",
+   "name": "Zweikampf",
+   "kurz": "ZWK"
+  },
+  {
+   "key": "kop",
+   "name": "Kopfball",
+   "kurz": "KOP"
+  },
+  {
+   "key": "aus",
+   "name": "Ausdauer",
+   "kurz": "AUS"
+  },
+  {
+   "key": "men",
+   "name": "Mentalität",
+   "kurz": "MEN"
+  },
+  {
+   "key": "tw",
+   "name": "Torwartspiel",
+   "kurz": "TOR"
+  }
+ ],
+ "spielstile": {
+  "ausgewogen": {
+   "n": "Ausgewogen",
+   "d": "Keine besonderen Stärken oder Schwächen.",
+   "m": [
+    1,
+    1
+   ]
+  },
+  "offensiv": {
+   "n": "Offensiv",
+   "d": "Mehr eigene Tore, aber auch mehr Gegentore.",
+   "m": [
+    1.16,
+    1.13
+   ]
+  },
+  "defensiv": {
+   "n": "Defensiv",
+   "d": "Weniger Gegentore, vorne passiert aber auch weniger.",
+   "m": [
+    0.84,
+    0.83
+   ]
+  },
+  "konter": {
+   "n": "Konter",
+   "d": "Stark gegen bessere Gegner, gegen schwächere eher harmlos.",
+   "m": [
+    1,
+    1
+   ]
+  },
+  "pressing": {
+   "n": "Pressing",
+   "d": "Mehr Torgefahr und weniger Gegentore – kostet Kraft, mehr Verletzungen.",
+   "m": [
+    1.09,
+    0.95
+   ]
+  },
+  "ballbesitz": {
+   "n": "Ballbesitz",
+   "d": "Kontrolliert das Spiel gegen schwächere Gegner, gegen stärkere riskant.",
+   "m": [
+    1.03,
+    0.93
+   ]
+  }
+ },
+ "spielstilAttribute": {
+  "offensiv": [
+   "abs",
+   "tec"
+  ],
+  "defensiv": [
+   "zwk",
+   "kop"
+  ],
+  "konter": [
+   "tem",
+   "abs"
+  ],
+  "pressing": [
+   "aus",
+   "zwk",
+   "tem"
+  ],
+  "ballbesitz": [
+   "pas",
+   "tec"
+  ],
+  "ausgewogen": []
+ },
+ "trainingAttribute": {
+  "angriff": [
+   "abs",
+   "tec"
+  ],
+  "abwehr": [
+   "zwk",
+   "kop"
+  ],
+  "kondition": [
+   "aus",
+   "tem"
+  ],
+  "taktik": [
+   "pas",
+   "men"
+  ],
+  "jugend": [
+   "tec",
+   "tem"
+  ]
+ },
+ "positionsFit": {
+  "TW": {
+   "TW": 0,
+   "AB": 25,
+   "MF": 25,
+   "ST": 25
+  },
+  "AB": {
+   "TW": 25,
+   "AB": 0,
+   "MF": 6,
+   "ST": 12
+  },
+  "MF": {
+   "TW": 25,
+   "AB": 6,
+   "MF": 0,
+   "ST": 5
+  },
+  "ST": {
+   "TW": 25,
+   "AB": 12,
+   "MF": 5,
+   "ST": 0
+  }
+ },
+ "scouting": [
+  {
+   "n": "Einzelner Scout",
+   "q": 0.6,
+   "max": 8,
+   "cost": 0
+  },
+  {
+   "n": "Kleine Scouting-Abteilung",
+   "q": 1,
+   "max": 15,
+   "cost": 0.012
+  },
+  {
+   "n": "Professionelles Scouting-Netzwerk",
+   "q": 1.6,
+   "max": 25,
+   "cost": 0.03
+  }
+ ],
+ "akademie": [
+  {
+   "n": "Einfache Nachwuchsarbeit",
+   "b": 0,
+   "cost": 0.004
+  },
+  {
+   "n": "Nachwuchsleistungszentrum (Basis)",
+   "b": 2,
+   "cost": 0.012
+  },
+  {
+   "n": "Nachwuchsleistungszentrum",
+   "b": 4,
+   "cost": 0.025
+  },
+  {
+   "n": "Modernes Leistungszentrum",
+   "b": 6,
+   "cost": 0.045
+  },
+  {
+   "n": "Akademie der Spitzenklasse",
+   "b": 9,
+   "cost": 0.075
+  }
+ ],
+ "rollen": {
+  "star": [
+   "Führungsspieler",
+   0.85
+  ],
+  "stamm": [
+   "Stammspieler",
+   0.7
+  ],
+  "rot": [
+   "Rotation",
+   0.4
+  ],
+  "erg": [
+   "Ergänzung",
+   0.15
+  ],
+  "persp": [
+   "Perspektive",
+   0.1
+  ]
+ },
+ "nationen": [
+  "DE",
+  "TUR",
+  "POL",
+  "KOS",
+  "ALB",
+  "CRO",
+  "SRB",
+  "BIH",
+  "AUT",
+  "SUI",
+  "NED",
+  "BEL",
+  "FRA",
+  "ESP",
+  "ITA",
+  "POR",
+  "DEN",
+  "SWE",
+  "NOR",
+  "CZE",
+  "HUN",
+  "ROU",
+  "UKR",
+  "GRE",
+  "BRA",
+  "ARG",
+  "COL",
+  "USA",
+  "JPN",
+  "KOR",
+  "GHA",
+  "NGA",
+  "SEN",
+  "CMR",
+  "CIV",
+  "MAR",
+  "TUN",
+  "SYR",
+  "AFG",
+  "SCO",
+  "ENG",
+  "IRL",
+  "CYP"
+ ]
+}

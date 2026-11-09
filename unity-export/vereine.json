@@ -1,0 +1,2309 @@
+{
+ "eigentuemer": {
+  "RB Leipzig": {
+   "t": "konz",
+   "n": "Red Bull GmbH",
+   "d": "Red Bull hält rund 99 % der Anteile",
+   "fix": 1
+  },
+  "VfL Wolfsburg": {
+   "t": "werk",
+   "n": "Volkswagen AG",
+   "d": "100-%-Tochter von VW, Ausnahme von der 50+1-Regel",
+   "fix": 1
+  },
+  "Bayer 04 Leverkusen": {
+   "t": "werk",
+   "n": "Bayer AG",
+   "d": "100-%-Tochter der Bayer AG, Ausnahme von der 50+1-Regel",
+   "fix": 1
+  },
+  "TSG Hoffenheim": {
+   "t": "maz",
+   "n": "Dietmar Hopp",
+   "d": "Hopp hält die Kapitalmehrheit, die Stimmenmehrheit liegt seit 2023 wieder beim e.V.",
+   "fix": 1
+  },
+  "Viktoria Köln": {
+   "t": "maz",
+   "n": "Franz-Josef Wernze",
+   "d": "Mäzen und Hauptgesellschafter",
+   "fix": 1
+  },
+  "FC Bayern München": {
+   "t": "aus",
+   "n": "FC Bayern München e.V. (rund 75 %)",
+   "d": "AG · Adidas, Audi und Allianz halten je rund 8 %"
+  },
+  "Borussia Dortmund": {
+   "t": "aus",
+   "n": "Ballspielverein Borussia 09 e.V.",
+   "d": "KGaA an der Börse · u. a. Evonik, Puma und Signal Iduna sind Aktionäre"
+  },
+  "Eintracht Frankfurt": {
+   "t": "aus",
+   "n": "Eintracht Frankfurt e.V.",
+   "d": "Fußball AG"
+  },
+  "VfB Stuttgart": {
+   "t": "aus",
+   "n": "VfB Stuttgart 1893 e.V.",
+   "d": "AG · u. a. Mercedes-Benz und Porsche halten Anteile"
+  },
+  "Hamburger SV": {
+   "t": "aus",
+   "n": "Hamburger SV e.V.",
+   "d": "AG · Klaus-Michael Kühne hält rund 15 %"
+  },
+  "Hertha BSC": {
+   "t": "aus",
+   "n": "Hertha BSC e.V.",
+   "d": "KGaA · der Großteil des Kapitals liegt bei Investoren"
+  },
+  "TSV 1860 München": {
+   "t": "aus",
+   "n": "TSV München von 1860 e.V.",
+   "d": "KGaA · Investor Hasan Ismaik hält 60 % des Kapitals, aber nur 49 % der Stimmen"
+  },
+  "Hannover 96": {
+   "t": "aus",
+   "n": "Hannover 96 e.V.",
+   "d": "KGaA · das Kapital liegt bei der Gesellschafterseite um Martin Kind"
+  },
+  "FC Augsburg": {
+   "t": "aus",
+   "n": "FC Augsburg 1907 e.V.",
+   "d": "KGaA · US-Investorengruppe um David Blitzer hält Anteile"
+  },
+  "FC Ingolstadt 04": {
+   "t": "aus",
+   "n": "FC Ingolstadt 04 e.V.",
+   "d": "Fußball GmbH · Audi hält rund 20 %"
+  },
+  "Werder Bremen": {
+   "t": "aus",
+   "n": "SV Werder Bremen e.V.",
+   "d": "KGaA · ein Bündnis Bremer Unternehmer hält Anteile"
+  },
+  "Kaiserslautern": {
+   "t": "aus",
+   "n": "1. FC Kaiserslautern e.V.",
+   "d": "KGaA · regionale Investorengruppe hält Anteile"
+  },
+  "Unterhaching": {
+   "t": "aus",
+   "n": "SpVgg Unterhaching e.V.",
+   "d": "KGaA an der Börse"
+  },
+  "Würzburger Kickers": {
+   "t": "aus",
+   "n": "FC Würzburger Kickers e.V.",
+   "d": "AG · Großsponsor Flyeralarm"
+  },
+  "Red Bull Salzburg": {
+   "t": "konz",
+   "n": "Red Bull GmbH",
+   "d": "Konzernverein des Getränkeherstellers",
+   "fix": 1
+  },
+  "Manchester City": {
+   "t": "kap",
+   "n": "City Football Group",
+   "d": "Mehrheit bei der Abu Dhabi United Group",
+   "fix": 1
+  },
+  "Paris Saint-Germain": {
+   "t": "kap",
+   "n": "Qatar Sports Investments",
+   "d": "Staatsfonds aus Katar",
+   "fix": 1
+  },
+  "Newcastle United": {
+   "t": "kap",
+   "n": "Public Investment Fund",
+   "d": "Staatsfonds aus Saudi-Arabien",
+   "fix": 1
+  },
+  "Chelsea FC": {
+   "t": "kap",
+   "n": "BlueCo",
+   "d": "Konsortium um Todd Boehly und Clearlake Capital"
+  },
+  "Liverpool FC": {
+   "t": "kap",
+   "n": "Fenway Sports Group",
+   "d": "US-Investmentgruppe"
+  },
+  "Arsenal FC": {
+   "t": "kap",
+   "n": "Kroenke Sports & Entertainment",
+   "d": "Familie Kroenke aus den USA"
+  },
+  "Manchester United": {
+   "t": "kap",
+   "n": "Familie Glazer",
+   "d": "INEOS um Jim Ratcliffe hält rund ein Viertel"
+  },
+  "Aston Villa": {
+   "t": "kap",
+   "n": "V Sports",
+   "d": "Nassef Sawiris und Wes Edens"
+  },
+  "AC Mailand": {
+   "t": "kap",
+   "n": "RedBird Capital",
+   "d": "US-Investmentfirma"
+  },
+  "Inter Mailand": {
+   "t": "kap",
+   "n": "Oaktree Capital",
+   "d": "US-Investmentfirma"
+  },
+  "Juventus Turin": {
+   "t": "kap",
+   "n": "Exor",
+   "d": "Holding der Familie Agnelli, an der Börse"
+  },
+  "AS Rom": {
+   "t": "kap",
+   "n": "Friedkin Group",
+   "d": "Familie Friedkin aus den USA"
+  },
+  "SSC Neapel": {
+   "t": "kap",
+   "n": "Aurelio De Laurentiis",
+   "d": "Filmproduzent, Eigentümer seit 2004"
+  },
+  "Como 1907": {
+   "t": "kap",
+   "n": "Djarum-Gruppe",
+   "d": "Brüder Hartono aus Indonesien",
+   "fix": 1
+  },
+  "Olympique Marseille": {
+   "t": "kap",
+   "n": "Frank McCourt",
+   "d": "US-Unternehmer"
+  },
+  "AS Monaco": {
+   "t": "kap",
+   "n": "Dmitri Rybolowlew",
+   "d": "Mehrheitseigner seit 2011"
+  },
+  "Paris FC": {
+   "t": "kap",
+   "n": "Familie Arnault",
+   "d": "Red Bull hält eine Minderheit"
+  },
+  "Real Madrid": {
+   "t": "ev",
+   "n": "Mitglieder (Socios)",
+   "d": "Verein im Besitz seiner Mitglieder"
+  },
+  "FC Barcelona": {
+   "t": "ev",
+   "n": "Mitglieder (Socis)",
+   "d": "Verein im Besitz seiner Mitglieder"
+  },
+  "Athletic Bilbao": {
+   "t": "ev",
+   "n": "Mitglieder (Socios)",
+   "d": "Verein im Besitz seiner Mitglieder"
+  },
+  "CA Osasuna": {
+   "t": "ev",
+   "n": "Mitglieder (Socios)",
+   "d": "Verein im Besitz seiner Mitglieder"
+  }
+ },
+ "eigentuemerTypen": {
+  "ev": "Mitgliederverein",
+  "aus": "Ausgegliedert (50+1)",
+  "konz": "Konzernverein",
+  "werk": "Werksklub",
+  "maz": "Mäzenverein",
+  "kap": "Kapitalgesellschaft"
+ },
+ "trikots": {
+  "FC Bayern München": {
+   "home": {
+    "s": "#dc052d",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#dc052d",
+    "so": "#dc052d"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#0a1e5c",
+    "p": "uni",
+    "sh": "#0a1e5c",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#2b1d4d",
+    "t": "#f05a28",
+    "p": "uni",
+    "sh": "#2b1d4d",
+    "so": "#0a1e5c"
+   }
+  },
+  "Borussia Dortmund": {
+   "home": {
+    "s": "#fde100",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#fde100"
+   },
+   "away": {
+    "s": "#111111",
+    "t": "#fde100",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "third": {
+    "s": "#ffffff",
+    "t": "#fde100",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   }
+  },
+  "RB Leipzig": {
+   "home": {
+    "s": "#ffffff",
+    "t": "#dd0741",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "away": {
+    "s": "#0c2043",
+    "t": "#dd0741",
+    "p": "uni",
+    "sh": "#0c2043",
+    "so": "#0c2043"
+   },
+   "third": {
+    "s": "#dd0741",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#dd0741",
+    "so": "#dd0741"
+   }
+  },
+  "Bayer 04 Leverkusen": {
+   "home": {
+    "s": "#e32221",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#e32221"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e32221",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e32221",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Eintracht Frankfurt": {
+   "home": {
+    "s": "#e1000f",
+    "t": "#000000",
+    "p": "streifen",
+    "sh": "#000000",
+    "so": "#000000"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e1000f",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "VfB Stuttgart": {
+   "home": {
+    "s": "#ffffff",
+    "t": "#e32219",
+    "p": "brustring",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "away": {
+    "s": "#e32219",
+    "t": "#ffffff",
+    "p": "brustring",
+    "sh": "#e32219",
+    "so": "#e32219"
+   },
+   "third": {
+    "s": "#1a1a2e",
+    "t": "#e32219",
+    "p": "brustring",
+    "sh": "#1a1a2e",
+    "so": "#1a1a2e"
+   }
+  },
+  "Borussia Mönchengladbach": {
+   "home": {
+    "s": "#ffffff",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "away": {
+    "s": "#111111",
+    "t": "#1d9053",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "third": {
+    "s": "#1d9053",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#1d9053",
+    "so": "#1d9053"
+   }
+  },
+  "Werder Bremen": {
+   "home": {
+    "s": "#1d9053",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#1d9053",
+    "so": "#1d9053"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#1d9053",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#1d9053",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "VfL Wolfsburg": {
+   "home": {
+    "s": "#65b32e",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#65b32e"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#65b32e",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#0b2e1a",
+    "t": "#65b32e",
+    "p": "uni",
+    "sh": "#0b2e1a",
+    "so": "#0b2e1a"
+   }
+  },
+  "SC Freiburg": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "1. FSV Mainz 05": {
+   "home": {
+    "s": "#c3141e",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#c3141e",
+    "so": "#c3141e"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#c3141e",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#c3141e",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "FC Augsburg": {
+   "home": {
+    "s": "#ba3733",
+    "t": "#ffffff",
+    "p": "halb",
+    "sh": "#ffffff",
+    "so": "#ba3733"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#46714d",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#46714d",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#46714d",
+    "so": "#46714d"
+   }
+  },
+  "TSG Hoffenheim": {
+   "home": {
+    "s": "#1961b5",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#1961b5",
+    "so": "#1961b5"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#1961b5",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111827",
+    "t": "#1961b5",
+    "p": "uni",
+    "sh": "#111827",
+    "so": "#111827"
+   }
+  },
+  "1. FC Union Berlin": {
+   "home": {
+    "s": "#eb1923",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#eb1923",
+    "so": "#eb1923"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#eb1923",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#fde100",
+    "t": "#eb1923",
+    "p": "uni",
+    "sh": "#fde100",
+    "so": "#fde100"
+   }
+  },
+  "1. FC Köln": {
+   "home": {
+    "s": "#ffffff",
+    "t": "#ed1c24",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "away": {
+    "s": "#ed1c24",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ed1c24",
+    "so": "#ed1c24"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#ed1c24",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Hamburger SV": {
+   "home": {
+    "s": "#ffffff",
+    "t": "#0a3f86",
+    "p": "uni",
+    "sh": "#e2001a",
+    "so": "#0a3f86"
+   },
+   "away": {
+    "s": "#0a3f86",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#0a3f86",
+    "so": "#0a3f86"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "FC St. Pauli": {
+   "home": {
+    "s": "#6b4423",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#6b4423",
+    "so": "#6b4423"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#6b4423",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "1. FC Heidenheim": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#003b79",
+    "p": "uni",
+    "sh": "#003b79",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#003b79",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#003b79",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#003b79",
+    "so": "#003b79"
+   }
+  },
+  "FC Schalke 04": {
+   "home": {
+    "s": "#004d9d",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#004d9d"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#004d9d",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#004d9d",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Hertha BSC": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#ffffff",
+    "p": "streifen",
+    "sh": "#ffffff",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111827",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111827",
+    "so": "#111827"
+   }
+  },
+  "Hannover 96": {
+   "home": {
+    "s": "#c3141e",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#c3141e"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#1d9053",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#1d9053",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#1d9053",
+    "so": "#1d9053"
+   }
+  },
+  "1. FC Nürnberg": {
+   "home": {
+    "s": "#ab1f2c",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#ab1f2c"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#ab1f2c",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#ab1f2c",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "1. FC Kaiserslautern": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#e2001a",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Arminia Bielefeld": {
+   "home": {
+    "s": "#004e95",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#004e95"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#004e95",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#004e95",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "1. FC Magdeburg": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "VfL Bochum": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#005ca9",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "FC Energie Cottbus": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SpVgg Greuther Fürth": {
+   "home": {
+    "s": "#009a44",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#009a44"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#009a44",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#009a44",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Dynamo Dresden": {
+   "home": {
+    "s": "#fdd800",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#fdd800"
+   },
+   "away": {
+    "s": "#111111",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "third": {
+    "s": "#ffffff",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   }
+  },
+  "VfL Osnabrück": {
+   "home": {
+    "s": "#5b2c86",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#5b2c86"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#5b2c86",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#5b2c86",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Eintracht Braunschweig": {
+   "home": {
+    "s": "#fdd800",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#005ca9",
+    "so": "#fdd800"
+   },
+   "away": {
+    "s": "#005ca9",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#005ca9",
+    "so": "#005ca9"
+   },
+   "third": {
+    "s": "#ffffff",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   }
+  },
+  "Holstein Kiel": {
+   "home": {
+    "s": "#004a9f",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#004a9f",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#e2001a",
+    "t": "#004a9f",
+    "p": "uni",
+    "sh": "#e2001a",
+    "so": "#e2001a"
+   }
+  },
+  "SV Darmstadt 98": {
+   "home": {
+    "s": "#004e9e",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#004e9e"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#004e9e",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#004e9e",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Karlsruher SC": {
+   "home": {
+    "s": "#00489d",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#00489d"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#00489d",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#00489d",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SC Paderborn 07": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#000000",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SV Elversberg": {
+   "home": {
+    "s": "#111111",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#c8a24a",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#c8a24a",
+    "so": "#c8a24a"
+   }
+  },
+  "Fortuna Düsseldorf": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Hansa Rostock": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Alemannia Aachen": {
+   "home": {
+    "s": "#fdd800",
+    "t": "#000000",
+    "p": "streifen",
+    "sh": "#000000",
+    "so": "#fdd800"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#000000",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Waldhof Mannheim": {
+   "home": {
+    "s": "#003d7c",
+    "t": "#000000",
+    "p": "streifen",
+    "sh": "#000000",
+    "so": "#003d7c"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "1. FC Saarbrücken": {
+   "home": {
+    "s": "#003d7c",
+    "t": "#000000",
+    "p": "streifen",
+    "sh": "#000000",
+    "so": "#003d7c"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "MSV Duisburg": {
+   "home": {
+    "s": "#003d7c",
+    "t": "#ffffff",
+    "p": "ringel",
+    "sh": "#003d7c",
+    "so": "#003d7c"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#003d7c",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Rot-Weiss Essen": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SC Preußen Münster": {
+   "home": {
+    "s": "#111111",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#111111"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#1d9053",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#1d9053",
+    "so": "#1d9053"
+   }
+  },
+  "SC Verl": {
+   "home": {
+    "s": "#111111",
+    "t": "#ffffff",
+    "p": "schraeg",
+    "sh": "#ffffff",
+    "so": "#111111"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#111111",
+    "p": "schraeg",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#7a7a7a",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#7a7a7a",
+    "so": "#7a7a7a"
+   }
+  },
+  "Jahn Regensburg": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Würzburger Kickers": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SV Meppen": {
+   "home": {
+    "s": "#005ca9",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#005ca9",
+    "so": "#005ca9"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#005ca9",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "FC Ingolstadt 04": {
+   "home": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "halb",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#e2001a",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#e2001a",
+    "so": "#e2001a"
+   }
+  },
+  "Wehen Wiesbaden": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#c8a24a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Viktoria Köln": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "Fortuna Köln": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  },
+  "SG Sonnenhof Großaspach": {
+   "home": {
+    "s": "#111111",
+    "t": "#fdd800",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#fdd800",
+    "t": "#111111",
+    "p": "uni",
+    "sh": "#fdd800",
+    "so": "#fdd800"
+   }
+  },
+  "TSV Havelse": {
+   "home": {
+    "s": "#e2001a",
+    "t": "#ffffff",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#e2001a"
+   },
+   "away": {
+    "s": "#ffffff",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#ffffff",
+    "so": "#ffffff"
+   },
+   "third": {
+    "s": "#111111",
+    "t": "#e2001a",
+    "p": "uni",
+    "sh": "#111111",
+    "so": "#111111"
+   }
+  }
+ },
+ "derbys": [
+  {
+   "a": "FC Schalke 04",
+   "b": "Borussia Dortmund",
+   "name": "Revierderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "FC Bayern München",
+   "b": "TSV 1860 München",
+   "name": "Münchner Stadtderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Hamburger SV",
+   "b": "FC St. Pauli",
+   "name": "Hamburger Stadtderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Hamburger SV",
+   "b": "Werder Bremen",
+   "name": "Nordderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "1. FC Köln",
+   "b": "Borussia Mönchengladbach",
+   "name": "Rheinisches Derby",
+   "intensitaet": 3
+  },
+  {
+   "a": "1. FC Nürnberg",
+   "b": "SpVgg Greuther Fürth",
+   "name": "Frankenderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Eintracht Frankfurt",
+   "b": "Kickers Offenbach",
+   "name": "Mainderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Hertha BSC",
+   "b": "1. FC Union Berlin",
+   "name": "Berliner Stadtderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Hannover 96",
+   "b": "Eintracht Braunschweig",
+   "name": "Niedersachsenderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "VfB Stuttgart",
+   "b": "Karlsruher SC",
+   "name": "Baden-Württemberg-Derby",
+   "intensitaet": 3
+  },
+  {
+   "a": "1. FC Lokomotive Leipzig",
+   "b": "BSG Chemie Leipzig",
+   "name": "Leipziger Stadtderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "1. FC Magdeburg",
+   "b": "Hallescher FC",
+   "name": "Mitteldeutsches Derby",
+   "intensitaet": 3
+  },
+  {
+   "a": "FC Carl Zeiss Jena",
+   "b": "FC Rot-Weiß Erfurt",
+   "name": "Thüringenderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "1. FC Kaiserslautern",
+   "b": "1. FC Saarbrücken",
+   "name": "Südwestderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Waldhof Mannheim",
+   "b": "Karlsruher SC",
+   "name": "Badisches Derby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Arminia Bielefeld",
+   "b": "SC Preußen Münster",
+   "name": "Westfalenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfL Osnabrück",
+   "b": "SC Preußen Münster",
+   "name": "Westfalen-Niedersachsen-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Arminia Bielefeld",
+   "b": "SC Paderborn 07",
+   "name": "OWL-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FC Köln",
+   "b": "Bayer 04 Leverkusen",
+   "name": "Rheinderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FC Köln",
+   "b": "Fortuna Düsseldorf",
+   "name": "Rheinisches Derby",
+   "intensitaet": 3
+  },
+  {
+   "a": "Borussia Mönchengladbach",
+   "b": "Fortuna Düsseldorf",
+   "name": "Rheinisches Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfL Bochum",
+   "b": "FC Schalke 04",
+   "name": "Revierderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfL Bochum",
+   "b": "Borussia Dortmund",
+   "name": "Revierderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Rot-Weiss Essen",
+   "b": "FC Schalke 04",
+   "name": "Revierderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Rot-Weiss Essen",
+   "b": "Rot-Weiß Oberhausen",
+   "name": "Revierderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "MSV Duisburg",
+   "b": "Rot-Weiss Essen",
+   "name": "Revierderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Eintracht Frankfurt",
+   "b": "SV Darmstadt 98",
+   "name": "Hessenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FSV Mainz 05",
+   "b": "1. FC Kaiserslautern",
+   "name": "Rheinland-Pfalz-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FSV Mainz 05",
+   "b": "Eintracht Frankfurt",
+   "name": "Rhein-Main-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "FC Augsburg",
+   "b": "FC Bayern München",
+   "name": "Bayerisches Derby",
+   "intensitaet": 1
+  },
+  {
+   "a": "FC Augsburg",
+   "b": "TSV 1860 München",
+   "name": "Bayerisches Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "FC Ingolstadt 04",
+   "b": "Jahn Regensburg",
+   "name": "Donauderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Würzburger Kickers",
+   "b": "1. FC Schweinfurt 05",
+   "name": "Unterfrankenderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "SC Freiburg",
+   "b": "Karlsruher SC",
+   "name": "Baden-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "SC Freiburg",
+   "b": "VfB Stuttgart",
+   "name": "Baden-Württemberg-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FC Heidenheim",
+   "b": "SSV Ulm 1846",
+   "name": "Ostalb-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfB Stuttgart",
+   "b": "Stuttgarter Kickers",
+   "name": "Stuttgarter Stadtderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfL Wolfsburg",
+   "b": "Eintracht Braunschweig",
+   "name": "Niedersachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "VfL Wolfsburg",
+   "b": "Hannover 96",
+   "name": "Niedersachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Werder Bremen",
+   "b": "VfB Oldenburg",
+   "name": "Nordwestderby",
+   "intensitaet": 1
+  },
+  {
+   "a": "Holstein Kiel",
+   "b": "VfB Lübeck",
+   "name": "Schleswig-Holstein-Derby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Hansa Rostock",
+   "b": "FC St. Pauli",
+   "name": "Nordderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Hansa Rostock",
+   "b": "Dynamo Dresden",
+   "name": "Ostderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Dynamo Dresden",
+   "b": "1. FC Lokomotive Leipzig",
+   "name": "Sachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Dynamo Dresden",
+   "b": "FC Erzgebirge Aue",
+   "name": "Sachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Chemnitzer FC",
+   "b": "FC Erzgebirge Aue",
+   "name": "Sachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Chemnitzer FC",
+   "b": "FSV Zwickau",
+   "name": "Westsachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "FC Erzgebirge Aue",
+   "b": "FSV Zwickau",
+   "name": "Westsachsenderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "BFC Dynamo",
+   "b": "1. FC Union Berlin",
+   "name": "Berliner Stadtderby",
+   "intensitaet": 3
+  },
+  {
+   "a": "FC Energie Cottbus",
+   "b": "Dynamo Dresden",
+   "name": "Ostderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "SV Babelsberg 03",
+   "b": "FC Energie Cottbus",
+   "name": "Brandenburgderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "SC Verl",
+   "b": "FC Gütersloh",
+   "name": "Kreisderby Gütersloh",
+   "intensitaet": 2
+  },
+  {
+   "a": "Arminia Bielefeld",
+   "b": "SC Verl",
+   "name": "OWL-Derby",
+   "intensitaet": 1
+  },
+  {
+   "a": "Waldhof Mannheim",
+   "b": "VfR Mannheim",
+   "name": "Mannheimer Stadtderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "1. FC Saarbrücken",
+   "b": "FC 08 Homburg",
+   "name": "Saarderby",
+   "intensitaet": 2
+  },
+  {
+   "a": "Alemannia Aachen",
+   "b": "1. FC Köln",
+   "name": "Rheinlandderby",
+   "intensitaet": 1
+  },
+  {
+   "a": "KSV Hessen Kassel",
+   "b": "SV Darmstadt 98",
+   "name": "Hessenderby",
+   "intensitaet": 1
+  },
+  {
+   "a": "Kickers Offenbach",
+   "b": "SV Darmstadt 98",
+   "name": "Hessenderby",
+   "intensitaet": 2
+  }
+ ],
+ "heimatligen": {
+  "FSV Wacker 03 Gotha": "Kreisoberliga Westthüringen",
+  "SV Borsch 1925": "Kreisoberliga Westthüringen",
+  "FSV 06 Ohratal": "Kreisoberliga Westthüringen",
+  "FC Schweina-Gumpelstadt": "Kreisoberliga Westthüringen",
+  "SpVgg Siebleben 06": "Kreisoberliga Westthüringen",
+  "Mosbacher SV 1911": "Kreisoberliga Westthüringen",
+  "FC 02 Barchfeld": "Kreisoberliga Westthüringen",
+  "SV Grün-Weiß Gospenroda": "Kreisoberliga Westthüringen",
+  "SV Wacker 04 Bad Salzungen": "Kreisoberliga Westthüringen",
+  "1. FC Sonneberg 04": "Kreisoberliga Südthüringen",
+  "FSV 06 Hildburghausen": "Kreisoberliga Südthüringen",
+  "SV 08 Steinach": "Kreisoberliga Südthüringen",
+  "SG Lauscha/Neuhaus": "Kreisoberliga Südthüringen",
+  "1. FC Eichsfeld": "Landesklasse Thüringen 2",
+  "FC Thüringen Weida": "Landesklasse Thüringen 1",
+  "1. SC 1911 Heiligenstadt": "Landesklasse Thüringen 2",
+  "SV SCHOTT Jena": "Landesklasse Thüringen 1",
+  "SV BW 90 Neustadt/Orla": "Landesklasse Thüringen 1",
+  "SV 09 Arnstadt": "Landesklasse Thüringen 1",
+  "FC An der Fahner Höhe": "Landesklasse Thüringen 2",
+  "FSV Preußen Bad Langensalza": "Landesklasse Thüringen 2",
+  "FSV Schleiz": "Landesklasse Thüringen 1",
+  "FC Einheit Bad Berka": "Landesklasse Thüringen 1",
+  "SV BW 91 Bad Frankenhausen": "Landesklasse Thüringen 2",
+  "FC Saalfeld": "Landesklasse Thüringen 1",
+  "TSV Gera-Westvororte": "Landesklasse Thüringen 1",
+  "SpVgg Geratal": "Landesklasse Thüringen 1",
+  "FSV Wacker 90 Nordhausen": "Landesklasse Thüringen 2",
+  "1. Suhler SV 06": "Landesklasse Thüringen 3",
+  "BSG Wismut Gera": "Kreisoberliga Ostthüringen",
+  "SC 1903 Weimar": "Kreisoberliga Mittelthüringen",
+  "SV Schmölln 1913": "Kreisoberliga Ostthüringen",
+  "SV Germania Ilmenau": "Kreisoberliga Mittelthüringen",
+  "Kickers FCL Gera": "Kreisoberliga Ostthüringen",
+  "FC Einheit Rudolstadt II": "Kreisoberliga Mittelthüringen",
+  "SV Jena-Zwätzen": "Kreisoberliga Jena-Saale-Orla",
+  "SV SCHOTT Jena II": "Kreisoberliga Jena-Saale-Orla",
+  "FC Thüringen Jena": "Kreisoberliga Jena-Saale-Orla",
+  "VfR Bad Lobenstein": "Kreisoberliga Jena-Saale-Orla",
+  "BSG Chemie Kahla": "Kreisoberliga Jena-Saale-Orla",
+  "SV Eintracht Eisenberg": "Kreisoberliga Jena-Saale-Orla",
+  "VfB 1909 Pößneck": "Kreisoberliga Jena-Saale-Orla",
+  "1. FC Greiz": "Kreisoberliga Ostthüringen",
+  "ZFC Meuselwitz II": "Kreisoberliga Ostthüringen",
+  "SV 1879 Ehrenhain": "Kreisoberliga Ostthüringen",
+  "SV Blau-Weiß Büßleben": "Kreisoberliga Erfurt-Sömmerda",
+  "FC Union Mühlhausen": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "SV Grün-Weiß Siemerode": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "FSV 06 Kölleda": "Kreisoberliga Erfurt-Sömmerda",
+  "SV Germania Wüstheuterode": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "SV Empor Walschleben": "Kreisoberliga Erfurt-Sömmerda",
+  "FSG 99 Salza": "Kreisoberliga Nordthüringen",
+  "TSV Motor Gispersleben": "Kreisoberliga Erfurt-Sömmerda",
+  "FC Erfurt Nord": "Kreisoberliga Erfurt-Sömmerda",
+  "SC 1918 Großengottern": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "FC Borntal Erfurt": "Kreisoberliga Erfurt-Sömmerda",
+  "SC Leinefelde 1912": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "BSV Eintracht Sondershausen": "Kreisoberliga Nordthüringen",
+  "FSV Sömmerda": "Kreisoberliga Erfurt-Sömmerda",
+  "SV 1911 Dingelstädt": "Kreisoberliga Eichsfeld/Unstrut-Hainich",
+  "SV Empor Buttstädt": "Kreisoberliga Erfurt-Sömmerda",
+  "VfL Meiningen 04": "Kreisoberliga Rhön-Rennsteig",
+  "Herpfer SV 07": "Kreisoberliga Rhön-Rennsteig",
+  "SV 1921 Walldorf": "Kreisoberliga Rhön-Rennsteig"
+ },
+ "wappen": {
+  "1. FC Köln": {
+   "datei": "wappen/1-fc-koln.webp",
+   "c1": "#ed1c24",
+   "c2": "#ffffff"
+  },
+  "SC Paderborn 07": {
+   "datei": "wappen/sc-paderborn-07.webp",
+   "c1": "#005ca9",
+   "c2": "#000000"
+  },
+  "1. FSV Mainz 05": {
+   "datei": "wappen/1-fsv-mainz-05.webp",
+   "c1": "#c3141e",
+   "c2": "#ffffff"
+  },
+  "SV Elversberg": {
+   "datei": "wappen/sv-elversberg.webp",
+   "c1": "#111111",
+   "c2": "#ffffff"
+  },
+  "RB Leipzig": {
+   "datei": "wappen/rb-leipzig.webp",
+   "c1": "#ffffff",
+   "c2": "#dd0741"
+  },
+  "Bayer 04 Leverkusen": {
+   "datei": "wappen/bayer-04-leverkusen.webp",
+   "c1": "#e32221",
+   "c2": "#000000"
+  },
+  "Hamburger SV": {
+   "datei": "wappen/hamburger-sv.webp",
+   "c1": "#ffffff",
+   "c2": "#0a3f86"
+  },
+  "Werder Bremen": {
+   "datei": "wappen/werder-bremen.webp",
+   "c1": "#1d9053",
+   "c2": "#ffffff"
+  },
+  "VfB Stuttgart": {
+   "datei": "wappen/vfb-stuttgart.webp",
+   "c1": "#ffffff",
+   "c2": "#e32219"
+  },
+  "FC Augsburg": {
+   "datei": "wappen/fc-augsburg.webp",
+   "c1": "#ba3733",
+   "c2": "#ffffff"
+  },
+  "TSG Hoffenheim": {
+   "datei": "wappen/tsg-hoffenheim.webp",
+   "c1": "#1961b5",
+   "c2": "#ffffff"
+  },
+  "FC Schalke 04": {
+   "datei": "wappen/fc-schalke-04.webp",
+   "c1": "#004d9d",
+   "c2": "#ffffff"
+  },
+  "Eintracht Frankfurt": {
+   "datei": "wappen/eintracht-frankfurt.webp",
+   "c1": "#e1000f",
+   "c2": "#000000"
+  },
+  "SC Freiburg": {
+   "datei": "wappen/sc-freiburg.webp",
+   "c1": "#e2001a",
+   "c2": "#000000"
+  },
+  "1. FC Union Berlin": {
+   "datei": "wappen/1-fc-union-berlin.webp",
+   "c1": "#eb1923",
+   "c2": "#ffffff"
+  },
+  "Borussia Mönchengladbach": {
+   "datei": "wappen/borussia-monchengladbach.webp",
+   "c1": "#ffffff",
+   "c2": "#111111"
+  },
+  "Borussia Dortmund": {
+   "datei": "wappen/borussia-dortmund.webp",
+   "c1": "#fde100",
+   "c2": "#000000"
+  },
+  "FC Bayern München": {
+   "datei": "wappen/fc-bayern-munchen.webp",
+   "c1": "#dc052d",
+   "c2": "#ffffff"
+  },
+  "Hertha BSC": {
+   "datei": "wappen/hertha-bsc.webp",
+   "c1": "#005ca9",
+   "c2": "#ffffff"
+  },
+  "1. FC Nürnberg": {
+   "datei": "wappen/1-fc-nurnberg.webp",
+   "c1": "#ab1f2c",
+   "c2": "#000000"
+  },
+  "1. FC Kaiserslautern": {
+   "datei": "wappen/1-fc-kaiserslautern.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "Arminia Bielefeld": {
+   "datei": "wappen/arminia-bielefeld.webp",
+   "c1": "#004e95",
+   "c2": "#000000"
+  },
+  "VfL Wolfsburg": {
+   "datei": "wappen/vfl-wolfsburg.webp",
+   "c1": "#65b32e",
+   "c2": "#ffffff"
+  },
+  "1. FC Magdeburg": {
+   "datei": "wappen/1-fc-magdeburg.webp",
+   "c1": "#005ca9",
+   "c2": "#ffffff"
+  },
+  "FC St. Pauli": {
+   "datei": "wappen/fc-st-pauli.webp",
+   "c1": "#6b4423",
+   "c2": "#ffffff"
+  },
+  "VfL Bochum": {
+   "datei": "wappen/vfl-bochum.webp",
+   "c1": "#005ca9",
+   "c2": "#ffffff"
+  },
+  "1. FC Heidenheim": {
+   "datei": "wappen/1-fc-heidenheim.webp",
+   "c1": "#e2001a",
+   "c2": "#003b79"
+  },
+  "FC Energie Cottbus": {
+   "datei": "wappen/fc-energie-cottbus.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "Hannover 96": {
+   "datei": "wappen/hannover-96.webp",
+   "c1": "#c3141e",
+   "c2": "#000000"
+  },
+  "SpVgg Greuther Fürth": {
+   "datei": "wappen/spvgg-greuther-furth.webp",
+   "c1": "#009a44",
+   "c2": "#ffffff"
+  },
+  "Dynamo Dresden": {
+   "datei": "wappen/dynamo-dresden.webp",
+   "c1": "#fdd800",
+   "c2": "#000000"
+  },
+  "VfL Osnabrück": {
+   "datei": "wappen/vfl-osnabruck.webp",
+   "c1": "#5b2c86",
+   "c2": "#ffffff"
+  },
+  "Eintracht Braunschweig": {
+   "datei": "wappen/eintracht-braunschweig.webp",
+   "c1": "#fdd800",
+   "c2": "#005ca9"
+  },
+  "Holstein Kiel": {
+   "datei": "wappen/holstein-kiel.webp",
+   "c1": "#004a9f",
+   "c2": "#ffffff"
+  },
+  "SV Darmstadt 98": {
+   "datei": "wappen/sv-darmstadt-98.webp",
+   "c1": "#004e9e",
+   "c2": "#ffffff"
+  },
+  "Karlsruher SC": {
+   "datei": "wappen/karlsruher-sc.webp",
+   "c1": "#00489d",
+   "c2": "#ffffff"
+  },
+  "TSV Havelse": {
+   "datei": "wappen/tsv-havelse.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "Fortuna Köln": {
+   "datei": "wappen/fortuna-koln.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "SG Sonnenhof Großaspach": {
+   "datei": "wappen/sg-sonnenhof-grossaspach.webp",
+   "c1": "#111111",
+   "c2": "#fdd800"
+  },
+  "SC Verl": {
+   "datei": "wappen/sc-verl.webp",
+   "c1": "#111111",
+   "c2": "#ffffff"
+  },
+  "Jahn Regensburg": {
+   "datei": "wappen/jahn-regensburg.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "Würzburger Kickers": {
+   "datei": "wappen/wurzburger-kickers.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "SC Preußen Münster": {
+   "datei": "wappen/sc-preussen-munster.webp",
+   "c1": "#111111",
+   "c2": "#ffffff"
+  },
+  "Fortuna Düsseldorf": {
+   "datei": "wappen/fortuna-dusseldorf.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "SV Meppen": {
+   "datei": "wappen/sv-meppen.webp",
+   "c1": "#005ca9",
+   "c2": "#ffffff"
+  },
+  "Hansa Rostock": {
+   "datei": "wappen/hansa-rostock.webp",
+   "c1": "#005ca9",
+   "c2": "#ffffff"
+  },
+  "Waldhof Mannheim": {
+   "datei": "wappen/waldhof-mannheim.webp",
+   "c1": "#003d7c",
+   "c2": "#000000"
+  },
+  "Alemannia Aachen": {
+   "datei": "wappen/alemannia-aachen.webp",
+   "c1": "#fdd800",
+   "c2": "#000000"
+  },
+  "1. FC Saarbrücken": {
+   "datei": "wappen/1-fc-saarbrucken.webp",
+   "c1": "#003d7c",
+   "c2": "#000000"
+  },
+  "FC Ingolstadt 04": {
+   "datei": "wappen/fc-ingolstadt-04.webp",
+   "c1": "#111111",
+   "c2": "#e2001a"
+  },
+  "Wehen Wiesbaden": {
+   "datei": "wappen/wehen-wiesbaden.webp",
+   "c1": "#e2001a",
+   "c2": "#111111"
+  },
+  "Rot-Weiss Essen": {
+   "datei": "wappen/rot-weiss-essen.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "MSV Duisburg": {
+   "datei": "wappen/msv-duisburg.webp",
+   "c1": "#003d7c",
+   "c2": "#ffffff"
+  },
+  "Viktoria Köln": {
+   "datei": "wappen/viktoria-koln.webp",
+   "c1": "#e2001a",
+   "c2": "#111111"
+  },
+  "Eintracht Norderstedt": {
+   "datei": "wappen/eintracht-norderstedt.webp",
+   "c1": "#c4161c",
+   "c2": "#005ca9"
+  },
+  "Bremer SV": {
+   "datei": "wappen/bremer-sv.webp",
+   "c1": "#0b2a5b",
+   "c2": "#ffffff"
+  },
+  "SV Todesfelde": {
+   "datei": "wappen/sv-todesfelde.webp",
+   "c1": "#005ca9",
+   "c2": "#fdd800"
+  },
+  "Eimsbütteler TV": {
+   "datei": "wappen/eimsbutteler-tv.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "HSC Hannover": {
+   "datei": "wappen/hsc-hannover.webp",
+   "c1": "#0b6e4f",
+   "c2": "#e2001a"
+  },
+  "SSV Jeddeloh II": {
+   "datei": "wappen/ssv-jeddeloh-ii.webp",
+   "c1": "#1e73be",
+   "c2": "#ffffff"
+  },
+  "VfB Lübeck": {
+   "datei": "wappen/vfb-lubeck.webp",
+   "c1": "#1d9053",
+   "c2": "#111111"
+  },
+  "Kickers Emden": {
+   "datei": "wappen/kickers-emden.webp",
+   "c1": "#1e3a8a",
+   "c2": "#ffffff"
+  },
+  "Atlas Delmenhorst": {
+   "datei": "wappen/atlas-delmenhorst.webp",
+   "c1": "#fdd800",
+   "c2": "#1e2a78"
+  },
+  "FSV Schöningen": {
+   "datei": "wappen/fsv-schoningen.webp",
+   "c1": "#e2001a",
+   "c2": "#fdd800"
+  },
+  "SV Drochtersen/Assel": {
+   "datei": "wappen/sv-drochtersen-assel.webp",
+   "c1": "#e2001a",
+   "c2": "#1e73be"
+  },
+  "Phönix Lübeck": {
+   "datei": "wappen/phonix-lubeck.webp",
+   "c1": "#1e5aa8",
+   "c2": "#ffffff"
+  },
+  "VfB Oldenburg": {
+   "datei": "wappen/vfb-oldenburg.webp",
+   "c1": "#0b2a5b",
+   "c2": "#ffffff"
+  },
+  "Weiche Flensburg": {
+   "datei": "wappen/weiche-flensburg.webp",
+   "c1": "#c4161c",
+   "c2": "#5bc0eb"
+  },
+  "FSV 63 Luckenwalde": {
+   "datei": "wappen/fsv-63-luckenwalde.webp",
+   "c1": "#fde100",
+   "c2": "#005ca9"
+  },
+  "RSV Eintracht 1949": {
+   "datei": "wappen/rsv-eintracht-1949.webp",
+   "c1": "#0b4f9c",
+   "c2": "#ffffff"
+  },
+  "SV Tasmania Berlin": {
+   "datei": "wappen/sv-tasmania-berlin.webp",
+   "c1": "#1e3a6e",
+   "c2": "#e2001a"
+  },
+  "BSG Chemie Leipzig": {
+   "datei": "wappen/bsg-chemie-leipzig.webp",
+   "c1": "#1d9053",
+   "c2": "#ffffff"
+  },
+  "BFC Preussen": {
+   "datei": "wappen/bfc-preussen.webp",
+   "c1": "#111111",
+   "c2": "#ffffff"
+  },
+  "SV Babelsberg 03": {
+   "datei": "wappen/sv-babelsberg-03.webp",
+   "c1": "#0b2a6b",
+   "c2": "#ffffff"
+  },
+  "FSV Zwickau": {
+   "datei": "wappen/fsv-zwickau.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "1. FC Lokomotive Leipzig": {
+   "datei": "wappen/1-fc-lokomotive-leipzig.webp",
+   "c1": "#003d8f",
+   "c2": "#fdd800"
+  },
+  "Greifswalder FC": {
+   "datei": "wappen/greifswalder-fc.webp",
+   "c1": "#c8102e",
+   "c2": "#ffffff"
+  },
+  "FC Carl Zeiss Jena": {
+   "datei": "wappen/fc-carl-zeiss-jena.webp",
+   "c1": "#003d8f",
+   "c2": "#f5b800"
+  },
+  "FC Erzgebirge Aue": {
+   "datei": "wappen/fc-erzgebirge-aue.webp",
+   "c1": "#5b2a86",
+   "c2": "#ffffff"
+  },
+  "VSG Altglienicke": {
+   "datei": "wappen/vsg-altglienicke.webp",
+   "c1": "#1e5aa8",
+   "c2": "#ffffff"
+  },
+  "Hallescher FC": {
+   "datei": "wappen/hallescher-fc.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  },
+  "BFC Dynamo": {
+   "datei": "wappen/bfc-dynamo.webp",
+   "c1": "#7a1f2b",
+   "c2": "#ffffff"
+  },
+  "Chemnitzer FC": {
+   "datei": "wappen/chemnitzer-fc.webp",
+   "c1": "#5bb4e5",
+   "c2": "#ffffff"
+  },
+  "FC Rot-Weiß Erfurt": {
+   "datei": "wappen/fc-rot-weiss-erfurt.webp",
+   "c1": "#e2001a",
+   "c2": "#ffffff"
+  }
+ }
+}
