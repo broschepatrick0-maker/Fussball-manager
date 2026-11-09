@@ -188,11 +188,16 @@ function renderHome(){
 function searchRes(){
   const q=(view.q||'').toLowerCase().trim(),el=$('sres');
   if(q.length<2){el.innerHTML='';return}
-  const hits=Object.values(S.teams).filter(t=>t.name.toLowerCase().includes(q)).slice(0,12);
-  const lgs=S.leagues.filter(l=>l.name.toLowerCase().includes(q)).slice(0,6),cps=S.cups.filter(c=>c.name.toLowerCase().includes(q)).slice(0,4);
-  el.innerHTML=(hits.map(t=>{const lg=S.leagues.find(l=>l.teams.includes(t.id));return navBtn(false,t.name,lg?lg.name.replace('Regionalliga','RL'):'–','club:'+t.id)}).join('')
+  // Umlaute/Schreibweisen egal (ö = oe), Treffer am Wortanfang zuerst, aufgelöste Vereine zuletzt
+  const nq=normName(q),sc=n=>{const x=normName(n);if(!x.includes(nq))return -1;return (x.startsWith(nq)?3:n.toLowerCase().split(/\s+/).some(w=>normName(w).startsWith(nq))?2:1)};
+  const hits=Object.values(S.teams).map(t=>[t,sc(t.name)]).filter(x=>x[1]>0).sort((a,b)=>(!!a[0].gone-!!b[0].gone)||b[1]-a[1]||(a[0].lv||9)-(b[0].lv||9)||a[0].name.length-b[0].name.length).slice(0,12).map(x=>x[0]);
+  const lgs=S.leagues.filter(l=>sc(l.name)>0).slice(0,6),cps=S.cups.filter(c=>sc(c.name)>0).slice(0,4);
+  const pls=nq.length>=3?Object.entries(P()).filter(([id,p])=>p&&p.n&&normName(p.n).includes(nq)).slice(0,300).sort((a,b)=>b[1].s-a[1].s).slice(0,8):[];
+  const clubOf=pid=>{for(const t of Object.values(S.teams))if(t.sq&&t.sq.includes(pid))return t;return null};
+  el.innerHTML=(hits.map(t=>{const lg=lgOf(t.id);return `<button class="nav-i" data-act="club:${t.id}"><span>${hasCrest(t.id)?crestMini(t.id):''}${esc(t.name)}</span><em>${esc(t.gone?`aufgelöst ${t.gone}`:lg?lg.name.replace('Regionalliga','RL'):'–')}</em></button>`}).join('')
     +(lgs.length?'<div class="lvh">Ligen</div>'+lgs.map(l=>navBtn(false,l.name,l.teams.length,'lg:'+l.id)).join(''):'')
-    +(cps.length?'<div class="lvh">Pokale</div>'+cps.map(c=>navBtn(false,c.name,c.teams.length,'cup:'+c.id)).join(''):''))||'<span class="meta">Nichts gefunden</span>';
+    +(cps.length?'<div class="lvh">Pokale</div>'+cps.map(c=>navBtn(false,c.name,c.teams.length,'cup:'+c.id)).join(''):'')
+    +(pls.length?'<div class="lvh">Spieler</div>'+pls.map(([id,p])=>{const c=clubOf(id);return navBtn(false,`${p.p} · ${p.n}`,`${c?c.name:'vereinslos'} · ${p.s.toFixed(0)}`,'pi:'+id)}).join(''):''))||'<span class="meta">Nichts gefunden</span>';
   el.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act));
 }
 function score(m,cup){
