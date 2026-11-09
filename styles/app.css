@@ -412,11 +412,11 @@ button.clock:hover b{text-decoration:underline}
 .top .clock b{white-space:nowrap}
 @media (max-width:600px){.top .clock .yr{display:none}.top .clock b{font-size:15px}}
 /* Frische */
-.fi{display:inline-flex;align-items:center;gap:6px;min-width:64px;vertical-align:middle}
-.fi i{display:block;height:6px;width:40px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
-.fi u{position:absolute;left:0;top:0;bottom:0;background:currentColor}
-.fi b{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600;min-width:20px;text-align:right}
-.fi.ok{color:#2f9e5b}.fi.mid{color:#c9a227}.fi.low{color:#d0453b}
+.fiq{display:inline-flex;align-items:center;gap:6px;min-width:64px;vertical-align:middle}
+.fiq i{display:block;height:6px;width:40px;border-radius:3px;background:var(--line);position:relative;overflow:hidden}
+.fiq u{position:absolute;left:0;top:0;bottom:0;background:currentColor}
+.fiq b{font-size:12px;font-variant-numeric:tabular-nums;font-weight:600;min-width:20px;text-align:right}
+.fiq.ok{color:#2f9e5b}.fiq.mid{color:#c9a227}.fiq.low{color:#d0453b}
 .sqt .tlink{text-decoration:underline dotted;text-underline-offset:3px;font:inherit;color:inherit;cursor:pointer}
 .tag.cap{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .mood{font-size:16px;line-height:1}
@@ -474,3 +474,13 @@ button.clock:hover b{text-decoration:underline}
 .face.lg{width:88px;height:88px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .pihead{display:flex;gap:12px;align-items:stretch}.pihead .facts{flex:1}
 @media (max-width:520px){.face.lg{width:72px;height:72px}}
+
+/* Handy: nichts darf die Seite seitlich verbreitern */
+html,body{max-width:100%;overflow-x:clip}
+.mobonly{display:none}
+@media (max-width:600px){.deskonly{display:none!important}.mobonly{display:block}}
+.mgl .mg{padding:8px 0;border-bottom:1px solid var(--line)}.mgl .mg:last-child{border-bottom:0}
+.mgr{display:grid;grid-template-columns:1fr auto 1fr 22px;gap:8px;align-items:center;margin-top:3px}
+.mgr span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mgr .r{text-align:right}.mgr .w{font-weight:700}
+.mgr b{font-variant-numeric:tabular-nums;text-align:center}
+.mgr2{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mgr2 .mvt{margin-left:auto}

@@ -34,7 +34,7 @@ function slotEff(pid,sl){const p=P()[pid];return p?posStr(p,sl)*fitMul(curFi(p))
 function rested(){if(S.mgr){S.mgr.talk=[];S.mgr.gp=0}if(S.pl)for(const p of Object.values(S.pl)){if(p.pr||p.tc!=null){delete p.pr;delete p.tc}}
   Object.values(S.teams).forEach(t=>{delete t.tf;delete t.td;delete t.tdd;delete t.pf});if(S.pl)for(const p of Object.values(S.pl)){if(p.fi!=null){delete p.fi;delete p.fd}}}
 // Ansicht: Frische-Anzeige
-function fiLbl(p){const f=Math.round(curFi(p));const c=f>=88?'ok':f>=75?'mid':'low';return `<span class="fi ${c}" title="Frische ${f} %"><i><u style="width:${f}%"></u></i><b>${f}</b></span>`}
+function fiLbl(p){const f=Math.round(curFi(p));const c=f>=88?'ok':f>=75?'mid':'low';return `<span class="fiq ${c}" title="Frische ${f} %"><i><u style="width:${f}%"></u></i><b>${f}</b></span>`}
 function restDays(id){const nx=clubFixtures(id).filter(x=>!x.done&&x.day>S.day);if(!nx.length)return null;const d=nx[0].day;const prev=clubFixtures(id).filter(x=>x.done&&x.day!=null&&x.day<d).pop();return {next:nx[0],day:d,rest:prev?d-prev.day-1:null,after:nx[1]?nx[1].day-d-1:null}}
 function fitnessCard(id){const g=MG(),r=mgrXI(id),t=T(id);const xi=r.xi.filter(Boolean);
   const avg=xi.length?xi.reduce((a,pid)=>a+curFi(P()[pid]),0)/xi.length:100;const rd=restDays(id);
