@@ -24,5 +24,5 @@ for club,g in k.groupby('Verein',sort=False):
 for c,v in tr.items():
     if c not in new and c in cur:cur[c]['tr']=v
 cur.update(new)
-open(F,'w').write('// Echte Kader (vom Nutzer geliefert): Name, Position, Alter, Nation, Stärke (optional), Marktwert in Mio. € (optional)\nvar REAL_SQUADS='+json.dumps(cur,ensure_ascii=False)+';\n')
+open(F,'w').write('// Echte Kader (vom Nutzer geliefert bzw. aus Wikipedia-Kaderlisten): Name, Position, Alter, Nation, Stärke (optional), Marktwert in Mio. € (optional), Rückennummer (optional), Stammkraft 1 (optional)\nvar REAL_SQUADS='+json.dumps(cur,ensure_ascii=False)+';\n')
 print('Vereine:',{c:len(v['p']) for c,v in new.items()},'gesamt',len(cur))
