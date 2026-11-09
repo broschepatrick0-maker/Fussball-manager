@@ -20,7 +20,8 @@ function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
   if(scr==='slots')return `<div class="menu"><div class="mhead">${back}<h2>Spielstände</h2></div><div class="mlist">${[1,2,3].map(n=>`<div class="mslot${n===SLOT?' on':''}"><div><span class="meta">Platz ${n}${n===SLOT?' · aktiv':''}</span>${metaLine(MENU.metas[n])}</div><div class="ctrls">${MENU.metas[n]?`<button class="btn sm pri" data-act="mload:${n}">${n===SLOT?'Fortsetzen':'Laden'}</button><button class="btn sm" data-act="mdel:${n}">Löschen</button>`:''}</div></div>`).join('')}</div></div>`;
   if(scr==='set'){let t='auto';try{t=localStorage.getItem('fp-theme')||'auto'}catch(e){}
     return `<div class="menu"><div class="mhead">${back}<h2>Einstellungen</h2></div><div class="mlist"><div class="mslot"><div><b>Darstellung</b><span class="meta">Hell, dunkel oder wie das Gerät</span></div><div class="seg" style="margin:0">${[['auto','Automatisch'],['light','Hell'],['dark','Dunkel']].map(([k,n])=>`<button class="${t===k?'on':''}" data-act="mtheme:${k}">${n}</button>`).join('')}</div></div>
-     <div class="mslot"><div><b>Live-Tempo</b><span class="meta">Standard für Live-Spiele</span></div><div class="seg" style="margin:0">${SPEEDS.map(([k,,n])=>`<button class="${(S.liveSpeed||1)===k?'on':''}" data-act="mspeed:${k}">${n}</button>`).join('')}</div></div></div></div>`}
+     <div class="mslot"><div><b>Live-Tempo</b><span class="meta">Standard für Live-Spiele</span></div><div class="seg" style="margin:0">${SPEEDS.map(([k,,n])=>`<button class="${(S.liveSpeed||1)===k?'on':''}" data-act="mspeed:${k}">${n}</button>`).join('')}</div></div>
+     <div class="mslot"><div><b>App-Version</b><span class="meta" id="appVer">${typeof appVersion==='function'?'…':'Einzeldatei / Vorschau'} · ${typeof CREST_BUILTIN!=='undefined'?Object.keys(CREST_BUILTIN).length:0} Wappen · ${typeof REAL_SQUADS!=='undefined'?Object.keys(REAL_SQUADS).length:0} echte Kader</span></div>${typeof checkUpdate==='function'?'<button class="btn" data-act="mupd">Nach Update suchen</button>':''}</div></div></div>`}
   if(scr==='found')return foundHTML(back);
   // Neues Spiel (Karriere oder frei)
   const nw=MENU.nw,free=scr==='free',slots=[1,2,3];if(nw.slot==null)nw.slot=slots.find(n=>!MENU.metas[n])||SLOT;
@@ -37,13 +38,14 @@ function menuHTML(){const scr=MENU.scr,cur=MENU.metas[SLOT];
    <button class="mbtn pri" data-act="mgo:${free?'free':'career'}"><span>${free?'Spiel starten':'Karriere starten'}</span><span class="meta">Eine neue Welt mit allen Ligen wird erstellt</span></button>
   </div></div>`}
 async function menuAct(k,v){const nw=MENU.nw;
-  if(k==='mscr'){MENU.scr=v;if(v==='found'){const sl=[1,2,3];if(nw.slot==null)nw.slot=sl.find(n=>!MENU.metas[n])||SLOT}if(v==='new'||v==='free'){nw.club=null;nw.q=''}}
+  if(k==='mscr'){MENU.scr=v;if(v==='set'&&typeof appVersion==='function')setTimeout(async()=>{const e=document.getElementById('appVer');if(e)e.textContent=e.textContent.replace('…',await appVersion())},80);if(v==='found'){const sl=[1,2,3];if(nw.slot==null)nw.slot=sl.find(n=>!MENU.metas[n])||SLOT}if(v==='new'||v==='free'){nw.club=null;nw.q=''}}
   else if(k==='mcont'){view.ov=null;view={tab:S.fav?'fav':'home',ftab:'ov'}}
   else if(k==='mstart'){readMenuInputs();nw.start=v}
   else if(k==='mclub'){readMenuInputs();nw.club=v}
   else if(k==='mslot'){readMenuInputs();nw.slot=+v}
   else if(k==='mtheme'){try{localStorage.setItem('fp-theme',v)}catch(e){}applyTheme()}
   else if(k==='mspeed'){S.liveSpeed=+v;save()}
+  else if(k==='mupd'){checkUpdate();return}
   else if(k==='mload'){const n=+v;if(n!==SLOT){switchSlot(n);if(!(await loadAsync())){toast('Spielstand nicht gefunden');return}migrateLoaded()}view={tab:S.fav?'fav':'home',ftab:'ov'};view.ov=null;toast('Spielstand '+n+' geladen')}
   else if(k==='mdel'){const n=+v;if(!confirmTwice('del'+n)){toast('Zum Löschen nochmal tippen');return}const p=n===1?'':`s${n}:`;await Promise.all(['state','hist','meta','stateZ','histZ'].map(x=>DB.del(p+x).catch(()=>{})));await readMetas();toast('Platz '+n+' gelöscht')}
   else if(k==='mgo'&&v==='found'){readMenuInputs();if(!foundStart())return}
