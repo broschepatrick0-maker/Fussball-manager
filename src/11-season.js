@@ -157,6 +157,7 @@ function newSeason(){
   S.season++;
   startSeason();
   if(isCareer()&&S.career.club)setGoal();
+  try{fillSquads()}catch(e){console.warn(e)}
   transferDay(140);
   view={tab:'season',id:null};
 }

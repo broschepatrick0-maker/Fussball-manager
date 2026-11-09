@@ -21,7 +21,7 @@ function fmed(L_){const k=L_.f?'F':L_.lv,m=S.fmed&&S.fmed[k];return m||(L_.f?MED
 function updMedians(){const o={};S.leagues.forEach(l=>{const k=l.foreign?'F':l.level;l.teams.forEach(id=>(o[k]=o[k]||[]).push(clubValue(id)))});S.fmed={};for(const k in o){const a=o[k].sort((x,y)=>x-y),cut=Math.floor(a.length*.05),b=a.slice(cut,a.length-cut||a.length);S.fmed[k]=b.reduce((x,y)=>x+y,0)/b.length}}
 function estRevenue(id,L_){L_=L_||finLv(id);if(!L_)return 0;const med=fmed(L_),base=med*(L_.f?.24:(WRATIO[L_.lv]||.03))/(L_.lv>=5&&!L_.f?0.69:0.71);
   const attr=Math.max(.2,Math.min(8,clubValue(id)/med));return base*(0.3+0.7*attr)}
-function wage(pid,lv){const p=P()[pid];if(!p)return 0;return value(pid)*(WRATIO[lv]||.03)}
+function wage(pid,lv){const p=P()[pid];if(!p)return 0;return wageBase(pid)*(WRATIO[lv]||.03)}
 function wageBill(id,lv){return ensureSquad(id).reduce((a,pid)=>a+wageOf(pid,id),0)}
 function prizeMoney(id){
   const L_=finLv(id);const base=L_?(L_.f?REVF:(REVL[L_.lv]||8e3)):0;

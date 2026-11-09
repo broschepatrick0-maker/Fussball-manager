@@ -2,7 +2,7 @@
 // Kurzfelder am Spieler: c = Vertrag bis (Saisonjahr), w = Jahresgehalt, inj = Ausfall in Wochen, it = Verletzungsart, fo = persönliche Form
 // Am Verein: fm = Teamform (-3…+3), mo = Moral (0…100)
 const lvOfTeam=id=>{const l=lgOf(id);return l?(l.foreign?1:l.level):6};
-function marketWage(pid,club){const z=T(club)&&T(club).fz;const lv=lvOfTeam(club);return Math.round(value(pid)*(WRATIO[lv]||.03)*((z&&z.wf)||1)/100)*100}
+function marketWage(pid,club){const z=T(club)&&T(club).fz;const lv=lvOfTeam(club);return Math.round(wageBase(pid)*(WRATIO[lv]||.03)*((z&&z.wf)||1)/100)*100}
 function ensureContract(pid,club){const p=P()[pid];if(!p)return;if(club&&isAmClub(club)){if(!p.am){p.am=1;delete p.c;p.w=marketWage(pid,club)}return}if(p.am){delete p.am;p.c=null}if(p.c==null){const R=srng(hstr('c'+pid));p.c=S.season+1+Math.floor(R()*4);p.w=marketWage(pid,club)}}
 function setContract(pid,club,years){const p=P()[pid];if(!p)return;if(club&&isAmClub(club)){p.am=1;delete p.c;p.w=Math.round(marketWage(pid,club)*(0.8+Math.random()*0.4)/100)*100;return}delete p.am;const y=years||(p.a>=31?1+Math.floor(Math.random()*2):2+Math.floor(Math.random()*4));
   p.c=S.season+y;p.w=Math.round(marketWage(pid,club)*(0.93+Math.random()*0.15)/100)*100}

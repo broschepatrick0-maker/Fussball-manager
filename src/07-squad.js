@@ -34,9 +34,14 @@ function value(pid){
   const p=P()[pid]; if(!p) return 0;
   if(p.mvR&&p.mvS===S.season)return p.mvR; // echter Marktwert aus der Kaderliste (gilt für die laufende Saison)
   const am=p.a<=21?1.25:p.a<=24?1.1:p.a<=28?1:p.a<=30?.8:p.a<=32?.55:.3;
-  const v=Math.min(1.8e8,Math.pow(10,4.3+(Math.min(p.s,99)-30)*0.055)*am);
+  // oberhalb von Stärke 70 steigt der Wert steiler: Weltstars (90+) liegen bei 150–200 Mio. €, Stammspieler der Bundesliga bei 10–40 Mio. €
+  const s=Math.min(p.s,99),top=s>70?(s-70)*(s-70)*.001:0;
+  const v=Math.min(2.2e8,Math.pow(10,4.3+(s-30)*0.055+top)*am);
   const r=v>1e6?1e5:v>1e5?1e4:1e3; return Math.max(1000,Math.round(v/r)*r);
 }
+// Grundlage für Gehälter: die bisherige, flachere Kurve – damit die Lohnkosten der Vereine durch die neuen Marktwerte nicht explodieren
+function wageBase(pid){const p=P()[pid];if(!p)return 0;if(p.mvR&&p.mvS===S.season)return Math.min(p.mvR,valueFlat(p));return valueFlat(p)}
+function valueFlat(p){const am=p.a<=21?1.25:p.a<=24?1.1:p.a<=28?1:p.a<=30?.8:p.a<=32?.55:.3;return Math.min(1.8e8,Math.pow(10,4.3+(Math.min(p.s,99)-30)*0.055)*am)}
 function clubValue(id){return (T(id).sq||ensureSquad(id)).reduce((a,pid)=>a+value(pid),0)}
 function money(v){return v>=1e6?(v/1e6).toFixed(v>=1e7?0:1).replace('.',',')+' Mio. €':v>=1e3?Math.round(v/1e3)+' Tsd. €':Math.round(v)+' €'}
 function windowOpen(){return S.done||transferOpenOn(Math.max(0,S.day+1))}
@@ -113,6 +118,10 @@ function buyers(){
   buyers.c={k:S.season+'-'+S.leagues.length,l,by};return l;
 }
 function wpick(l){const tot=l.reduce((a,x)=>a+x[1],0);let r=Math.random()*tot;for(const x of l){r-=x[1];if(r<=0)return x[0]}return l[l.length-1][0]}
+// Zu kleine Kader zur neuen Saison mit Nachwuchs auffüllen (nur KI-Vereine, nur bereits erzeugte Kader)
+function fillSquads(){for(const id in S.teams){const t=S.teams[id];if(!t.sq||t.gone||id===S.fav||t.sq.length>=20)continue;
+  let n=0;while(t.sq.length<22&&n++<8){const pos=posNeed(t),pid=newPlayer(t,pos,Math.max(20,(t.r||50)-9+gauss()*3),18+Math.floor(Math.random()*3));try{P()[pid].pot=+Math.max(P()[pid].s,youthPot(t)).toFixed(1)}catch(e){}t.sq.push(pid);try{if(typeof ensureContract==='function'&&!isAmClub(id))ensureContract(pid,id)}catch(e){}}
+  recalc(id)}}
 function posNeed(t){ // Position mit der größten Lücke zur Teamstärke
   const sc=POS.map(p=>{const n={TW:1,AB:4,MF:4,ST:2}[p];const a=t.sq.filter(id=>P()[id].p===p).map(id=>P()[id].s).sort((x,y)=>y-x).slice(0,n);while(a.length<n)a.push(15);return [p,a.reduce((x,y)=>x+y,0)/n-t.r+Math.random()*3]});
   return sc.sort((x,y)=>x[1]-y[1])[0][0];
@@ -143,15 +152,21 @@ function aiTransfer(force){
   const c=[];
   // Scouting: manchmal sucht ein Verein gezielt Talente (unsichtbares Potenzial, Schätzung mit Unschärfe)
   const talent=Math.random()<.25,est=p=>potOf(p)+gauss()*3;
+  // Verstärkung = besser als der schwächste Stammspieler auf der Position (so ersetzen auch Spitzenclubs alternde Stars)
+  const xiIds=typeof starters==='function'?starters(bid):b.sq,weak=Math.min(...xiIds.map(x=>P()[x]).filter(p=>p&&p.p===need).map(p=>p.s),b.r);
+  const lo=Math.max(weak+1,b.r-6);
   sellers.forEach(sid=>{ensureSquad(sid).forEach(pid=>{const p=P()[pid];
-    const ok=talent?(p.a<=21&&p.s>=b.r-12&&est(p)>=b.r+2):(p.p===need&&p.s>b.r-1&&p.s<b.r+9&&p.a<=31);
+    const ok=talent?(p.a<=21&&p.s>=b.r-12&&est(p)>=b.r+2):(p.p===need&&p.s>Math.min(lo,b.r-1)&&p.s<b.r+9&&p.a<=31);
     if(ok){const am=isAmClub(sid);if(am&&(T(sid).lv||9)<blv&&Math.random()>.3)return; // Amateure wechseln selten freiwillig nach unten
       const fee=am?0:Math.round(value(pid)*(talent?1.3+Math.random()*.5:1+Math.random()*.4)/1e3)*1e3;if(fee<=money_)c.push({pid,sid,fee,e:talent?est(p):p.s})}})});
   if(!c.length) return;
   c.sort((x,y)=>y.e-x.e);
   const pick=c[Math.floor(Math.random()*Math.min(3,c.length))],st=T(pick.sid),pp=P()[pick.pid].p;
   if(st.sq.filter(id=>P()[id].p===pp).length<=2) return;
+  // stärkere Vereine geben Stammspieler nicht an schwächere ab (wie im echten Fußball – höchstens ganz selten)
+  if(pick.sid!==S.fav&&(st.r||0)>(b.r||0)+1&&Math.random()>.08&&(typeof starters==='function'?starters(pick.sid):[]).includes(pick.pid)) return;
   if(pick.sid===S.fav&&st.sq.length<=18) return;
+  if(pick.sid!==S.fav&&st.sq.length<=21) return; // KI-Vereine verkaufen ihren Kader nicht leer
   st.sq=st.sq.filter(x=>x!==pick.pid);b.sq.push(pick.pid);addBud(bid,-pick.fee);addBud(pick.sid,pick.fee);
   addTr(pick.pid,pick.sid,bid,pick.fee);
   if(b.sq.length>27){ // schwächsten Spieler abgeben
@@ -175,7 +190,11 @@ function aiOffer(){ // Angebot an Mein Verein
 }
 function favAuto(){return !!S.fav&&FV().auto!==false}
 function transferDay(n,offer=true){for(let i=0;i<n;i++)aiTransfer();if(offer)aiOffer();
-  const rich=Object.values(S.inv||{}).filter(x=>x.club&&T(x.club)&&x.club!==S.fav);for(let i=0;i<Math.min(6,rich.length);i++)aiTransfer(rpick(rich,Math.random).club)}
+  const rich=Object.values(S.inv||{}).filter(x=>x.club&&T(x.club)&&x.club!==S.fav);for(let i=0;i<Math.min(6,rich.length);i++)aiTransfer(rpick(rich,Math.random).club);
+  // Spitzenclubs mit viel Geld werden zusätzlich aktiv – sonst horten sie Millionen und überaltern
+  const cr=cashRich();for(let i=0;i<Math.min(3,cr.length);i++)aiTransfer(cr[Math.floor(Math.random()*cr.length)])}
+function cashRich(){const k=S.season+':'+S.day;if(cashRich.c&&cashRich.c.k===k)return cashRich.c.l;buyers();const by=buyers.c.by;
+  const l=[...(by[1]||[]),...(by[2]||[])].filter(id=>id!==S.fav&&T(id)&&!T(id).gone&&bud(id)>=4e7);cashRich.c={k,l};return l}
 
 // ---------- Speicher schlank halten: Kader weit entfernter Amateur-/Oberliga-Vereine werden verworfen ----------
 // (die Teamstärke bleibt erhalten; schaut man den Verein später an, wird ein neuer Kader auf gleichem Niveau erzeugt)
