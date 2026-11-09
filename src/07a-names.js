@@ -63,7 +63,7 @@ function rollNat(t){
 function nameFor(nat){const p=natPool(nat)||natPool('DE');
   if(nat==='DE'&&Math.random()<.13){const m=natPool(wpickObj(NAT_MIX))||p;return Math.random()<.5?rnd(m.f)+' '+rnd(p.l):rnd(p.f)+' '+rnd(m.l)}
   return rnd(p.f)+' '+rnd(p.l)}
-function flagOf(p){const n=p&&NAT[p.nat||'DE'];return n?`<span class="flg" title="${n.n}">${n.fl}</span>`:''}
+function flagOf(p){const n=p&&(NAT[p.nat||'DE']||(typeof natInfo==='function'?natInfo(p.nat):null));return n?`<span class="flg" title="${n.n}">${n.fl}</span>`:''}
 // Bestehende, generierte Kader einmalig mit neuen Namen & Nationalitäten versehen
 function renamePlayersOnce(){if(S.nmv>=2||!S.pl)return false;const club={};
   Object.values(S.teams).forEach(t=>(t.sq||[]).forEach(pid=>club[pid]=t));

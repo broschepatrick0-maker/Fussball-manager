@@ -23,6 +23,7 @@ function xi(sq){
 }
 function ensureSquad(id){
   const t=T(id); if(t.sq) return t.sq;
+  if(typeof realSquadOf==='function'&&realSquadOf(t)){const r=buildRealSquad(id,t.r);if(r)return r}
   const plan=[['TW',3],['AB',8],['MF',8],['ST',5]],sq=[];
   plan.forEach(([p,n])=>{for(let i=0;i<n;i++)sq.push(newPlayer(t,p,t.r-2+gauss()*4-i*0.8))});
   const d=t.r-xi(sq);sq.forEach(pid=>P()[pid].s=+clampS(P()[pid].s+d).toFixed(1));
@@ -31,6 +32,7 @@ function ensureSquad(id){
 function recalc(id){const t=T(id);if(!t.sq||!t.sq.length)return;if(id===S.fav&&S.mgr){t.r=+mgrXI(id).rating.toFixed(1);return}t.r=+xi(t.sq).toFixed(1);t.dp=+depthGap(t.sq).toFixed(1)}
 function value(pid){
   const p=P()[pid]; if(!p) return 0;
+  if(p.mvR&&p.mvS===S.season)return p.mvR; // echter Marktwert aus der Kaderliste (gilt für die laufende Saison)
   const am=p.a<=21?1.25:p.a<=24?1.1:p.a<=28?1:p.a<=30?.8:p.a<=32?.55:.3;
   const v=Math.min(1.8e8,Math.pow(10,4.3+(Math.min(p.s,99)-30)*0.055)*am);
   const r=v>1e6?1e5:v>1e5?1e4:1e3; return Math.max(1000,Math.round(v/r)*r);

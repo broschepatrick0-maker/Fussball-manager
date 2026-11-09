@@ -55,6 +55,7 @@ function fresh(pre){
   if(pre)pre();
   startSeason();
   try{ensureRealOwners()}catch(e){}
+  try{applyRealSquads()}catch(e){console.warn(e)}
 }
 function addForeign(){
   for(const f of FOREIGN){

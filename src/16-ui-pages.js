@@ -412,6 +412,7 @@ $('bAll').onclick=()=>{advance('all');view={...view,tab:'season'};render();toast
 $('bNew').onclick=()=>act('newseason');
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&view.ov&&!(view.ov.t==='jump'&&view.ov.running)){view.ov=null;render()}else if((e.key==='/'||(e.key==='k'&&(e.metaKey||e.ctrlKey)))&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();act('ov:search')}});
 function migrateLoaded(){
+  try{applyRealSquads()}catch(e){console.warn(e)}
   try{ensureRealOwners()}catch(e){console.warn(e)}
   try{if(ensureCalendar())setTimeout(()=>toast('Neu: Kalender mit echten Terminen'),600)}catch(e){console.warn(e)}
   { const o=S.leagues.find(l=>l.name==='Kreisliga München'); if(o) o.name='Kreisliga München 1'; }

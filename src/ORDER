@@ -1,5 +1,6 @@
 01-data.js
 01c-crests.js
+01d-squads.js
 02-state.js
 03-schedule.js
 03b-calendar.js
@@ -8,6 +9,7 @@
 06-cups.js
 07a-names.js
 07b-attr.js
+07c-realsquads.js
 07-squad.js
 08-finance.js
 08j-owners.js
