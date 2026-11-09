@@ -50,8 +50,14 @@ function buildCups(){
   S.cups=[];
   // Landespokale: 3. Liga, Regionalliga und alle eingetragenen Amateurligen des Verbandes, ohne Zweitvertretungen
   const lp={};
+  // Verbände mit Kreispokalen: Landespokal = 3. Liga bis höchstens Bezirksliga (so tief, dass höchstens ~128 Teams teilnehmen) + die Kreispokalsieger der Vorsaison
+  // (in der ersten Saison: der stärkste Verein je Kreis). So bleibt der Landespokal überschaubar wie in echt.
+  const KW=S.kpWinners||{};
   for(const code of Object.keys(VB)){
-    const ids=teamsOf(l=>l.level>=3).filter(id=>T(id).vb===code&&!isRes(T(id).name));
+    let ids=teamsOf(l=>l.level>=3).filter(id=>T(id).vb===code&&!isRes(T(id).name));
+    const kr=[...new Set(S.leagues.filter(l=>l.kreis&&l.vb===code&&!l.foreign).map(l=>l.kreis))];
+    if(kr.length&&ids.length>64){let cut=7,top;do{top=teamsOf(l=>l.level>=3&&l.level<=cut).filter(id=>T(id).vb===code&&!isRes(T(id).name))}while(top.length+kr.length>128&&--cut>=4);const set=new Set(top);
+      kr.forEach(k=>{let w=KW[code+'|'+k];if(!w||!T(w)||T(w).gone||isRes(T(w).name)||set.has(w))w=teamsOf(l=>l.kreis===k&&l.vb===code).filter(id=>!isRes(T(id).name)&&!set.has(id)).sort((a,b)=>T(b).r-T(a).r)[0];if(w)set.add(w)});ids=[...set]}
     const c=makeCup('lp-'+code,POKAL[code],'lp',ids,{vb:code});
     if(c){S.cups.push(c);lp[code]=c}
   }

@@ -136,6 +136,7 @@ function newSeason(){
     t.r=+(t.r+(Math.random()*3-1.5)).toFixed(1);
   }));
   // Landespokalsieger qualifizieren sich für den DFB-Pokal
+  S.kpWinners={};S.cups.filter(c=>c.type==='kp'&&c.winner).forEach(c=>{S.kpWinners[c.vb+'|'+c.kreis]=c.winner});
   S.pokalWinners={};S.cups.filter(c=>c.type==='lp'&&c.winner).forEach(c=>{S.pokalWinners[c.vb]=c.winner;log.push(`${c.name}: ${T(c.winner).name} (DFB-Pokal-Teilnehmer)`)});
   S.lastL3=st.l3;
   if(S.fav&&T(S.fav)&&FZ(S.fav)&&FZ(S.fav).h[0]){const h=FZ(S.fav).h[0];log.push(`${T(S.fav).name}: Umsatz ${money(h[1])}, Ergebnis ${h[3]>=0?'+':'−'}${money(Math.abs(h[3]))}, Kontostand ${h[4]<0?'−':''}${money(Math.abs(h[4]))}${h[5]?`, Schulden ${money(h[5])}`:''}`)}
