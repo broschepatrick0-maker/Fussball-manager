@@ -29,7 +29,7 @@ function areaOf(v){
   if(v.tab==='fav') return 'fav';
   if(v.tab==='tr'||v.tab==='fin') return 'tr';
   if(v.tab==='league'){const l=L(v.id);return l&&l.foreign?'eu':'de'}
-  if(v.tab==='euro') return 'eu';
+  if(v.tab==='euro'||v.tab==='stars') return 'eu';
   if(v.tab==='cup') return 'cups';
   if(v.tab==='rel')return 'de';
   if(v.tab==='hall'||v.tab==='season'||v.tab==='save'||v.tab==='vl') return 'hist';
@@ -66,6 +66,7 @@ function sideHTML(a){
     h+=navBtn(view.tab==='import','+ Liga von fussball.de importieren',null,'import');
   }
   if(a==='eu'){
+    h+=navBtn(view.tab==='stars','🌍 Beste Spieler der Welt',null,'stars');
     h+=lvGroup('Top-Ligen',S.leagues.filter(l=>l.foreign),l=>l.cc);
     h+=`<h3>Europapokal</h3>`+(S.euro||[]).map(e=>navBtn(view.tab==='euro'&&view.id===e.id,e.name,e.teams.length,'euro:'+e.id,e.short)).join('');
     h+=navBtn(false,'Bundesliga',null,'lg:bl','GER');
@@ -113,7 +114,8 @@ function ctxBar(){
   if(a==='news'){cur='News';chips=[['','Alle'],['fav','★ Mein Verein'],['bl','Bundesliga'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['sg','⚖️ Sportgericht'],['pr','Pressemitteilungen'],['prog','📺 TV-Prognose']].map(([k,t])=>chip((view.nf||'')===k,t,'nf:'+k))}
   if(a==='eu'){
     const lg=view.tab==='league'&&L(view.id),e=view.tab==='euro'&&(S.euro||[]).find(x=>x.id===view.id);cur=lg?lg.name:e?e.name:cur;
-    chips=[...S.leagues.filter(l=>l.foreign).map(l=>chip(lg&&lg.id===l.id,l.name,'lg:'+l.id)),...(S.euro||[]).map(x=>chip(e&&e.id===x.id,x.name,'euro:'+x.id))];
+    if(view.tab==='stars')cur='Beste Spieler der Welt';
+    chips=[chip(view.tab==='stars','🌍 Beste Spieler','stars'),...S.leagues.filter(l=>l.foreign).map(l=>chip(lg&&lg.id===l.id,l.name,'lg:'+l.id)),...(S.euro||[]).map(x=>chip(e&&e.id===x.id,x.name,'euro:'+x.id))];
   }
   if(a==='cups'){
     const c=view.tab==='cup'&&S.cups.find(x=>x.id===view.id);cur=c?c.name:cur;
