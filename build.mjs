@@ -6,7 +6,7 @@ const js=order.map(f=>`// ===== ${f} =====\n`+R('src/'+f)).join('\n');
 const css=R('styles/app.css');
 let html=R('index.html');
 // Script-Liste in index.html immer aus src/ORDER erzeugen
-{const a=html.indexOf('<script src="src/'),b=html.indexOf('<script src="src/pwa.js">');html=html.slice(0,a)+order.map(f=>`<script src="src/${f}"></script>`).join('\n')+'\n'+html.slice(b);W('index.html',html)}
+{const a=html.indexOf('<script src="src/'),b=html.indexOf('<script src="src/pwa.js">');html=html.slice(0,a)+order.map(f=>f==='01c-crests.js'?'':`<script src="src/${f}"></script>`).filter(Boolean).join('\n')+'\n<script src="src/01c-crests.js" async></script>'+'\n'+html.slice(b);W('index.html',html)}
 const body=html.slice(html.indexOf('<body>')+6,html.indexOf('<script src="src/'));
 fs.rmSync('dist',{recursive:true,force:true});
 // 1) Web-App
