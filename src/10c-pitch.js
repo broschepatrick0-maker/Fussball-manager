@@ -7,11 +7,11 @@ function pitchSlots(xi,s){const by={TW:[],AB:[],MF:[],ST:[]};xi.forEach(pid=>{co
   for(const k of ['TW','AB','MF','ST']){const g=by[k],n=g.length;g.forEach((pid,i)=>{const y=n===1?32:8+i*(48/(n-1));const x=X[k]+(k!=='TW'&&n>=4&&(i===0||i===n-1)?3:0);out.push({pid,x:s==='h'?x:100-x,y,k})})}
   return out}
 function pitchReset(ov){const rep=ov.rep;PITCH.pl={};try{PITCH.col=kitCols(rep.side.h.id,rep.side.a.id)}catch(e){PITCH.col=null}
-  for(const s of ['h','a'])pitchSlots(rep.side[s].xi,s).forEach((q,i)=>PITCH.pl[q.pid]={s,bx:q.x,by:q.y,x:q.x,y:q.y,k:q.k,no:i+1});
+  for(const s of ['h','a'])pitchSlots(rep.side[s].xi,s).forEach((q,i)=>PITCH.pl[q.pid]={s,bx:q.x,by:q.y,x:q.x,y:q.y,k:q.k,no:shirtNo(q.pid,rep.side[s].id)});
   PITCH.ball={x:50,y:32};PITCH.hold=null;PITCH.lastEv=null;PITCH.cap='';PITCH.capT=0}
 function pitchSync(ov){const rep=ov.rep;const live=new Set([...rep.side.h.xi,...rep.side.a.xi]);
   for(const pid of Object.keys(PITCH.pl))if(!live.has(pid))delete PITCH.pl[pid];
-  for(const s of ['h','a']){const sl=pitchSlots(rep.side[s].xi,s);sl.forEach((q,i)=>{const e=PITCH.pl[q.pid];if(e){e.bx=q.x;e.by=q.y;e.k=q.k}else PITCH.pl[q.pid]={s,bx:q.x,by:q.y,x:s==='h'?45:55,y:q.y,k:q.k,no:Object.values(PITCH.pl).filter(z=>z.s===s).length+1}})}}
+  for(const s of ['h','a']){const sl=pitchSlots(rep.side[s].xi,s);sl.forEach((q,i)=>{const e=PITCH.pl[q.pid];if(e){e.bx=q.x;e.by=q.y;e.k=q.k}else PITCH.pl[q.pid]={s,bx:q.x,by:q.y,x:s==='h'?45:55,y:q.y,k:q.k,no:shirtNo(q.pid,rep.side[s].id)}})}}
 function mountPitch(){const slot=document.getElementById('pitchSlot');if(!slot)return;
   if(!PITCH.cv){PITCH.cv=document.createElement('canvas');PITCH.cv.className='pitch';PITCH.cv.setAttribute('aria-label','2D-Spielfeld')}
   slot.appendChild(PITCH.cv);if(!PITCH.raf)PITCH.raf=requestAnimationFrame(pitchLoop)}

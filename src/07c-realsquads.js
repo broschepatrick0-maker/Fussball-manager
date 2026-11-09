@@ -22,8 +22,8 @@ function promStr(pl,base){const R=srng(hstr('ps'+base+pl.length+(pl[0]&&pl[0][0]
 function buildRealSquad(id,old){const t=T(id),R=realSquadOf(t);if(!R)return null;const base=old||t.r||60;
   (t.sq||[]).forEach(pid=>{if(S.scout&&S.scout.list)delete S.scout.list[pid];delete P()[pid]});
   const est=promStr(R.p,base);
-  const sq=R.p.map(([n,pos,a,nat,st,mv],i)=>{const s=st!=null?st:est[i];
-    const pid=newPlayer(t,pos,s,a);const p=P()[pid];p.n=n;p.a=a;p.nat=natCode(nat);p.s=+clampS(s).toFixed(1);p.real=1;if(mv!=null){p.mvR=Math.round(mv*1e6);p.mvS=S.season}
+  const sq=R.p.map(([n,pos,a,nat,st,mv,no],i)=>{const s=st!=null?st:est[i];
+    const pid=newPlayer(t,pos,s,a);const p=P()[pid];p.n=n;p.a=a;p.nat=natCode(nat);p.s=+clampS(s).toFixed(1);p.real=1;if(no!=null){p.no=no;p.noC=id}if(mv!=null){p.mvR=Math.round(mv*1e6);p.mvS=S.season}
     if(a<=23)p.pot=+Math.min(99,Math.max(p.s,p.s+(24-a)*1.4)).toFixed(1);return pid});
   // an die Stärkeskala der Spielwelt anpassen: die beste Elf erreicht wieder die bisherige Vereinsstärke, die Reihenfolge im Kader bleibt
   const d=base-xi(sq);if(Math.abs(d)>.3)sq.forEach(pid=>{const p=P()[pid];p.s=+clampS(p.s+d).toFixed(1);if(p.pot!=null)p.pot=+Math.min(99,p.pot+d).toFixed(1)});
@@ -34,3 +34,13 @@ function applyRealSquads(){if(typeof REAL_SQUADS==='undefined')return 0;let n=0;
   for(const name in REAL_SQUADS){const id=Object.keys(S.teams).find(x=>S.teams[x].name===name&&!S.teams[x].gone);if(!id)continue;const t=T(id);
     if(t.rsv===REAL_SQUADS[name].v)continue;if(!t.sq){t.rsv=null;continue}buildRealSquad(id,t.r);n++}
   return n}
+
+// ---------- Rückennummern ----------
+// Jeder Spieler trägt im Verein eine feste, eindeutige Nummer. Echte Kader bringen ihre Nummern mit;
+// alle anderen bekommen klassische Nummern nach Position (TW 1, Abwehr 2–5, Mittelfeld 6/8/10, Sturm 9/11, dann 12+).
+function assignNumbers(id){const t=T(id);if(!t||!t.sq)return;const ps=t.sq.map(pid=>[pid,P()[pid]]).filter(x=>x[1]);
+  const used=new Set();ps.forEach(([pid,p])=>{if(p.no!=null&&p.noC===id&&!used.has(p.no))used.add(p.no);else p.no=null});
+  const pref={TW:[1,12,22,30],AB:[2,3,4,5,15,16,23,24],MF:[6,8,10,7,14,18,20,21],ST:[9,11,19,17,27]};
+  ps.filter(([pid,p])=>p.no==null).sort((a,b)=>b[1].s-a[1].s).forEach(([pid,p])=>{let n=(pref[p.p]||[]).find(x=>!used.has(x));if(n==null){n=12;while(used.has(n))n++}p.no=n;used.add(n)});
+  ps.forEach(([pid,p])=>p.noC=id)}
+function shirtNo(pid,id){const p=P()[pid];if(!p)return '';if(p.no==null||p.noC!==id)assignNumbers(id);return p.no!=null?p.no:''}
