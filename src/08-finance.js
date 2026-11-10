@@ -49,7 +49,8 @@ function finBalance(id,perf){
 }
 const INC_N={tv:'TV-Gelder',zus:'Zuschauer',spons:'Sponsoring',merch:'Merchandising',mitgl:'Mitglieder & Sonstiges',praem:'Prämien (Pokal & Europa)'};
 const EXP_N={acad:'Jugendakademie',scout:'Scouting-Abteilung',geh:'Spielergehälter',stad:'Stadion & Infrastruktur',verw:'Verwaltung & Personal',jugend:'Nachwuchs',abg:'Abgaben, Steuern, Versicherungen',zins:'Zinsen'};
-const stadUp=lv=>lv<=2?3000:lv<=4?1500:800,stadDown=lv=>lv<=4?60:25,stadUpkeep=(lv,cap)=>cap*(lv<=2?45:lv===3?25:lv===4?10:lv<=8?4:lv===9?3.2:lv===10?1.3:.8);
+// Ausbaukosten pro Platz: im Amateurbereich reicht eine kleine Tribüne oder ein Stehwall – deutlich günstiger als ein Profistadion
+const stadUp=lv=>lv<=2?3000:lv<=4?1500:lv<=6?400:lv<=8?250:150,stadDown=lv=>lv<=4?60:25,stadUpkeep=(lv,cap)=>cap*(lv<=2?45:lv===3?25:lv===4?10:lv<=8?4:lv===9?3.2:lv===10?1.3:.8);
 function creditLimit(id){const z=FZ(id),b=lastBal(id)||{rev:estRevenue(id)};const bad=(z.ins||[]).some(s=>S.season-s<6)?.4:1;return Math.max(0,(b.rev*0.4+clubValue(id)*0.1)*bad-z.d)}
 function lastBal(id){const z=FZ(id);if(!z||!z.h.length)return null;const h=z.h[0];return {rev:h[1],ex:h[2],res:h[3]}}
 function spendable(id){const z=FZ(id);if(!z)return 0;const b=lastBal(id);const res=b?b.ex*.1:estRevenue(id)*.1;return Math.max(0,Math.round(z.c-res))}
