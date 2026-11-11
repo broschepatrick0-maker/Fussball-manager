@@ -144,7 +144,7 @@ function restorePresets(only){let n=0;
     lg.rounds=schedule(lg.teams);lg.played=0;try{if(S.day!=null)lg.dates=leagueDates(lg)}catch(e){}n++}
   return n}
 function restoreHTML(){const m=missingPresets();if(!m.length)return '';
-  return `<div class="card"><h3 class="ct">Gelöschte Standard-Ligen (${m.length})</h3><p class="note" style="margin:-4px 0 8px">Diese Ligen gehören zum Spiel, fehlen aber in deinem Spielstand. Beim Wiederherstellen werden die alten Vereine (samt Kader und Geschichte) wieder eingesetzt; Vereine, die inzwischen in einer anderen Liga spielen, bleiben dort. Spieltage, die schon vorbei sind, werden nachgeholt.</p>
+  return `<div class="card"><h3 class="ct">Neue oder gelöschte Standard-Ligen (${m.length})</h3><p class="note" style="margin:-4px 0 8px">Diese Ligen gehören zum Spiel, fehlen aber in deinem Spielstand – z. B. weil sie nach dem Start deiner Karriere neu ins Spiel gekommen sind. Beim Wiederherstellen werden die alten Vereine (samt Kader und Geschichte) wieder eingesetzt; Vereine, die inzwischen in einer anderen Liga spielen, bleiben dort. Spieltage, die schon vorbei sind, werden nachgeholt.</p>
   ${m.slice(0,30).map(p=>`<div class="orow"><span><b>${esc(p.name)}</b> <span class="meta">${LEVELS[p.level]||''} · ${VB[p.vb]||p.vb}</span></span><button class="btn sm pri" data-act="restore:${encodeURIComponent(p.name)}">Wiederherstellen</button></div>`).join('')}
   ${m.length>1?'<button class="btn" data-act="restore:*" style="margin-top:8px">Alle wiederherstellen</button>':''}</div>`}
 function renderImport(){
