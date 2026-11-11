@@ -30,7 +30,9 @@ async function saveCrests(){try{await DB.set('crestimg',CRIMG)}catch(e){toast('W
 // Namensvarianten (z. B. „Borussia M'gladbach II“, „SC Paderborn II“) dem Wappen der 1. Mannschaft zuordnen
 const CREST_ALIAS={"Borussia M'gladbach":'Borussia Mönchengladbach','F.C. Hansa Rostock':'Hansa Rostock','SG Dynamo Dresden':'Dynamo Dresden','SG SV Empor Walschleben':'SV Empor Walschleben','SG FSV Sömmerda':'FSV Sömmerda','SG FSV 06 Kölleda':'FSV 06 Kölleda','SV BW Büßleben 04':'SV Blau-Weiß Büßleben'};
 function crestKey(n,B){if(B[n])return n;if(CREST_ALIAS[n]&&B[CREST_ALIAS[n]])return CREST_ALIAS[n];const W=crestKey.w||(crestKey.w=new WeakMap());let c=W.get(B);if(!c){c={};W.set(B,c)}if(n in c)return c[n];
-  const x=normName(n);let k=null;for(const key of Object.keys(B)){const y=normName(key);if((y.startsWith(x)&&/^\d+$/.test(y.slice(x.length)))||(x.startsWith(y)&&/^\d+$/.test(x.slice(y.length)))){k=key;break}}return c[n]=k}
+  const x=normName(n);let k=null;for(const key of Object.keys(B)){const y=normName(key);if((y.startsWith(x)&&/^\d+$/.test(y.slice(x.length)))||(x.startsWith(y)&&/^\d+$/.test(x.slice(y.length)))){k=key;break}}
+  // Spielgemeinschaften („SG …“, „SpG …“) tragen das Wappen des Stammvereins
+  if(!k){const m=n.match(/^(SG|SpG|SpVgg-SG)\s+(.+)$/);if(m)k=crestKey(m[2],B)}return c[n]=k}
 function crestImg(id){const t=T(id);if(!t)return null;const B=typeof CREST_BUILTIN!=='undefined'?CREST_BUILTIN:{},b=isRes(t.name)?resBase(t.name):null;
   if(CRIMG[t.name])return CRIMG[t.name];if(b&&CRIMG[b])return CRIMG[b];const k=crestKey(t.name,B)||(b&&crestKey(b,B));return k?B[k]:null}
 const hasCrest=id=>!!(crestImg(id)||crestOf(id));
