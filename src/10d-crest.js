@@ -28,7 +28,7 @@ let CRIMG={};
 async function loadCrests(){try{const v=await DB.get('crestimg');CRIMG=v&&typeof v==='object'?v:{}}catch(e){CRIMG={}}}
 async function saveCrests(){try{await DB.set('crestimg',CRIMG)}catch(e){toast('Wappen konnten nicht gespeichert werden')}}
 // Namensvarianten (z. B. „Borussia M'gladbach II“, „SC Paderborn II“) dem Wappen der 1. Mannschaft zuordnen
-const CREST_ALIAS={"Borussia M'gladbach":'Borussia Mönchengladbach','F.C. Hansa Rostock':'Hansa Rostock','SG Dynamo Dresden':'Dynamo Dresden'};
+const CREST_ALIAS={"Borussia M'gladbach":'Borussia Mönchengladbach','F.C. Hansa Rostock':'Hansa Rostock','SG Dynamo Dresden':'Dynamo Dresden','SG SV Empor Walschleben':'SV Empor Walschleben','SG FSV Sömmerda':'FSV Sömmerda','SG FSV 06 Kölleda':'FSV 06 Kölleda','SV BW Büßleben 04':'SV Blau-Weiß Büßleben'};
 function crestKey(n,B){if(B[n])return n;if(CREST_ALIAS[n]&&B[CREST_ALIAS[n]])return CREST_ALIAS[n];const W=crestKey.w||(crestKey.w=new WeakMap());let c=W.get(B);if(!c){c={};W.set(B,c)}if(n in c)return c[n];
   const x=normName(n);let k=null;for(const key of Object.keys(B)){const y=normName(key);if((y.startsWith(x)&&/^\d+$/.test(y.slice(x.length)))||(x.startsWith(y)&&/^\d+$/.test(x.slice(y.length)))){k=key;break}}return c[n]=k}
 function crestImg(id){const t=T(id);if(!t)return null;const B=typeof CREST_BUILTIN!=='undefined'?CREST_BUILTIN:{},b=isRes(t.name)?resBase(t.name):null;
