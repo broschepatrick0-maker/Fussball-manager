@@ -80,7 +80,7 @@ function sideHTML(a){
   }
   if(a==='news'){h+=`<h3>Rubriken</h3>`+[['','Alle Nachrichten'],['fav','Mein Verein'],['liga','Ligen'],['tr','Transfers'],['fin','Finanzen'],['cup','Pokal'],['int','International'],['sg','Sportgericht'],['pr','Pressemitteilungen'],['prog','TV-Prognose & Saisonprognose']].map(([k,t])=>navBtn(view.tab==='news'&&(view.nf||'')===k,t,null,'nf:'+k)).join('')}
   if(a==='fav'){
-    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Spieler anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
+    if(S.fav&&T(S.fav)) h+=`<h3>Bereiche</h3>`+[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand & Karriere']]:[]),['taktik','Taktik & Training'],['kader','Kader'],['jugend','Jugendakademie'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Spieler anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen & Transfers'],['erfolge','🏅 Erfolge']].map(([k,t])=>navBtn(view.tab==='fav'&&(view.ftab||'ov')===k,t,null,'ftab:'+k)).join('')+navBtn(false,'Vereinsseite & Historie',null,'club:'+S.fav);
     h+=`<h3>Verein wählen</h3><p class="note" style="margin:0 8px">Suche oben einen Verein und öffne ihn, dann „Als Mein Verein beobachten“.</p>`;
   }
   if(a==='tr'){
@@ -124,7 +124,7 @@ function ctxBar(){
     chips=[dfb&&chip(c&&c.id===dfb.id,'DFB-Pokal','cup:'+dfb.id),...same.filter(x=>x.type!=='dfb').map(x=>chip(c&&c.id===x.id,x.name.replace('Kreispokal ',''),'cup:'+x.id))].filter(Boolean);
   }
   if(a==='fav'){cur=S.fav&&T(S.fav)?T(S.fav).name:'Mein Verein';
-    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader',S.mgr&&S.mgr.talk&&S.mgr.talk.length?`Kader (${S.mgr.talk.length})`:'Kader'],['jugend','Jugend'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
+    if(S.fav&&T(S.fav)) chips=[['ov','Überblick'],['kal','Kalender'],...(isCareer()?[['karriere','Vorstand']]:[]),['taktik','Taktik'],['kader',S.mgr&&S.mgr.talk&&S.mgr.talk.length?`Kader (${S.mgr.talk.length})`:'Kader'],['jugend','Jugend'],...(favAm()?[['verein','Vereinsleben']]:[]),['markt',favAm()?'Anwerben':'Transfermarkt'],['scout','Scouting'],['fin','Finanzen'],['erfolge','🏅 Erfolge']].map(([k,t])=>chip(view.tab==='fav'&&(view.ftab||'ov')===k,t,'ftab:'+k)).concat(chip(false,'Historie','club:'+S.fav));}
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
@@ -151,6 +151,7 @@ function renderOverlay(){
   else if(o.t==='neg'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Vertragsgespräch"><div class="ovh"><b>📄 Vertragsgespräch: ${esc(P()[o.pid].n)}</b>${x}</div>${negHTML(o)}</div>`;
   else if(o.t==='pi'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Spieler"><div class="ovh"><b>${esc(P()[o.pid].n)}</b>${x}</div>${playerInfoHTML(o.pid)}</div>`;
   else if(o.t==='talk'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Gespräch"><div class="ovh"><b>Gespräch mit ${esc(P()[o.pid].n)}</b>${x}</div>${talkSheet(o.pid)}</div>`;
+  else if(o.t==='review'&&S.review) h=`<div class="sheet" role="dialog" aria-label="Saisonrückblick"><div class="ovh"><b>Saisonrückblick</b>${x}</div>${reviewHTML()}</div>`;
   else if(o.t==='menu') h=`<div class="mscreen" role="dialog" aria-label="Hauptmenü">${menuHTML()}</div>`;
   else if(o.t==='match') h=`<div class="sheet msheet" role="dialog" aria-label="Live-Spiel"><div class="ovh"><b>${o.m.hg!=null&&!o.fresh&&!o.playing?'Spielbericht':'Live'}</b>${x}</div><div class="ovc">${matchHTML()}</div></div>`;
   else if(o.t==='club'&&T(o.id)) h=`<div class="sheet" role="dialog" aria-label="${esc(T(o.id).name)}"><div class="ovh"><b>${esc(T(o.id).name)}</b>${x}</div><div class="ovc">${renderClub(o.id)}</div></div>`;
@@ -418,9 +419,10 @@ function renderFav(){
   if(ft==='kal') h+=renderCalendar();
   if(ft==='karriere'&&isCareer()) h+=renderCareer(id);
   if(ft==='jugend') h+=renderAcademy(id);
+  if(ft==='erfolge') h+=renderAch();
   if(ft==='ov'){const sq=ensureSquad(id).map(pid=>[pid,P()[pid]]).filter(x=>x[1]);const inj=sq.filter(x=>x[1].inj),exp=sq.filter(x=>x[1].c!=null&&x[1].c<=S.season);
     if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Woche':'Wochen'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls"><button class="btn sm pri" data-act="neg:${pid}">Verhandeln</button>${isCareer()?'':[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
-  if(ft==='ov')h+=rivalsCard(id)+kitCard(id);
+  if(ft==='ov')h+=achCard()+rivalsCard(id)+kitCard(id);
   if(ft==='kader'){
     if(view.offer){const o=view.offer;h+=`<div class="card offer"><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} (Marktwert ${money(value(o.pid))}).<div class="ctrls" style="margin-top:8px"><button class="btn pri" data-act="accept">Annehmen</button><button class="btn" data-act="decline">Ablehnen</button></div></div>`}
     h+=squadCard(id,true);

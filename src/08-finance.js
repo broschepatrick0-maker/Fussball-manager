@@ -107,7 +107,7 @@ function seasonFinances(st,log){
     if(z.c>b.rev*1.1&&z.cap<81000){const per=stadUp(lv),inv_=Math.round((z.c-b.rev*1.1)*.35/1e3)*1e3,seats=Math.min(81000-z.cap,Math.floor(inv_/per/50)*50);
       if(seats>=50){z.c-=seats*per;z.cap+=seats;if(lv<=3||id===S.fav)finLog('pos',id,`${T(id).name}: Stadionausbau um ${seats.toLocaleString('de-DE')} Plätze (${money(seats*per)})`)}}
     // Sehr reiche Vereine (Konto deutlich über einem Jahresumsatz) stecken einen Teil in Infrastruktur, Nachwuchs und Umfeld – Geld wird nicht endlos gehortet
-    if(id!==S.fav&&z.c>b.rev*1.5){const inv2=Math.round((z.c-b.rev*1.5)*.3/1e5)*1e5;if(inv2>0){z.c-=inv2;if(lv<=2)finLog('pos',id,`${T(id).name}: ${money(inv2)} für Trainingszentrum, Nachwuchs und Infrastruktur`)}}
+    if(id!==S.fav&&z.c>b.rev){const inv2=Math.round((z.c-b.rev)*.4/1e5)*1e5;if(inv2>0){z.c-=inv2;if(lv<=2)finLog('pos',id,`${T(id).name}: ${money(inv2)} für Trainingszentrum, Nachwuchs und Infrastruktur`)}}
     // Gehaltsniveau für neue Verträge: zurückhaltend erhöhen, bei Verlust sofort bremsen
     if(b.res<0||z.c<b.ex*.05||z.d>b.rev)z.wf=Math.max(.7,+(z.wf-(b.res<-b.rev*.05?0.08:0.04)).toFixed(2));else if(z.c>b.rev*.45)z.wf=Math.min(inv?1.7:z.c>b.rev?1.9:1.45,+(z.wf+0.05).toFixed(2));
     z.h.unshift([S.season,Math.round(b.rev+inj),Math.round(b.ex),Math.round(b.res+inj),Math.round(z.c),Math.round(z.d),l.foreign?1:l.level,b.att]);if(z.h.length>12)z.h.length=12;

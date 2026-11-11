@@ -78,7 +78,7 @@ function decideMoves(st,log){const bl=st.bl,b2=st.bl2,l3=st.l3;
 }
 function newSeason(){
   {let g=0;while(!S.done&&g++<400)simDay()}
-  recordSeason();const oldSeason=S.season;
+  recordSeason();try{achSeason()}catch(e){console.warn(e)}try{reviewSnap()}catch(e){console.warn(e)}const oldSeason=S.season;
   const log=[];try{statsSeasonEnd(log)}catch(e){console.warn(e)}try{amSeasonEnd(log)}catch(e){console.warn(e)}const st={};S.leagues.forEach(l=>st[l.id]=table(l).map(r=>r.id));
   const bl=st.bl,b2=st.bl2,l3=st.l3;
   log.push(`Deutscher Meister: ${T(bl[0]).name}`);

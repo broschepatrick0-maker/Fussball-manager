@@ -36,7 +36,8 @@ function value(pid){
   const am=p.a<=21?1.25:p.a<=24?1.1:p.a<=28?1:p.a<=30?.8:p.a<=32?.55:.3;
   // oberhalb von Stärke 70 steigt der Wert steiler: Weltstars (90+) liegen bei 150–200 Mio. €, Stammspieler der Bundesliga bei 10–40 Mio. €
   const s=Math.min(p.s,99),top=s>70?(s-70)*(s-70)*.001:0;
-  const v=Math.min(2.2e8,Math.pow(10,4.3+(s-30)*0.055+top)*am);
+  // weiche Obergrenze: ab 120 Mio. € flacht die Kurve stark ab (Stärke 95 ≈ 170 Mio., 99 ≈ 240 Mio.), damit sich Weltstars untereinander weiter unterscheiden
+  const raw=Math.pow(10,4.3+(s-30)*0.055+top)*am,v=Math.min(3e8,raw<=1.2e8?raw:1.2e8*Math.pow(raw/1.2e8,.35));
   const r=v>1e6?1e5:v>1e5?1e4:1e3; return Math.max(1000,Math.round(v/r)*r);
 }
 // Grundlage für Gehälter: die bisherige, flachere Kurve – damit die Lohnkosten der Vereine durch die neuen Marktwerte nicht explodieren

@@ -484,3 +484,24 @@ html,body{max-width:100%;overflow-x:clip}
 .mgr span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mgr .r{text-align:right}.mgr .w{font-weight:700}
 .mgr b{font-variant-numeric:tabular-nums;text-align:center}
 .mgr2{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.mgr2 .mvt{margin-left:auto}
+/* Erfolge */
+.achhead .achpts{text-align:right}.achhead .achpts b{display:block;font-size:28px;line-height:1;color:var(--accent)}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:10px}
+.ach{position:relative;display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);opacity:.72}
+.ach.on{opacity:1;background:var(--panel);border-left:4px solid var(--tier,var(--accent))}
+.ach.new{box-shadow:0 0 0 1px var(--tier,var(--accent)),0 2px 10px rgba(0,0,0,.12);animation:achpop .6s ease-out}
+@keyframes achpop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.ach.new{animation:none}}
+.ach .aico{font-size:24px;line-height:1;width:30px;text-align:center;flex:none;filter:grayscale(1)}.ach.on .aico{filter:none}
+.ach .atx{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.ach .atx .prog{margin-top:4px;height:5px}
+.ach .aok{color:var(--accent)}
+.ach .atier{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.ach.t-b{--tier:#b87333}.ach.t-s{--tier:#8e9aa3}.ach.t-g{--tier:#d4a017}.ach.t-p{--tier:#5fb3c9}
+@media (max-width:560px){.achs{grid-template-columns:1fr}}
+/* Saisonrückblick */
+.rvw .rvhero{text-align:center;padding:18px 12px 14px;border-radius:10px;background:var(--accent-soft);margin-bottom:12px}
+.rvw .rvhero h2{margin:8px 0 2px;font-size:24px}
+.rvw .rvhero.gold{background:linear-gradient(135deg,rgba(212,160,23,.28),rgba(212,160,23,.08))}
+.rvw .rvhero.down{background:rgba(190,60,50,.12)}
+.rvw .rvf{margin-top:4px}
+.rvw .rvmv{text-align:center;font-weight:600;margin:10px 0 0}.rvw .rvmv.up{color:var(--accent)}.rvw .rvmv.down{color:var(--down)}
