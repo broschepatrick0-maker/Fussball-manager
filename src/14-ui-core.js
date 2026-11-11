@@ -90,7 +90,7 @@ function sideHTML(a){
     h+=`<h3>Nach Liga</h3>`+['Bundesliga','2. Bundesliga','3. Liga','Premier League','LaLiga','Serie A','Ligue 1','International'].map(n=>navBtn(view.trf&&view.trf.lg===n,n,null,enc({lg:n}))).join('');
   }
   if(a==='hist'){
-    h+=`<h3>Historie</h3>`+navBtn(view.tab==='season','Saisonbilanz & Chronik',null,'season')+navBtn(false,'⏩ Zeitsprung (mehrere Jahre)',null,'jump')+navBtn(view.tab==='hall','Ruhmeshalle & Bestenlisten',null,'hall')+navBtn(view.tab==='vl','Vereinsleben: Gründungen & Auflösungen',null,'vl');
+    h+=`<h3>Historie</h3>`+navBtn(view.tab==='season','Saisonbilanz & Chronik',null,'season')+navBtn(false,'⏩ Zeitsprung (mehrere Jahre)',null,'jump')+navBtn(view.tab==='hall','Ruhmeshalle & Bestenlisten',null,'hall');
     h+=`<h3>Ewige Tabellen</h3>`+['bl','bl2','l3','pl','ll','sa','l1'].map(id=>L(id)).filter(Boolean).map(l=>navBtn(false,l.name,null,'ewig:'+l.id)).join('')+`<p class="note" style="margin:6px 8px">Jede andere Liga: Liga öffnen und über der Tabelle „Ewige Tabelle“ wählen.</p>`;
     h+=`<h3>Spielstand</h3>`+navBtn(view.tab==='save','Spielstand sichern & laden',null,'savev');
     h+=`<button class="nav-i" data-act="reset" style="color:var(--down);margin-top:8px">Spielstand zurücksetzen</button>`;
@@ -128,7 +128,7 @@ function ctxBar(){
   if(a==='tr'){const enc=o=>'trf:'+encodeURIComponent(JSON.stringify(o)),f=view.trf||{};cur=view.tab==='fin'?'Finanzen':'Transfers';
     chips=[chip(view.tab==='fin','💶 Finanzen','finv'),chip(view.tab==='tr'&&!f.q&&!f.s&&!f.lg&&!f.sort,'Alle Transfers',enc({q:'',s:'',lg:'',p:'',t:'',min:'',sort:''})),chip(f.sort==='fee','Rekorde',enc({sort:'fee',t:'paid'})),chip(f.s===String(S.season),'Diese Saison',enc({s:String(S.season)})),S.fav&&T(S.fav)?chip(f.q===T(S.fav).name,'★ '+T(S.fav).name,enc({q:T(S.fav).name})):''].filter(Boolean);}
   if(a==='hist'){cur={season:'Chronik',hall:'Ruhmeshalle',save:'Spielstand'}[view.tab]||cur;
-    chips=[chip(view.tab==='season','Chronik','season'),chip(view.tab==='hall','Ruhmeshalle','hall'),chip(view.tab==='vl','Vereinsleben','vl'),chip(false,'Ewige Tabelle BL','ewig:bl'),chip(view.tab==='save','Spielstand','savev')];}
+    chips=[chip(view.tab==='season','Chronik','season'),chip(view.tab==='hall','Ruhmeshalle','hall'),chip(false,'Ewige Tabelle BL','ewig:bl'),chip(view.tab==='save','Spielstand','savev')];}
   return `<div class="ctx"><button class="pick" data-act="ov:nav" title="Auswahl öffnen"><span>${esc(cur)}</span>${svg(CHEV)}</button><div class="chipbar">${chips.join('')}</div></div>`;
 }
 function renderOverlay(){
