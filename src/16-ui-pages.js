@@ -222,6 +222,7 @@ function render(){
   {const e=document.getElementById('fVb');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.fvb=e.value;MENU.nw.flg=null;render()}}
   {const e=document.getElementById('fLg');if(e)e.onchange=()=>{readMenuInputs();MENU.nw.flg=e.value;render()}}
   [['mLg','mlg'],['mPos','mpos'],['mMax','mmax'],['mAtt','matt'],['mAttV','mattv']].forEach(([i,k])=>{const e=document.getElementById(i);if(e)e.onchange=()=>{view[k]=e.value;render()}});
+  {const ip=document.getElementById('itP');if(ip)ip.onchange=()=>{view.itp=ip.value;render()}}
   document.querySelectorAll('select[data-slot]').forEach(sel=>sel.onchange=()=>{const g=MG(),r=mgrXI();const xi=r.xi.slice(),i=+sel.dataset.slot,j=xi.indexOf(sel.value);if(j>=0&&j!==i)xi[j]=xi[i];xi[i]=sel.value;g.xi=xi;recalc(S.fav);save();render()});
   {const pl=document.getElementById('progLg');if(pl)pl.onchange=()=>{view.progLg=pl.value;render()}}
   {const fl=document.getElementById('finLv');if(fl)fl.onchange=()=>{view.finLv=fl.value;render()}}
@@ -313,6 +314,10 @@ function act(a){
   else if(k==='mform'){setTactic('form',v);save()}
   else if(k==='mstyle'){setTactic('style',v);save()}
   else if(k==='mtrain'){MG().train=v;save()}
+  else if(k==='itadd'){const ps=document.getElementById('itP'),ks=document.getElementById('itK'),it=ITS(),pid=ps&&ps.value,key=ks&&ks.value,p=pid&&P()[pid];
+    if(!p||!key){toast('Wähle Spieler und Schwerpunkt')}else if(Object.keys(it).filter(x=>T(S.fav).sq.includes(x)).length>=IT_MAX){toast(`Höchstens ${IT_MAX} Spieler im Einzeltraining`)}else{it[pid]={k:key,x:0};view.itp=null;toast(`${p.n}: Einzeltraining ${itLabel(key)}`);save()}}
+  else if(k==='itdel'){delete ITS()[v];save()}
+  else if(k==='devall'){view.devall=!view.devall}
   else if(k==='mti'){MG().ti=+v;save()}
   else if(k==='neg'){if(!S.mgr)MG();const m=negOpen(v);if(m){toast(m);return}}
   else if(['ngw','ngy','ngr','ngh','ngo','ngx'].includes(k)){negAct(k,v)}

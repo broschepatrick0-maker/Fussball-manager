@@ -40,6 +40,7 @@ function tacMul(id,opp,style){style=style||tacStyleOf(id,opp);let [a,d]=(STYLES[
 function trainTick(){const g=S.mgr;if(!g||!S.fav)return;const t=T(S.fav);if(!t||!t.sq)return;const int=[.5,1,1.6][g.ti];
   const focus=p=>g.train==='angriff'?(p.p==='ST'||p.p==='MF'):g.train==='abwehr'?(p.p==='AB'||p.p==='TW'):g.train==='jugend'?p.a<=21:g.train==='ausgewogen';
   for(const pid of t.sq){const p=P()[pid];if(!p||p.inj||p.a>27)continue;let x=0.028*int*(focus(p)?1:0.35)*(g.train==='jugend'&&p.a<=21?1.6:1);const room=potOf(p)-p.s;if(room>0)p.s=+Math.min(99,p.s+Math.min(x,room)).toFixed(2);trainAttr(p,g.train,int)}
+  try{indivTick(int)}catch(e){console.warn(e)}
   g.fam=Math.min(100,g.fam+6+(g.train==='taktik'?4:0));
   t.mo=Math.max(5,Math.min(100,(t.mo??60)+(g.ti===2?-0.6:g.ti===0?0.6:0)));
   recalc(S.fav)}

@@ -507,3 +507,9 @@ html,body{max-width:100%;overflow-x:clip}
 .rvw .rvmv{text-align:center;font-weight:600;margin:10px 0 0}.rvw .rvmv.up{color:var(--accent)}.rvw .rvmv.down{color:var(--down)}
 
 .errbox{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--bg2,#111);padding:10px;border-radius:8px;margin:10px 0;max-height:240px;overflow:auto}
+/* Einzeltraining & Entwicklung */
+.itrow>span:first-child{flex:1;min-width:0}
+.itbar{display:flex;align-items:center;gap:8px;margin-top:4px}.itbar .prog{flex:1;max-width:220px;height:6px}
+.itadd{align-items:flex-end}
+.spark{display:block}.sparkc{width:96px}
+.devline{display:flex;flex-direction:column;gap:4px;margin:4px 0 8px}

@@ -415,7 +415,7 @@ function renderFav(){
     if(off.length) h+=`<div class="card offer"><h3 class="ct">Angebote für deine Spieler</h3>${(S.offers||[]).map((o,i)=>T(S.fav).sq.includes(o.pid)?`<div class="orow"><span><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} <span class="meta">(${P()[o.pid].p}, ${P()[o.pid].a} J., Marktwert ${money(value(o.pid))})</span></span><span class="ctrls"><button class="btn sm pri" data-act="oacc:${i}">Annehmen</button><button class="btn sm" data-act="odec:${i}">Ablehnen</button></span></div>`:'').join('')}</div>`;
   }
   if(ft==='scout') h+=renderScout(id);
-  if(ft==='taktik') h+=renderTactics(id);
+  if(ft==='taktik') h+=renderTactics(id)+`<div class="grid2"><div>${indivCard(id)}</div><div>${devCard(id)}</div></div>`;
   if(ft==='kal') h+=renderCalendar();
   if(ft==='karriere'&&isCareer()) h+=renderCareer(id);
   if(ft==='jugend') h+=renderAcademy(id);

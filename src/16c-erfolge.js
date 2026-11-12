@@ -37,6 +37,7 @@ const ACH_L=[
  ['verkauf','verein','s','💰','Kassenschlager','Verkaufe einen Spieler für mindestens 20 Mio. €'],
  ['talent','verein','b','🌱','Eigengewächs','Hole ein Talent aus der Jugendakademie in den Profikader'],
  ['schmiede','verein','g','🎓','Aus eigener Schmiede','Ein Eigengewächs erreicht Stärke 75'],
+ ['umschul','verein','b','🔄','Neue Rolle','Schule einen Spieler im Einzeltraining auf eine neue Position um'],
  ['star','verein','s','🌟','Weltstar im Kader','Habe einen Spieler mit Stärke 90 oder mehr im Kader'],
  ['polster','verein','s','🏦','Solide gewirtschaftet','Habe einen ganzen Jahresumsatz auf dem Konto und keine Schulden'],
  ['schulden','verein','s','🧾','Schuldenfrei','Zahle alle Kredite vollständig zurück'],
