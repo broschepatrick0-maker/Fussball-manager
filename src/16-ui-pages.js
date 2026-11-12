@@ -281,7 +281,7 @@ function act(a){
   else if(k==='emd'){const e=S.euro.find(x=>x.id===view.id);const cur=view.emd??Math.max(0,Math.min(e.step,e.nmd)-1);view.emd=Math.max(0,Math.min(e.nmd-1,cur+ +v))}
   else if(k==='fav'&&isCareer()){toast('In der Karriere wechselst du den Verein über Jobangebote');return}
   else if(k==='fav'){const was=S.fav;S.fav=S.fav===v?null:v;if(S.fav!==was){S.fin={log:[],income:[]};S.invOffer=null;S.mgr=null;S.scout=null;if(S.fav){ensureSquad(S.fav);initBudget()}}save();toast(S.fav?T(v).name+' ist jetzt Mein Verein':'Beobachtung beendet')}
-  else if(k==='ftab'){view={...view,tab:'fav',ftab:v,offer:null};window.scrollTo(0,0)}
+  else if(k==='ftab'){view={...view,tab:'fav',ftab:v,offer:null};if(view.ov&&view.ov.t==='review')view.ov=null;window.scrollTo(0,0)}
   else if(k==='sell'){const p=P()[v];if(!p)return;if(!windowOpen()){toast('Das Transferfenster ist geschlossen');return}
     const lv=T(S.fav).lv||8,cands=Object.values(S.teams).filter(t=>t.id!==S.fav&&Math.abs((t.lv||9)-lv)<=1&&!t.cc===!T(S.fav).cc);
     const buyer=rnd(cands.length?cands:Object.values(S.teams).filter(t=>t.id!==S.fav));
@@ -308,7 +308,7 @@ function act(a){
   else if(k==='apply'){const r=applyJob(v);if(r==='ok'){view={...view,tab:'fav',ftab:'karriere',ov:null};toast(`Zusage! Du bist neuer Trainer von ${T(v).name}`)}else toast(r==='nein'?(isVacant(v)?`${T(v).name} hat sich für einen anderen Kandidaten entschieden`:`${T(v).name} hält an seinem Trainer fest – Absage`):r==='lizenz'?'Dafür fehlt dir die Lizenz':'Du hast dich dort schon beworben');save()}
   else if(k==='jobdec'){if(S.career)S.career.offers.splice(+v,1);save()}
   else if(k==='acadlv'){AC().lv=+v;save();toast(ACAD[+v].n+' – Kosten werden am Saisonende verbucht')}
-  else if(k==='ypro'){const a=AC(),t=T(S.fav);if(t.sq.length>=30){toast('Der Kader ist voll (30 Spieler)');return}a.intake=a.intake.filter(x=>x!==v);t.sq.push(v);setContract(v,S.fav,3);P()[v].w=Math.round(P()[v].w*.6/100)*100;recalc(S.fav);save();toast(P()[v].n+' gehört jetzt zum Profikader')}
+  else if(k==='ypro'){const a=AC(),t=T(S.fav);if(t.sq.length>=30){toast('Der Kader ist voll (30 Spieler)');return}a.intake=a.intake.filter(x=>x!==v);t.sq.push(v);P()[v].yo=S.fav;setContract(v,S.fav,3);P()[v].w=Math.round(P()[v].w*.6/100)*100;recalc(S.fav);save();toast(P()[v].n+' gehört jetzt zum Profikader')}
   else if(k==='yrel'){const a=AC();a.intake=a.intake.filter(x=>x!==v);delete P()[v];save()}
   else if(k==='mform'){setTactic('form',v);save()}
   else if(k==='mstyle'){setTactic('style',v);save()}
@@ -367,7 +367,7 @@ function act(a){
   else if(k==='chron'){view.chron=Math.max(0,Math.min(S.log.length-1,(view.chron||0)+ +v))}
   else if(k==='md'){const lg=L(view.id);view.md=Math.max(0,Math.min(lg.rounds.length-1,view.md+ +v))}
   else if(k==='cupnext'){const c=S.cups.find(c=>c.id===v);if(c&&!c.winner)playCupRound(c);save()}
-  else if(k==='newseason'){newSeason();save();toast('Neue Saison gestartet')}
+  else if(k==='newseason'){newSeason();save();if(S.review&&S.fav===S.review.id)view.ov={t:'review'};else toast('Neue Saison gestartet')}
   else if(k==='ipreview'){readImport();view.preview=parseTable(view.itxt||'')}
   else if(k==='iexport'){view.iexp=exportLeagues();try{navigator.clipboard.writeText(view.iexp);toast('Ligen kopiert')}catch(e){}
     try{const b=new Blob([view.iexp],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ligen-export.json';document.body.appendChild(a);a.click();a.remove()}catch(e){}}
