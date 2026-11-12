@@ -422,7 +422,7 @@ function renderFav(){
   if(ft==='erfolge') h+=renderAch();
   if(ft==='ov'){const sq=ensureSquad(id).map(pid=>[pid,P()[pid]]).filter(x=>x[1]);const inj=sq.filter(x=>x[1].inj),exp=sq.filter(x=>x[1].c!=null&&x[1].c<=S.season);
     if(inj.length||exp.length)h+=`<div class="card"><h3 class="ct">Ausfälle & Verträge</h3>${inj.map(([pid,p])=>`<div class="orow"><span>🚑 <b>${esc(p.n)}</b> <span class="meta">${POSN[p.p]} · ${esc(p.it||'verletzt')} · noch ${p.inj} ${p.inj===1?'Woche':'Wochen'}</span></span></div>`).join('')}${exp.map(([pid,p])=>{const o=renewalOffer(pid);return `<div class="orow"><span>📄 <b>${esc(p.n)}</b> <span class="meta">Vertrag endet ${S.season}/${String(S.season+1).slice(2)} · fordert ${money(o.w)}/Jahr${favAuto()?' · sonst entscheidet die Vereinsführung':' · sonst ablösefrei weg'}</span></span><span class="ctrls"><button class="btn sm pri" data-act="neg:${pid}">Verhandeln</button>${isCareer()?'':[1,o.maxY>=3?3:null,o.maxY>=5?5:null].filter(Boolean).map(y=>`<button class="btn sm" data-act="renew:${pid}:${y}">+${y} J.</button>`).join('')}</span></div>`}).join('')}</div>`}
-  if(ft==='ov')h+=achCard()+rivalsCard(id)+kitCard(id);
+  if(ft==='ov'){try{h+=achCard()}catch(e){console.warn(e)}h+=rivalsCard(id)+kitCard(id)}
   if(ft==='kader'){
     if(view.offer){const o=view.offer;h+=`<div class="card offer"><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} (Marktwert ${money(value(o.pid))}).<div class="ctrls" style="margin-top:8px"><button class="btn pri" data-act="accept">Annehmen</button><button class="btn" data-act="decline">Ablehnen</button></div></div>`}
     h+=squadCard(id,true);

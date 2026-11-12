@@ -505,3 +505,5 @@ html,body{max-width:100%;overflow-x:clip}
 .rvw .rvhero.down{background:rgba(190,60,50,.12)}
 .rvw .rvf{margin-top:4px}
 .rvw .rvmv{text-align:center;font-weight:600;margin:10px 0 0}.rvw .rvmv.up{color:var(--accent)}.rvw .rvmv.down{color:var(--down)}
+
+.errbox{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--bg2,#111);padding:10px;border-radius:8px;margin:10px 0;max-height:240px;overflow:auto}

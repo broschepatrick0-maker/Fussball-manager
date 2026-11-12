@@ -446,13 +446,19 @@ function migrateLoaded(){
     save();
   }
 }
+// Falls ein Spielstand nicht geladen werden kann: Fehler sichtbar machen statt hängen zu bleiben
+function loadFail(e,step){console.error(e);const msg=String(e&&e.message||e),st=String(e&&e.stack||'').split('\n').slice(1,3).map(x=>x.trim()).join(' · ');
+  $('main').innerHTML=`<div class="card"><h2>Spielstand ${SLOT} lässt sich nicht öffnen</h2><p class="note">Beim ${esc(step)} ist ein Fehler aufgetreten. Dein Spielstand ist nicht verloren – schick bitte einen Screenshot dieser Seite.</p>
+   <pre class="errbox">${esc(msg)}\n${esc(st)}\nSpielstand: Saison ${esc(String(S&&S.season||'?'))}</pre>
+   <div class="crrow"><button class="btn pri" onclick="exportGz().then(b=>{const u=URL.createObjectURL(new Blob([b]));const a=document.createElement('a');a.href=u;a.download='spielstand-${SLOT}.json.gz';a.click()}).catch(()=>{})">Spielstand sichern</button><button class="btn" onclick="try{localStorage.setItem('fp-slot','1')}catch(e){};location.reload()">Zu Spielstand 1</button><button class="btn" onclick="location.reload()">Neu laden</button></div></div>`}
 async function boot(){
 $('main').innerHTML='<div class="card empty">Spielstand wird geladen …</div>';
 applyTheme();
 await loadCrests();
-if(!(await loadAsync())) {fresh();S.mode='free';save()}
-else migrateLoaded();
-render();
+let ok=false;try{ok=await loadAsync()}catch(e){loadFail(e,'Laden');return}
+if(!ok){fresh();S.mode='free';save()}
+else{try{migrateLoaded()}catch(e){loadFail(e,'Aktualisieren');return}}
+try{render()}catch(e){loadFail(e,'Anzeigen');return}
 if(!navigator.webdriver)openMenu();
 }
 boot();

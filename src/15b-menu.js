@@ -46,7 +46,7 @@ async function menuAct(k,v){const nw=MENU.nw;
   else if(k==='mtheme'){try{localStorage.setItem('fp-theme',v)}catch(e){}applyTheme()}
   else if(k==='mspeed'){S.liveSpeed=+v;save()}
   else if(k==='mupd'){checkUpdate();return}
-  else if(k==='mload'){const n=+v;if(n!==SLOT){switchSlot(n);if(!(await loadAsync())){toast('Spielstand nicht gefunden');return}migrateLoaded()}view={tab:S.fav?'fav':'home',ftab:'ov'};view.ov=null;toast('Spielstand '+n+' geladen')}
+  else if(k==='mload'){const n=+v;if(n!==SLOT){switchSlot(n);let ok=false;try{ok=await loadAsync()}catch(e){view.ov=null;loadFail(e,'Laden');return}if(!ok){toast('Spielstand nicht gefunden');return}try{migrateLoaded()}catch(e){view.ov=null;loadFail(e,'Aktualisieren');return}}view={tab:S.fav?'fav':'home',ftab:'ov'};view.ov=null;toast('Spielstand '+n+' geladen')}
   else if(k==='mdel'){const n=+v;if(!confirmTwice('del'+n)){toast('Zum Löschen nochmal tippen');return}const p=n===1?'':`s${n}:`;await Promise.all(['state','hist','meta','stateZ','histZ'].map(x=>DB.del(p+x).catch(()=>{})));await readMetas();toast('Platz '+n+' gelöscht')}
   else if(k==='mgo'&&v==='found'){readMenuInputs();if(!foundStart())return}
   else if(k==='mgo'){readMenuInputs();if(v==='career'&&nw.start==='club'&&!nw.club){toast('Wähle zuerst deinen Verein');return}if(v==='career'&&!nw.name.trim()){toast('Gib deinen Namen ein');return}
