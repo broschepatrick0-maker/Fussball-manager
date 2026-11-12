@@ -17,6 +17,7 @@
 08k-clubs.js
 08b-players.js
 08c-manager.js
+08l-devel.js
 08d-career.js
 08e-fitness.js
 08f-mood.js
@@ -40,6 +41,7 @@
 15b-menu.js
 15c-calui.js
 15d-jump.js
+15e-press.js
 16-ui-pages.js
 16b-stars.js
 16c-erfolge.js

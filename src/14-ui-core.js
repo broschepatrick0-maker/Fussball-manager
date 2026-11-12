@@ -151,6 +151,7 @@ function renderOverlay(){
   else if(o.t==='neg'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Vertragsgespräch"><div class="ovh"><b>📄 Vertragsgespräch: ${esc(P()[o.pid].n)}</b>${x}</div>${negHTML(o)}</div>`;
   else if(o.t==='pi'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Spieler"><div class="ovh"><b>${esc(P()[o.pid].n)}</b>${x}</div>${playerInfoHTML(o.pid)}</div>`;
   else if(o.t==='talk'&&P()[o.pid]) h=`<div class="sheet" role="dialog" aria-label="Gespräch"><div class="ovh"><b>Gespräch mit ${esc(P()[o.pid].n)}</b>${x}</div>${talkSheet(o.pid)}</div>`;
+  else if(o.t==='press') h=`<div class="sheet" role="dialog" aria-label="Pressekonferenz"><div class="ovh"><b>🎤 Pressekonferenz</b>${x}</div>${pressHTML(o)}</div>`;
   else if(o.t==='review'&&S.review) h=`<div class="sheet" role="dialog" aria-label="Saisonrückblick"><div class="ovh"><b>Saisonrückblick</b>${x}</div>${reviewHTML()}</div>`;
   else if(o.t==='menu') h=`<div class="mscreen" role="dialog" aria-label="Hauptmenü">${menuHTML()}</div>`;
   else if(o.t==='match') h=`<div class="sheet msheet" role="dialog" aria-label="Live-Spiel"><div class="ovh"><b>${o.m.hg!=null&&!o.fresh&&!o.playing?'Spielbericht':'Live'}</b>${x}</div><div class="ovc">${matchHTML()}</div></div>`;
@@ -398,6 +399,7 @@ function renderFav(){
 </div>
     <div class="facts">${teamFormHTML(id)}<div><small>Tabellenplatz</small><b>${pos?pos+'. · '+(row.p||0)+' Pkt':'–'}</b></div><div><small>Spielstärke</small><b>${t.r.toFixed(1)}</b></div><div><small>Kaderwert</small><b>${money(clubValue(id))}</b></div><div><small>Transferbudget</small><b>${money(bud(id))}</b></div><div><small>Kontostand</small><b class="${FZ(id).c<0?'no':''}">${FZ(id).c<0?'−':''}${money(Math.abs(FZ(id).c))}</b></div><div><small>Transferfenster</small><b class="${wo?'ok':'no'}">${wo?'Offen':'Geschlossen'}</b></div></div>
     <label class="tog" for="autoTr"><input type="checkbox" id="autoTr" ${favAuto()?'checked':''} data-act="auto"> Vereinsführung kauft und verkauft automatisch, wenn das Fenster offen ist</label></div>`;
+  if(ft==='ov')try{h+=pressCardHTML()}catch(e){console.warn(e)}
   if(ft==='ov'){
     const ms=teamMatches(id),done=ms.filter(x=>x.done),next=ms.filter(x=>!x.done&&x.m.a&&x.m.h).sort((a,b)=>(a.day??999)-(b.day??999)).slice(0,5);
     const around=pos?tb.slice(Math.max(0,pos-4),pos+3):[];
@@ -415,7 +417,7 @@ function renderFav(){
     if(off.length) h+=`<div class="card offer"><h3 class="ct">Angebote für deine Spieler</h3>${(S.offers||[]).map((o,i)=>T(S.fav).sq.includes(o.pid)?`<div class="orow"><span><b>${esc(T(o.club).name)}</b> bietet <b>${money(o.amt)}</b> für ${esc(P()[o.pid].n)} <span class="meta">(${P()[o.pid].p}, ${P()[o.pid].a} J., Marktwert ${money(value(o.pid))})</span></span><span class="ctrls"><button class="btn sm pri" data-act="oacc:${i}">Annehmen</button><button class="btn sm" data-act="odec:${i}">Ablehnen</button></span></div>`:'').join('')}</div>`;
   }
   if(ft==='scout') h+=renderScout(id);
-  if(ft==='taktik') h+=renderTactics(id);
+  if(ft==='taktik') h+=(()=>{try{return pressCardHTML()}catch(e){return ''}})()+renderTactics(id)+`<div class="grid2"><div>${indivCard(id)}</div><div>${devCard(id)}</div></div>`;
   if(ft==='kal') h+=renderCalendar();
   if(ft==='karriere'&&isCareer()) h+=renderCareer(id);
   if(ft==='jugend') h+=renderAcademy(id);
