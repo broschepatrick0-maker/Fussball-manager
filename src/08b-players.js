@@ -8,7 +8,7 @@ function setContract(pid,club,years){const p=P()[pid];if(!p)return;if(club&&isAm
   p.c=S.season+y;p.w=Math.round(marketWage(pid,club)*(0.93+Math.random()*0.15)/100)*100}
 function wageOf(pid,club){const p=P()[pid];if(!p)return 0;ensureContract(pid,club);return p.w}
 // Effektive Stärke im Spiel: Grundstärke + Form + Moral
-function effR(id){const t=T(id);return t.r+(t.fm||0)*0.5+(((t.mo??60)-60)/15)+famPenalty(id)}
+function effR(id){const t=T(id);return t.r+(t.fm||0)*0.5+(((t.mo??60)-60)/15)+famPenalty(id)+(S.press&&typeof pressBonus==='function'?pressBonus(id):0)}
 // Nach jedem Pflichtspiel: Form, Moral, Verletzungen
 const INJ=[['Prellung',1,2,30],['Grippaler Infekt',1,2,18],['Zerrung',2,4,22],['Muskelfaserriss',3,6,14],['Bänderdehnung',2,5,8],['Sprunggelenksverletzung',4,8,4],['Muskelbündelriss',6,10,2],['Meniskusschaden',8,16,1],['Bänderriss',10,18,.6],['Mittelfußbruch',12,20,.4],['Kreuzbandriss',30,45,.5]];
 function afterMatch(m,lv){

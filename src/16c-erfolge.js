@@ -15,6 +15,8 @@ const ACH_L=[
  ['riese','spiel','s','🪨','Riesentöter','Schlage im Pokal einen Gegner, der mindestens 10 Stärkepunkte besser ist'],
  ['derby','spiel','b','🏟️','Derbysieger','Gewinne ein Derby'],
  ['derby5','spiel','g','👑','Herr der Stadt','Gewinne fünf Derbys',()=>[ACH().c.derby||0,5]],
+ ['presse','spiel','b','🎤','Medienprofi','Gib zehn Pressekonferenzen',()=>[ACH().c.press||0,10]],
+ ['grossmaul','spiel','s','📣','Wort gehalten','Kündige fünfmal einen Sieg an – und gewinne dann auch',()=>[ACH().c.prom||0,5]],
  ['herbst','saison','b','🍂','Herbstmeister','Stehe zur Saisonhälfte auf Platz 1'],
  ['meister','saison','s','🏆','Meisterschale','Werde Meister deiner Liga'],
  ['meister3','saison','g','🏆','Seriensieger','Gewinne drei Meisterschaften',()=>[ACH().c.titles||0,3]],

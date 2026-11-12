@@ -245,6 +245,8 @@ function act(a){
   if(k==='tut'){if(v==='x'){S.tut=1;view.ov=null;save()}else view.ov={t:'tut',i:+v};render();return}
   if(k==='mfull'){view.mfull=!view.mfull;render();return}
   if(k==='ov'){view.ov={t:v};render();return}
+  if(k==='press'){if(!pressNext()){toast('Kein anstehendes Spiel');return}view.ov={t:'press'};render();return}
+  if(k==='pq'){const o=view.ov;if(!o||o.t!=='press')return;if(v==='go'){if(!o.q1||!o.q2)return;pressGive(o.q1,o.q2);view.ov=null;save();render();toast('🎤 Pressekonferenz beendet');return}o[v]=w;render();return}
   if(k==='menu'){openMenu();return}
   if(k==='takeover'){if(isCareer()){toast('In der Karriere wechselst du den Verein über Jobangebote');return}view.ov={t:'takeover',id:v};render();return}
   if(k==='takeovergo'){const i=document.getElementById('toName'),nm=(i&&i.value||'').trim();if(!nm){toast('Gib deinen Namen ein');return}
