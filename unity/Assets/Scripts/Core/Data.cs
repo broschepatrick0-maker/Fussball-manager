@@ -63,6 +63,7 @@ namespace FP.Core
         public int version = 1;
         public int season; public int day; public int lastDay; public bool done;
         public int fav = -1; public int seed;
+        public string mode = "free"; public Career career;
         public List<Team> teams = new List<Team>();
         public List<League> leagues = new List<League>();
         public List<Player> players = new List<Player>();

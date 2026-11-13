@@ -16,7 +16,7 @@ namespace FP.UI
         ScrollRect scroll; CanvasScaler scaler; RectTransform canvasRT;
         bool wide, shellBuilt; float contentW = 1200;
         string area = "title", lastKey = "";
-        string viewCup; bool lpOpen; string favSub = "ov"; int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; bool vbOpen; string query = "";
+        string viewCup; bool lpOpen; string newMode = "career", careerStart = "club", coachName = ""; string favSub = "ov"; int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; bool vbOpen; string query = "";
         bool showAllLog, confirmNew; string error;
         Vector2 lastScreen; Rect lastSafe;
 
@@ -49,7 +49,7 @@ namespace FP.UI
         void Keys()
         {
 #if ENABLE_LEGACY_INPUT_MANAGER
-            if (G == null || G.S.fav < 0) return;
+            if (G == null || (G.S.fav < 0 && !G.IsCareer)) return;
             var es = UnityEngine.EventSystems.EventSystem.current;
             bool typing = es != null && es.currentSelectedGameObject != null && es.currentSelectedGameObject.GetComponent<InputField>() != null;
             if (typing) return;
@@ -123,7 +123,8 @@ namespace FP.UI
 
         void Go(string a) { area = a; Render(); }
         void Save() { try { if (G != null) Store.Save(G.S); } catch (Exception e) { Debug.LogWarning("Speichern fehlgeschlagen: " + e.Message); } }
-        void Next() { if (G == null || G.S.fav < 0) return; if (G.SeasonDone) return; PlayToFavMatch(); Save(); Render(); }
+        bool Jobless { get { return G != null && G.IsCareer && G.S.fav < 0; } }
+        void Next() { if (G == null || G.SeasonDone) return; if (Jobless) G.NextDay(); else if (G.S.fav >= 0) PlayToFavMatch(); else return; Save(); Render(); }
         void SimSeason() { if (G == null) return; G.SimToEnd(); Save(); Render(); }
         void CloseSeason() { G.EndSeason(); showAllLog = false; Save(); Go("news"); }
 
@@ -141,17 +142,20 @@ namespace FP.UI
         void RenderInner()
         {
             K.Clear(content); resultsBox = null;
-            bool inGame = G != null && G.S.fav >= 0; bool picking = G != null && G.S.fav < 0;
-            if (G == null) area = "title";
+            bool inGame = G != null && (G.S.fav >= 0 || G.IsCareer); bool picking = G != null && G.S.fav < 0 && !G.IsCareer;
+            if (G == null && area != "setup") area = "title";
+            if (Jobless && (area == "news" || area == "hist")) area = "home";
             Layout(inGame || picking);
             BuildBoard(inGame, picking);
             if (inGame || picking) BuildRail(picking);
+            if (G != null && G.Events.Count > 0) { foreach (var ev in G.Events) LogLine(content, ev, K.Gold); G.Events.Clear(); }
             switch (area)
             {
                 case "title": Title(); break;
-                case "home": if (picking) Pick(); else Home(); break;
+                case "setup": Setup(); break;
+                case "home": if (picking) Pick(); else if (Jobless) CareerPage(); else Home(); break;
                 case "news": News(); break;
-                case "fav": Club(); break;
+                case "fav": if (Jobless && viewTeam < 0) CareerPage(); else Club(); break;
                 case "de": Leagues(false); break;
                 case "eu": Leagues(true); break;
                 case "hist": History(); break;
@@ -177,7 +181,7 @@ namespace FP.UI
                 var clock = K.VBox(board, 0); K.Flex(clock);
                 string head = G.SeasonDone ? "Saison " + Sl(G.S.season) + " beendet" : "Spieltag " + G.S.day + " von " + G.MaxDay;
                 K.T(clock, head, wide ? 18 : 16, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
-                K.T(clock, picking ? "Wähle deinen Verein" : NextInfo(), 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                K.T(clock, picking ? "Wähle deinen Verein" : Jobless ? "Ohne Verein · " + G.C.offers.Count + " Angebote" : NextInfo(), 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
             }
             else K.Spacer(board);
             if (!inGame) return;
@@ -197,7 +201,8 @@ namespace FP.UI
             for (int i = rail.childCount - 1; i >= 0; i--) { var c = rail.GetChild(i); if (c.name != "Linie") { c.SetParent(null, false); Destroy(c.gameObject); } }
             foreach (var a in Areas)
             {
-                if (picking && (a[0] == "news" || a[0] == "fav" || a[0] == "hist")) continue;
+                if ((picking || Jobless) && (a[0] == "news" || a[0] == "hist")) continue;
+                if (picking && a[0] == "fav") continue;
                 string key = a[0]; bool on = area == key;
                 var r = K.VBox(rail, 3, 0, null, "Bereich"); var v = r.GetComponent<VerticalLayoutGroup>(); v.childAlignment = TextAnchor.MiddleCenter; v.padding = new RectOffset(2, 2, wide ? 8 : 5, wide ? 8 : 5);
                 v.childControlWidth = false; v.childForceExpandWidth = false;
@@ -278,6 +283,7 @@ namespace FP.UI
             {
                 StripCol(r, "ZULETZT", last.Value == null ? "–" : ResultText(last.Value, G.S.fav), last.Value == null ? K.Ink : ResultColor(last.Value, G.S.fav));
                 StripCol(r, "ALS NÄCHSTES", NextText(), K.Ink);
+                if (G.IsCareer) StripCol(r, "VORSTAND", Mathf.RoundToInt(G.C.conf) + "/100 · " + Game.ConfLabel(G.C.conf), G.C.conf >= 55 ? K.Up : G.C.conf >= 38 ? K.Rel : K.Down);
                 K.Spacer(r);
             }
             K.Click(r, () => { viewTeam = -1; favSub = "ov"; Go("fav"); });
@@ -406,7 +412,137 @@ namespace FP.UI
             try { G = Game.FromState(Store.Load(), Store.LoadNames()); error = null; Go("home"); }
             catch (Exception e) { error = "Spielstand konnte nicht geladen werden: " + e.Message; Debug.LogException(e); Render(); }
         }
-        void NewGame() { G = Game.NewGame(Store.LoadWorld(), Store.LoadNames(), Environment.TickCount & 0x7fffffff); query = ""; Go("home"); }
+        void NewGame() { G = null; Go("setup"); }
+        void StartGame()
+        {
+            G = Game.NewGame(Store.LoadWorld(), Store.LoadNames(), Environment.TickCount & 0x7fffffff); query = "";
+            if (newMode == "career" && careerStart != "club") { G.NewCareer(coachName, -1, careerStart); Save(); }
+            Go("home");
+        }
+        void TakeClub(int id)
+        {
+            if (newMode == "career") G.NewCareer(coachName, id, "club"); else G.NewFree(id);
+            viewTeam = -1; viewLeague = null; Save(); Go("home");
+        }
+
+        // ================= Spielmodus wählen =================
+        void Setup()
+        {
+            PageHead(content, "Neues Spiel", "Spielmodus");
+            var cols = Cols(content, 1, 1);
+            ModeCard(cols[0], "free", "FREIES SPIEL", "Übernimm einen beliebigen Verein – ohne Vorstand, ohne Entlassung. Spiele so viele Saisons, wie du willst.");
+            ModeCard(cols[1], "career", "KARRIERE", "Du bist Trainer: Der Vorstand setzt ein Saisonziel, misst dich am Vertrauen und kann dich entlassen. Ruf, Lizenzen, Jobangebote und Bewerbungen.");
+            if (newMode == "career")
+            {
+                var c = K.Card(content, 16, 10);
+                K.T(c, "DEIN TRAINER", 20, K.Ink, K.FD);
+                SearchField(c, "Name des Trainers", coachName, v => coachName = v, false);
+                K.T(c, "KARRIERESTART", 18, K.Ink, K.FD);
+                var cells = Grid(c, 3, 3);
+                StartCard(cells[0], "club", "Wunschverein", "Du wählst deinen Verein. Lizenz und Ruf passen zur Liga.");
+                StartCard(cells[1], "zero", "Von ganz unten", "Ohne Lizenz, ohne Ruf, 3.000 € auf dem Konto. Erste Angebote kommen aus den Kreisligen.");
+                StartCard(cells[2], "pro", "Erfahrener Trainer", "B-Lizenz, etwas Ruf und 250.000 € Erspartes. Du suchst dir eine Stelle.");
+            }
+            var bh = K.HBox(content, 40, 10);
+            K.Btn(bh, "Zurück", () => Go("title"), K.B.Outline, 40, -1, 14);
+            K.Spacer(bh);
+            K.Btn(bh, newMode == "career" && careerStart != "club" ? "Karriere starten" : "Weiter zur Vereinswahl", StartGame, K.B.Primary, 40, -1, 15, "play");
+        }
+        void ModeCard(Transform p, string key, string title, string text)
+        {
+            bool on = newMode == key;
+            var c = K.VBox(p, 6, 16); K.Shape(c, on ? K.AccSoft : K.Panel, 8, on ? K.Acc : K.Line);
+            K.T(c, title, 24, on ? K.Acc : K.Ink, K.FD); K.T(c, text, 13.5f, K.Mut);
+            K.Click(c, () => { newMode = key; Render(); });
+        }
+        void StartCard(Transform p, string key, string title, string text)
+        {
+            bool on = careerStart == key;
+            var c = K.VBox(p, 4, 12); K.Shape(c, on ? K.AccSoft : K.Bg, 6, on ? K.Acc : K.Line); K.Flex(c);
+            K.T(c, title, 15, on ? K.Acc : K.Ink, K.FM); K.T(c, text, 12.5f, K.Mut);
+            K.Click(c, () => { careerStart = key; Render(); });
+        }
+
+        // ================= Karriere =================
+        void CareerPage()
+        {
+            var c = G.C;
+            PageHead(content, "Karriere · " + c.name, Jobless ? "Ohne Verein" : "Trainerkarriere", "Ruf " + Mathf.RoundToInt(c.rep), Game.Lics[c.lic].n);
+            CareerTiles(content);
+            var cols = Cols(content, 1.2f, 1);
+            if (c.offers.Count > 0 || Jobless)
+            {
+                var oc = K.Card(cols[0], 14, 0); K.T(oc, "ANGEBOTE", 20, K.Ink, K.FD); K.Gap(oc, 6);
+                if (c.offers.Count == 0) K.T(oc, "Noch keine Angebote – sie kommen im Lauf der Saison. Du kannst dich auch selbst bewerben.", 12.5f, K.Mut);
+                for (int i = 0; i < c.offers.Count; i++) { int ix = i; JobRow(oc, c.offers[i].club, () => { G.AcceptOffer(ix); Save(); Go("home"); }, "Annehmen"); }
+            }
+            if (Jobless)
+            {
+                var vc = K.Card(cols[0], 14, 0); K.T(vc, "FREIE STELLEN", 20, K.Ink, K.FD);
+                K.T(vc, "Bewerben kannst du dich auch bei jedem anderen Verein – öffne ihn über „Ligen“.", 12, K.Mut); K.Gap(vc, 6);
+                foreach (var id in G.Vacancies()) { int vid = id; string why; if (G.CanApply(id, out why)) JobRow(vc, id, () => Apply(vid), "Bewerben · " + Mathf.RoundToInt((float)G.ApplyChance(id) * 100) + " %"); else JobRow(vc, id, null, why); }
+            }
+            LicenseCard(cols[1]);
+            CareerHistory(cols[1]);
+        }
+        void CareerTiles(Transform p)
+        {
+            var c = G.C; var tiles = new List<string[]>();
+            if (!Jobless)
+            {
+                tiles.Add(new[] { "Vorstand", Mathf.RoundToInt(c.conf) + "/100", Game.ConfLabel(c.conf) });
+                if (c.hasGoal) { var lg = G.L(c.goal.lg); var tb = lg != null ? G.Standing(lg) : new List<int>(); tiles.Add(new[] { "Saisonziel", c.goal.label, "Platz " + c.goal.pos + " · aktuell " + (tb.IndexOf(c.club) + 1) + "." }); }
+                tiles.Add(new[] { "Bilanz", c.stats.w + "-" + c.stats.d + "-" + c.stats.l, c.stats.g + " Spiele" });
+            }
+            tiles.Add(new[] { "Ruf", Mathf.RoundToInt(c.rep).ToString(), Game.RepLabel(c.rep) });
+            tiles.Add(new[] { "Lizenz", Game.Lics[c.lic].k == "0" ? "keine" : Game.Lics[c.lic].k, Game.LicRange(c.lic) });
+            tiles.Add(new[] { "Konto", Util.Money(c.money), "" });
+            var cells = wide ? Grid(p, tiles.Count, 6) : GridForce(p, tiles.Count, 2);
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                var tl = K.VBox(cells[i], 2, 10); K.Shape(tl, K.Panel, 6, K.Line); K.Flex(tl);
+                K.T(tl, tiles[i][0].ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                Color vc = i == 0 && !Jobless ? (c.conf >= 55 ? K.Up : c.conf >= 38 ? K.Rel : K.Down) : K.Ink;
+                K.T(tl, tiles[i][1], 17, vc, K.FM, TextAnchor.MiddleLeft);
+                if (tiles[i][2] != "") K.T(tl, tiles[i][2], 11, K.Mut, K.F, TextAnchor.MiddleLeft);
+            }
+        }
+        void JobRow(Transform p, int id, Action act, string label)
+        {
+            var t = G.T(id); var l = G.LeagueOf(id);
+            var r = K.HBox(p, 46, 10); K.Crest(r, t, 26);
+            var v = K.VBox(r, 0); K.Flex(v);
+            K.Cell(v, t.name, -1, TextAnchor.MiddleLeft, K.Ink, K.FM);
+            K.Cell(v, l != null ? l.name + " · Stufe " + l.level : "", -1, TextAnchor.MiddleLeft, K.Mut, K.F, 12);
+            if (act != null) K.Btn(r, label, () => act(), K.B.Primary, 28, -1, 12.5f); else if (!string.IsNullOrEmpty(label)) Tag(r, label);
+            K.Btn(r, "", () => OpenTeam(id), K.B.Outline, 28, 28, 12, "right");
+            K.Divider(p);
+        }
+        void Apply(int id)
+        {
+            string r = G.ApplyJob(id);
+            G.Events.Add(r == "ok" ? "Zusage! " + G.T(id).name + " holt dich als Trainer." : r == "nein" ? G.T(id).name + " hat deine Bewerbung abgelehnt." : r == "lizenz" ? "Für diese Liga fehlt dir die Lizenz." : "Du hast dich dort in dieser Saison schon beworben.");
+            Save(); if (r == "ok") { viewTeam = -1; Go("home"); } else Render();
+        }
+        void LicenseCard(Transform p)
+        {
+            var c = G.C; var lc = K.Card(p, 14, 6); K.T(lc, "TRAINERLIZENZ", 20, K.Ink, K.FD);
+            K.T(lc, Game.Lics[c.lic].n + " – erlaubt " + Game.LicRange(c.lic) + ".", 13.5f, K.Ink);
+            if (c.course >= 0) K.T(lc, "Lehrgang zur " + Game.Lics[c.course].n + " läuft – noch " + Mathf.CeilToInt(c.courseLeft) + " Spieltage.", 12.5f, K.Acc);
+            else if (c.lic + 1 < Game.Lics.Length)
+            {
+                var nx = Game.Lics[c.lic + 1];
+                K.T(lc, "Nächste Stufe: " + nx.n + " · " + Util.Money(nx.cost) + " · " + nx.dur + " Spieltage" + (nx.rep > 0 ? " · ab Ruf " + nx.rep : "") + (nx.seasons > 0 ? " · " + nx.seasons + " Saison(s) Erfahrung" : ""), 12.5f, K.Mut);
+                K.Btn(lc, "Lehrgang starten", () => { string r = G.StartCourse(); G.Events.Add(r == "ok" ? "Lehrgang zur " + nx.n + " gestartet." : r); Save(); Render(); }, K.B.Outline, 30, -1, 13);
+            }
+        }
+        void CareerHistory(Transform p)
+        {
+            var c = G.C; var hc = K.Card(p, 14, 0); K.T(hc, "KARRIEREVERLAUF", 20, K.Ink, K.FD); K.Gap(hc, 6);
+            if (c.club >= 0) HistRow(hc, Sl(c.since) + "–", G.T(c.club).name, c.stats.w + "-" + c.stats.d + "-" + c.stats.l, "LÄUFT", K.Mut);
+            foreach (var h in c.hist) HistRow(hc, Sl(h.from), h.name + (string.IsNullOrEmpty(h.titles) ? "" : "\n" + h.titles), h.w + "-" + h.d + "-" + h.l + " · " + h.end, "", K.Mut);
+            if (c.club < 0 && c.hist.Count == 0) K.T(hc, "Noch keine Station.", 12.5f, K.Mut);
+        }
 
         // ================= Verein wählen =================
         void Pick()
@@ -442,14 +578,14 @@ namespace FP.UI
             }
             if (n == 0) K.T(resultsBox, "Kein Verein gefunden.", 13.5f, K.Mut);
         }
-        void SearchField(Transform p, string placeholder, string value, Action<string> changed)
+        void SearchField(Transform p, string placeholder, string value, Action<string> changed, bool focus = true)
         {
             var r = K.Rect("Eingabe", p); var img = K.Shape(r, K.Bg, 6, K.Line); K.LE(r, -1, 34);
             var tr = K.T(r, "", 13.5f, K.Ink, K.F, TextAnchor.MiddleLeft, -1, false); tr.supportRichText = false; K.Fill(tr.rectTransform); tr.rectTransform.offsetMin = new Vector2(10, 0); tr.rectTransform.offsetMax = new Vector2(-10, 0);
             var ph = K.T(r, placeholder, 13.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false); K.Fill(ph.rectTransform); ph.rectTransform.offsetMin = new Vector2(10, 0); ph.rectTransform.offsetMax = new Vector2(-10, 0);
             var inp = r.gameObject.AddComponent<InputField>(); inp.textComponent = tr; inp.placeholder = ph; inp.targetGraphic = img; inp.text = value ?? ""; inp.caretColor = K.Acc; inp.selectionColor = new Color(.24f, .7f, .48f, .35f);
             inp.onValueChanged.AddListener(v => changed(v));
-            if (wide) inp.ActivateInputField();
+            if (wide && focus) inp.ActivateInputField();
         }
 
         // ================= Start =================
@@ -548,8 +684,10 @@ namespace FP.UI
             var subs = new List<KeyValuePair<string, Action>> {
                 new KeyValuePair<string, Action>("Überblick", () => { favSub = "ov"; Render(); }), new KeyValuePair<string, Action>("Kader", () => { favSub = "squad"; Render(); }),
                 new KeyValuePair<string, Action>("Spiele", () => { favSub = "games"; Render(); }), new KeyValuePair<string, Action>("Historie", () => { favSub = "hist"; Render(); }) };
-            if (!mine && G.S.fav >= 0) subs.Insert(0, new KeyValuePair<string, Action>("◀ Mein Verein", () => { viewTeam = -1; favSub = "ov"; Render(); }));
-            string act = favSub == "squad" ? "Kader" : favSub == "games" ? "Spiele" : favSub == "hist" ? "Historie" : "Überblick";
+            if (mine && G.IsCareer) subs.Add(new KeyValuePair<string, Action>("Karriere", () => { favSub = "career"; Render(); }));
+            if (!mine && (G.S.fav >= 0 || G.IsCareer)) subs.Insert(0, new KeyValuePair<string, Action>(G.S.fav >= 0 ? "◀ Mein Verein" : "◀ Karriere", () => { viewTeam = -1; favSub = "ov"; Render(); }));
+            string act = favSub == "squad" ? "Kader" : favSub == "games" ? "Spiele" : favSub == "hist" ? "Historie" : favSub == "career" ? "Karriere" : "Überblick";
+            if (favSub == "career" && mine) { Flow(content, subs, act); CareerPage(); return; }
             Flow(content, subs, act);
 
             // Vereinskarte mit goldener Oberkante
@@ -579,7 +717,8 @@ namespace FP.UI
                     K.T(tl, tiles[i][1], 17, i == 0 ? K.Ink : K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
                     if (tiles[i][2] != "") K.T(tl, tiles[i][2], 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
                 }
-                if (G.S.fav < 0) K.Stretch(K.Btn(inner, "Diesen Verein übernehmen", () => { G.S.fav = id; viewTeam = -1; viewLeague = null; Save(); Go("home"); }, K.B.Primary, 40, -1, 15, "starf"));
+                if (G.S.fav < 0 && !G.IsCareer) K.Stretch(K.Btn(inner, newMode == "career" ? "Als Trainer übernehmen" : "Diesen Verein übernehmen", () => TakeClub(id), K.B.Primary, 40, -1, 15, "starf"));
+                if (G.IsCareer && !mine) { string why; if (G.CanApply(id, out why)) K.Stretch(K.Btn(inner, "Bewerben · " + Mathf.RoundToInt((float)G.ApplyChance(id) * 100) + " %" + (G.Vacancies().Contains(id) ? " · Stelle frei" : ""), () => Apply(id), K.B.Primary, 36, -1, 14)); else if (!string.IsNullOrEmpty(why)) Tag(inner, why); }
 
                 var cols = Cols(content, 1.35f, 1);
                 if (l != null)

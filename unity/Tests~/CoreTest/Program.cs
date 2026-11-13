@@ -54,6 +54,18 @@ static class Program
         var g2 = Game.FromState(s2, n); g2.NextDay();
         Check(g2.S.day == 1, "Laden: Spieltag " + g2.S.day);
         Console.WriteLine($"Spielstand: {json.Length / 1024} KB, {g.S.players.Count} Spieler");
+        // Karriere von ganz unten
+        var k = Game.NewGame(w, n, 7); k.NewCareer("Testtrainer", -1, "zero");
+        Check(k.C.jobless && k.C.offers.Count > 0, "Karrierestart ohne Angebote");
+        for (int s = 0; s < 4; s++)
+        {
+            for (int d = 0; d < 60 && !k.SeasonDone; d++) { if (k.C.jobless && k.C.offers.Count > 0) k.AcceptOffer(0); k.NextDay(); }
+            string club = k.C.club >= 0 ? k.T(k.C.club).name + " (" + k.LeagueOf(k.C.club).name + ")" : "ohne Verein";
+            Console.WriteLine($"Karriere {k.S.season}: {club} · Ruf {k.C.rep} · Vertrauen {k.C.conf} · Ziel {(k.C.hasGoal ? k.C.goal.label : "-")} · Bilanz {k.C.stats.w}-{k.C.stats.d}-{k.C.stats.l}");
+            k.EndSeason();
+        }
+        Check(k.C.hist.Count + (k.C.club >= 0 ? 1 : 0) > 0, "Karriere ohne Stationen");
+        var js = JsonSerializer.Serialize(k.S, o); var k2 = Game.FromState(JsonSerializer.Deserialize<GameState>(js, o), n); Check(k2.IsCareer, "Karriere nach Laden weg");
         Console.WriteLine(fails == 0 ? "ALLES OK" : fails + " FEHLER");
         return fails == 0 ? 0 : 1;
     }

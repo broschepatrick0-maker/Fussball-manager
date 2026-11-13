@@ -297,6 +297,7 @@ namespace FP.Core
             var st = new Dictionary<string, List<int>>();
             foreach (var l in S.leagues) st[l.id] = Standing(l);
             RecordHistory(st);
+            CareerSeasonEnd(st, log);
             log.Add("Deutscher Meister: " + T(st["bl"][0]).name);
             foreach (var l in S.leagues.Where(x => x.foreign)) log.Add((string.IsNullOrEmpty(l.title) ? l.name : l.title) + ": " + T(st[l.id][0]).name);
             // Pokalsieger
@@ -382,6 +383,7 @@ namespace FP.Core
             S.season++;
             Reindex();
             StartSeason();
+            CareerNewSeason(sl.lines);
             return sl;
         }
 

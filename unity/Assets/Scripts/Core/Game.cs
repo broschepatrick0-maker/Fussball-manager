@@ -168,6 +168,7 @@ namespace FP.Core
             {
                 if (m.hg < 0) { var x = Play(m.h, m.a); m.hg = x[0]; m.ag = x[1]; }
                 AfterMatch(m);
+                if (S.fav >= 0 && (m.h == S.fav || m.a == S.fav)) CareerAfterMatch(m);
             }
             l.played++;
         }
@@ -177,6 +178,7 @@ namespace FP.Core
         {
             if (S.done) return true;
             int d = ++S.day;
+            CareerDay();
             foreach (var l in S.leagues)
                 while (l.played < l.rounds.Count && l.dates[l.played] <= d) PlayRound(l);
             foreach (var c in S.cups)
