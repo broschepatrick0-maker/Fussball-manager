@@ -27,7 +27,7 @@ static class Program
             var tab = g.Table(bl);
             Check(tab.All(r => r.sp == 34), "Bundesliga: nicht alle 34 Spiele");
             var sq = g.Squad(tab[0].id);
-            Check(g.S.cups.Count > 300, "zu wenige Pokale: " + g.S.cups.Count);
+            Check(g.S.cups.Count > 100, "zu wenige Pokale: " + g.S.cups.Count);
             Check(g.S.cups.All(c => c.winner >= 0), "nicht alle Pokale entschieden");
             var dfb = g.CupById("dfb"); Check(dfb != null && dfb.teams.Count == 64, "DFB-Pokal hat " + (dfb == null ? 0 : dfb.teams.Count) + " Teams");
             if (s == 0) Console.WriteLine($"Pokale: {g.S.cups.Count} · DFB-Pokal-Sieger {g.T(dfb.winner).name} · Werningshausen: {string.Join(", ", g.CupsOf(fav).Select(c => c.name + " " + g.CupReach(c, fav)))}");

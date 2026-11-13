@@ -475,7 +475,7 @@ namespace FP.UI
             {
                 var c = cl[i]; var tl = K.VBox(cells[i], 2, 12); K.Shape(tl, K.Panel, 8, K.Line);
                 K.T(tl, c.name.ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
-                string st = c.winner >= 0 ? "Sieger: " + G.T(c.winner).name : (c.played == 0 ? G.RoundName(c.R, 0) + " ausstehend" : G.RoundName(c.R, c.played) + " · " + c.played + "/" + c.R);
+                string st = c.winner >= 0 ? "Sieger: " + G.T(c.winner).name : (c.played == 0 ? Game.RoundName(c.R, 0) + " ausstehend" : Game.RoundName(c.R, c.played) + " · " + c.played + "/" + c.R);
                 K.T(tl, st, 14, K.Ink, K.FM, TextAnchor.MiddleLeft);
                 string me = G.CupReach(c, G.S.fav); if (me != null) K.T(tl, "Dein Verein: " + me, 12, me == "Sieger" ? K.Gold : K.Acc, K.F);
                 var cid = c.id; K.Click(tl, () => { viewCup = cid; Go("cups"); });
@@ -819,7 +819,7 @@ namespace FP.UI
                 int k = shown[i]; var rd = cur.rounds[k];
                 var c = K.Card(cells[i], 14, 0); K.Flex(c);
                 var h = K.HBox(c, 30, 8);
-                var tt = K.T(h, G.RoundName(cur.R, k).ToUpperInvariant(), 20, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false); K.Flex(tt);
+                var tt = K.T(h, Game.RoundName(cur.R, k).ToUpperInvariant(), 20, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false); K.Flex(tt);
                 K.T(h, k < cur.played ? "gespielt" : "Spieltag " + (k < cur.dates.Count ? cur.dates[k] : 0), 12, K.Mut, K.F, TextAnchor.MiddleRight, -1, false).GetComponent<LayoutElement>().flexibleWidth = 0;
                 K.Gap(c, 4);
                 var list = rd.m.OrderByDescending(m => m.h == fav || m.a == fav).ThenBy(m => m.bye).ToList();
