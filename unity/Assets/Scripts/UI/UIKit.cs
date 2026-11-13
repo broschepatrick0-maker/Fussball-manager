@@ -89,8 +89,14 @@ namespace FP.UI
         // Macht eine ganze Zeile anklickbar
         public static void Click(RectTransform r, Action on)
         {
-            var img = r.GetComponent<Image>(); if (img == null) { img = r.gameObject.AddComponent<Image>(); img.color = new Color(0, 0, 0, 0); }
+            var img = r.GetComponent<Image>(); bool hover = img == null;
+            if (hover) { img = r.gameObject.AddComponent<Image>(); img.color = Color.white; }
             var b = r.gameObject.AddComponent<Button>(); b.targetGraphic = img; b.onClick.AddListener(() => on());
+            if (hover)
+            {
+                // unsichtbar, beim Überfahren mit der Maus leicht aufgehellt
+                var cb = b.colors; cb.normalColor = new Color(1, 1, 1, 0); cb.highlightedColor = new Color(1, 1, 1, .06f); cb.pressedColor = new Color(1, 1, 1, .12f); cb.selectedColor = new Color(1, 1, 1, 0); cb.fadeDuration = .05f; b.colors = cb;
+            }
         }
         public static void Gap(Transform p, float h) { LE(Rect("Gap", p), -1, h); }
         public static void Divider(Transform p) { var r = Rect("Line", p); r.gameObject.AddComponent<Image>().color = Line; LE(r, -1, 2); }
@@ -121,7 +127,7 @@ namespace FP.UI
         }
         public static RectTransform Crest(Transform p, Team t, float size)
         {
-            var r = Rect("Crest", p); LE(r, size, size);
+            var r = Rect("Crest", p); LE(r, size, size); r.sizeDelta = new Vector2(size, size);
             var tex = CrestTex(t.crest);
             if (tex != null) { var ri = r.gameObject.AddComponent<RawImage>(); ri.texture = tex; ri.raycastTarget = false; return r; }
             // Ersatzwappen: Kreis in Vereinsfarbe mit Initialen
