@@ -1,6 +1,5 @@
-// Oberfläche: Start, Tabelle, Spielplan, Kader, Ligen, Saison.
-// Zwei Gerüste: Handy (Hochformat, Navigation unten, eine Spalte) und PC (Querformat, Seitenleiste links,
-// Kopfzeile mit Aktionen, Inhalte in mehreren Spalten über die volle Breite).
+// Oberfläche im Aufbau der Web-App: Anzeigetafel oben, Bereichsleiste links (Handy: unten),
+// Inhalte als Karten. Bereiche: Start, News, Verein, Ligen, Europa, Historie.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,31 +12,31 @@ namespace FP.UI
     public class App : MonoBehaviour
     {
         Game G;
-        RectTransform shell, topBar, navBar, side, content, resultsBox, topActions;
+        RectTransform shell, board, rail, content, resultsBox;
         ScrollRect scroll; CanvasScaler scaler; RectTransform canvasRT;
-        Text topTitle, topSub;
-        bool wide; bool shellBuilt;
-        string tab = "title"; string lastTab = "";
-        int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; string query = "";
-        bool showAllLog; bool confirmNew; string error;
+        bool wide, shellBuilt; float contentW = 1200;
+        string area = "title", lastKey = "";
+        string favSub = "ov"; int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; bool vbOpen; string query = "";
+        bool showAllLog, confirmNew; string error;
         Vector2 lastScreen; Rect lastSafe;
 
-        const float SideW = 560, TopH = 190, NavH = 150;
-
+        const float BoardH = 52, RailW = 76, RailH = 58;
+        static readonly Color CL = K.Hex("#6f9be8"), EL = K.Hex("#f0954a"), ECL = K.Hex("#4cc3b8");
         static readonly Dictionary<string, string> VB = new Dictionary<string, string> {
             {"BY","Bayern"},{"BA","Baden"},{"SB","Südbaden"},{"WU","Württemberg"},{"HE","Hessen"},{"SW","Südwest"},{"RL","Rheinland"},{"SL","Saarland"},
             {"MR","Mittelrhein"},{"NR","Niederrhein"},{"WF","Westfalen"},{"NI","Niedersachsen"},{"HB","Bremen"},{"HH","Hamburg"},{"SH","Schleswig-Holstein"},
             {"MV","Mecklenburg-Vorpommern"},{"BB","Brandenburg"},{"BE","Berlin"},{"ST","Sachsen-Anhalt"},{"SN","Sachsen"},{"TH","Thüringen"} };
-        static readonly string[][] NavItems = { new[] { "home", "Übersicht" }, new[] { "table", "Tabelle" }, new[] { "games", "Spielplan" }, new[] { "squad", "Kader" }, new[] { "leagues", "Ligen" }, new[] { "season", "Saison" } };
+        static readonly string[][] Areas = { new[] { "home", "Start", "home" }, new[] { "news", "News", "news" }, new[] { "fav", "Verein", "star" }, new[] { "de", "Ligen", "ligen" }, new[] { "eu", "Europa", "europa" }, new[] { "hist", "Historie", "hist" } };
+        static readonly Dictionary<string, string> ShortName = new Dictionary<string, string> { { "bl", "Bundesliga" }, { "bl2", "2. BL" }, { "l3", "3. Liga" }, { "rln", "RL Nord" }, { "rlno", "RL Nordost" }, { "rlw", "RL West" }, { "rlsw", "RL Südwest" }, { "rlby", "RL Bayern" } };
 
-        // ---------- Gerüst ----------
+        // ================= Gerüst =================
         void Start()
         {
             K.Init();
             var cgo = new GameObject("Canvas", typeof(RectTransform));
             cgo.transform.SetParent(transform, false);
             var canvas = cgo.AddComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            scaler = cgo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler = cgo.AddComponent<CanvasScaler>(); scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             cgo.AddComponent<GraphicRaycaster>();
             canvasRT = (RectTransform)cgo.transform;
             var bg = K.Rect("Hintergrund", canvasRT); K.Fill(bg); bg.gameObject.AddComponent<Image>().color = K.Bg;
@@ -45,97 +44,88 @@ namespace FP.UI
             CheckScreen(true);
         }
 
-        void Update()
-        {
-            CheckScreen(false);
-            Keys();
-        }
+        void Update() { CheckScreen(false); Keys(); }
 
         void Keys()
         {
 #if ENABLE_LEGACY_INPUT_MANAGER
             if (G == null || G.S.fav < 0) return;
-            if (Input.GetKeyDown(KeyCode.Escape) && tab != "home") Go("home");
-            if (Input.GetKeyDown(KeyCode.Space) && !(UnityEngine.EventSystems.EventSystem.current != null && UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject != null && UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject.GetComponent<InputField>() != null))
-            { if (!G.SeasonDone) { PlayToFavMatch(); Save(); Render(); } }
+            var es = UnityEngine.EventSystems.EventSystem.current;
+            bool typing = es != null && es.currentSelectedGameObject != null && es.currentSelectedGameObject.GetComponent<InputField>() != null;
+            if (typing) return;
+            if (Input.GetKeyDown(KeyCode.Escape) && area != "home") Go("home");
+            if (Input.GetKeyDown(KeyCode.Space)) Next();
 #endif
         }
 
-        // Hochformat: Breite zählt (Handy). Querformat: Höhe zählt, Inhalt nutzt die volle Breite (PC).
+        // Querformat = PC-Aufbau (Maßstab wie 1600×900 im Browser), Hochformat = Handy-Aufbau (wie 412 px breit)
         void CheckScreen(bool force)
         {
             var scr = new Vector2(Screen.width, Screen.height);
             if (!force && scr == lastScreen && Screen.safeArea == lastSafe) return;
             lastScreen = scr; lastSafe = Screen.safeArea;
             bool w = Screen.width > Screen.height * 1.15f;
-            scaler.matchWidthOrHeight = w ? 1 : 0;
+            scaler.referenceResolution = w ? new Vector2(1600, 900) : new Vector2(412, 915);
+            scaler.matchWidthOrHeight = w ? .5f : 0;
             Canvas.ForceUpdateCanvases();
             float ch = canvasRT.rect.height;
             var sa = Screen.safeArea; float top = (Screen.height - sa.yMax) / Mathf.Max(1, Screen.height) * ch, bot = sa.yMin / Mathf.Max(1, Screen.height) * ch;
             shell.offsetMin = new Vector2(0, bot); shell.offsetMax = new Vector2(0, -top);
-            if (w != wide || !shellBuilt) { wide = w; BuildShell(); Render(); }
+            bool rebuild = w != wide || !shellBuilt; wide = w;
+            if (rebuild) BuildShell();
+            float avail = canvasRT.rect.width - (wide ? RailW : 0);
+            contentW = wide ? Mathf.Min(avail - 28, 1212) : avail - 20;
+            var vlg = content.GetComponent<VerticalLayoutGroup>();
+            int padR = wide ? Mathf.Max(14, Mathf.RoundToInt(avail - 14 - contentW)) : 10;
+            vlg.padding = new RectOffset(wide ? 14 : 10, padR, wide ? 14 : 10, 40);
+            Render();
         }
 
         void BuildShell()
         {
-            shellBuilt = true;
-            K.Clear(shell); side = null; navBar = null; topActions = null;
-            float left = 0, bottom = 0;
-            if (wide)
-            {
-                // Seitenleiste
-                side = K.Rect("Seitenleiste", shell); side.anchorMin = new Vector2(0, 0); side.anchorMax = new Vector2(0, 1); side.pivot = new Vector2(0, .5f); side.sizeDelta = new Vector2(SideW, 0);
-                side.gameObject.AddComponent<Image>().color = K.Card;
-                var sv = side.gameObject.AddComponent<VerticalLayoutGroup>(); sv.padding = new RectOffset(28, 28, 36, 28); sv.spacing = 10;
-                sv.childControlWidth = true; sv.childControlHeight = true; sv.childForceExpandWidth = true; sv.childForceExpandHeight = false;
-                left = SideW;
-            }
-            else
-            {
-                navBar = K.Rect("Navigation", shell); navBar.anchorMin = new Vector2(0, 0); navBar.anchorMax = new Vector2(1, 0); navBar.pivot = new Vector2(.5f, 0); navBar.sizeDelta = new Vector2(0, NavH);
-                navBar.gameObject.AddComponent<Image>().color = K.Card;
-                var nh = navBar.gameObject.AddComponent<HorizontalLayoutGroup>(); nh.childControlWidth = true; nh.childControlHeight = true; nh.childForceExpandWidth = true; nh.childForceExpandHeight = true; nh.padding = new RectOffset(8, 8, 10, 10); nh.spacing = 8;
-                bottom = NavH;
-            }
-
-            // Kopfzeile
-            topBar = K.Rect("Kopf", shell); topBar.anchorMin = new Vector2(0, 1); topBar.anchorMax = new Vector2(1, 1); topBar.pivot = new Vector2(.5f, 1);
-            topBar.offsetMin = new Vector2(left, -(wide ? TopH : 170)); topBar.offsetMax = new Vector2(0, 0);
-            topBar.gameObject.AddComponent<Image>().color = wide ? K.Bg : K.Card;
-            var th = topBar.gameObject.AddComponent<HorizontalLayoutGroup>(); th.padding = new RectOffset(wide ? 56 : 36, wide ? 56 : 36, 18, 18); th.spacing = 24; th.childAlignment = TextAnchor.MiddleLeft;
-            th.childControlWidth = true; th.childControlHeight = true; th.childForceExpandWidth = false; th.childForceExpandHeight = false;
-            var tv = K.VBox(topBar, 2); K.LE(tv, -1, -1, 1).minWidth = 0;
-            topTitle = K.Label(tv, "FUSSBALL-PYRAMIDE", wide ? 58 : 50, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold, -1, false);
-            topSub = K.Label(tv, "", K.FSs, K.Mut, TextAnchor.MiddleLeft, FontStyle.Normal, -1, false);
-            if (wide) { topActions = K.HBox(topBar, 120, 18); topActions.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleRight; }
-
+            shellBuilt = true; K.Clear(shell);
+            // Anzeigetafel
+            board = K.Rect("Anzeigetafel", shell); board.anchorMin = new Vector2(0, 1); board.anchorMax = new Vector2(1, 1); board.pivot = new Vector2(.5f, 1); board.sizeDelta = new Vector2(0, BoardH);
+            board.gameObject.AddComponent<Image>().color = K.Board;
+            var bh = board.gameObject.AddComponent<HorizontalLayoutGroup>(); bh.padding = new RectOffset(wide ? 20 : 12, wide ? 20 : 10, 0, 0); bh.spacing = wide ? 16 : 10; bh.childAlignment = TextAnchor.MiddleLeft;
+            bh.childControlWidth = true; bh.childControlHeight = true; bh.childForceExpandWidth = false; bh.childForceExpandHeight = false;
+            // Bereichsleiste
+            rail = K.Rect("Bereiche", shell);
+            if (wide) { rail.anchorMin = new Vector2(0, 0); rail.anchorMax = new Vector2(0, 1); rail.pivot = new Vector2(0, 1); rail.offsetMin = new Vector2(0, 0); rail.offsetMax = new Vector2(RailW, -BoardH); }
+            else { rail.anchorMin = new Vector2(0, 0); rail.anchorMax = new Vector2(1, 0); rail.pivot = new Vector2(.5f, 0); rail.sizeDelta = new Vector2(0, RailH); }
+            rail.gameObject.AddComponent<Image>().color = K.Panel;
+            var edge = K.Rect("Linie", rail); edge.gameObject.AddComponent<Image>().color = K.Line; var le = edge.gameObject.AddComponent<LayoutElement>(); le.ignoreLayout = true;
+            if (wide) { edge.anchorMin = new Vector2(1, 0); edge.anchorMax = new Vector2(1, 1); edge.sizeDelta = new Vector2(1, 0); edge.anchoredPosition = new Vector2(-.5f, 0); }
+            else { edge.anchorMin = new Vector2(0, 1); edge.anchorMax = new Vector2(1, 1); edge.sizeDelta = new Vector2(0, 1); edge.anchoredPosition = new Vector2(0, -.5f); }
+            HorizontalOrVerticalLayoutGroup rl = wide ? (HorizontalOrVerticalLayoutGroup)rail.gameObject.AddComponent<VerticalLayoutGroup>() : rail.gameObject.AddComponent<HorizontalLayoutGroup>();
+            rl.padding = wide ? new RectOffset(6, 6, 8, 8) : new RectOffset(2, 2, 4, 4); rl.spacing = 2;
+            rl.childControlWidth = true; rl.childControlHeight = true; rl.childForceExpandWidth = !wide ? true : true; rl.childForceExpandHeight = !wide;
             // Inhalt
             var sr = K.Rect("Inhalt", shell); sr.anchorMin = Vector2.zero; sr.anchorMax = Vector2.one;
-            sr.offsetMin = new Vector2(left, bottom); sr.offsetMax = new Vector2(0, -(wide ? TopH : 170));
             sr.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-            scroll = sr.gameObject.AddComponent<ScrollRect>(); scroll.horizontal = false; scroll.scrollSensitivity = wide ? 90 : 60; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.decelerationRate = .12f;
+            scroll = sr.gameObject.AddComponent<ScrollRect>(); scroll.horizontal = false; scroll.scrollSensitivity = 40; scroll.movementType = ScrollRect.MovementType.Clamped; scroll.decelerationRate = .12f;
             var vp = K.Rect("Viewport", sr); K.Fill(vp); vp.gameObject.AddComponent<RectMask2D>();
             content = K.Rect("Content", vp); content.anchorMin = new Vector2(0, 1); content.anchorMax = new Vector2(1, 1); content.pivot = new Vector2(.5f, 1); content.sizeDelta = Vector2.zero;
-            var cv = content.gameObject.AddComponent<VerticalLayoutGroup>(); int pad = wide ? 56 : 24; cv.padding = new RectOffset(pad, pad, wide ? 8 : 24, 64); cv.spacing = wide ? 28 : 20;
+            var cv = content.gameObject.AddComponent<VerticalLayoutGroup>(); cv.spacing = wide ? 16 : 12;
             cv.childControlWidth = true; cv.childControlHeight = true; cv.childForceExpandWidth = true; cv.childForceExpandHeight = false;
             content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             scroll.viewport = vp; scroll.content = content;
-            lastTab = "";
+            lastKey = "";
         }
 
-        // Spalten: am PC nebeneinander (Breite nach Gewicht), am Handy alles untereinander
-        RectTransform[] Cols(params float[] w)
+        void Layout(bool railOn)
         {
-            var res = new RectTransform[w.Length];
-            if (!wide) { for (int i = 0; i < w.Length; i++) res[i] = content; return res; }
-            var row = K.Rect("Spalten", content); var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            h.spacing = 28; h.childAlignment = TextAnchor.UpperLeft; h.childControlWidth = true; h.childControlHeight = true; h.childForceExpandWidth = false; h.childForceExpandHeight = false;
-            for (int i = 0; i < w.Length; i++) { var c = K.VBox(row, 28); var le = K.LE(c, -1, -1, w[i]); le.minWidth = 0; le.preferredWidth = 0; res[i] = c; }
-            return res;
+            rail.gameObject.SetActive(railOn);
+            var sr = (RectTransform)scroll.transform;
+            sr.offsetMin = new Vector2(wide && railOn ? RailW : 0, !wide && railOn ? RailH : 0);
+            sr.offsetMax = new Vector2(0, -BoardH);
         }
 
-        void Go(string t) { tab = t; Render(); }
+        void Go(string a) { area = a; Render(); }
         void Save() { try { if (G != null) Store.Save(G.S); } catch (Exception e) { Debug.LogWarning("Speichern fehlgeschlagen: " + e.Message); } }
+        void Next() { if (G == null || G.S.fav < 0) return; if (G.SeasonDone) return; PlayToFavMatch(); Save(); Render(); }
+        void SimSeason() { if (G == null) return; G.SimToEnd(); Save(); Render(); }
+        void CloseSeason() { G.EndSeason(); showAllLog = false; Save(); Go("news"); }
 
         void Render()
         {
@@ -143,7 +133,7 @@ namespace FP.UI
             catch (Exception e)
             {
                 Debug.LogException(e); K.Clear(content);
-                var c = K.CardBox(content); K.Label(c, "Fehler", K.FSh, K.Down, TextAnchor.MiddleLeft, FontStyle.Bold); K.Label(c, e.Message + "\n" + e.StackTrace, 26, K.Mut);
+                var c = K.Card(content); K.T(c, "Fehler", 24, K.Down, K.FD); K.T(c, e.Message + "\n" + e.StackTrace, 12, K.Mut);
                 K.Btn(c, "Zum Start", () => Go(G != null && G.S.fav >= 0 ? "home" : "title"));
             }
         }
@@ -151,278 +141,631 @@ namespace FP.UI
         void RenderInner()
         {
             K.Clear(content); resultsBox = null;
-            bool inGame = G != null && G.S.fav >= 0;
-            if (navBar != null)
-            {
-                navBar.gameObject.SetActive(inGame);
-                scroll.GetComponent<RectTransform>().offsetMin = new Vector2(0, inGame ? NavH : 0);
-                if (inGame) BuildBottomNav();
-            }
-            if (side != null) BuildSide(inGame);
-            UpdateTop(inGame);
-            switch (tab)
+            bool inGame = G != null && G.S.fav >= 0; bool picking = G != null && G.S.fav < 0;
+            if (G == null) area = "title";
+            Layout(inGame || picking);
+            BuildBoard(inGame, picking);
+            if (inGame || picking) BuildRail(picking);
+            switch (area)
             {
                 case "title": Title(); break;
-                case "pick": Pick(); break;
-                case "home": Home(); break;
-                case "table": TableTab(); break;
-                case "games": Games(); break;
-                case "squad": SquadTab(); break;
-                case "leagues": Leagues(); break;
-                case "team": TeamTab(); break;
-                case "season": SeasonTab(); break;
+                case "home": if (picking) Pick(); else Home(); break;
+                case "news": News(); break;
+                case "fav": Club(); break;
+                case "de": Leagues(false); break;
+                case "eu": Leagues(true); break;
+                case "hist": History(); break;
             }
-            if (tab != lastTab) { lastTab = tab; Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1; }
+            string key = area + "|" + favSub + "|" + viewLeague + "|" + viewTeam + "|" + vbView;
+            if (key != lastKey) { lastKey = key; Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1; }
         }
 
-        static readonly Dictionary<string, string> PageNames = new Dictionary<string, string> {
-            {"home","Übersicht"},{"table","Tabelle"},{"games","Spielplan"},{"squad","Kader"},{"leagues","Ligen"},{"team","Verein"},{"season","Saison"},{"pick","Verein wählen"},{"title","Fussball-Pyramide"} };
-
-        void UpdateTop(bool inGame)
+        // ================= Anzeigetafel und Bereichsleiste =================
+        void BuildBoard(bool inGame, bool picking)
         {
-            string status = G == null ? "Die komplette deutsche Fußballpyramide" : "Saison " + Sl(G.S.season) + " · " + (G.SeasonDone ? "Saison beendet" : "Spieltag " + G.S.day + " von " + G.MaxDay);
+            K.Clear(board);
+            if (wide || G == null)
+            {
+                var brand = K.VBox(board, 0); K.LE(brand, -1, -1, 0);
+                K.T(brand, "FUSSBALL-PYRAMIDE", wide ? 30 : 24, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false);
+                if (G == null) K.T(brand, "DIE KOMPLETTE DEUTSCHE FUSSBALLPYRAMIDE", 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                if (G != null) { var sep = K.Rect("Trenner", board); sep.gameObject.AddComponent<Image>().color = K.BoardLine; K.LE(sep, 1, 36); }
+            }
+            if (G != null)
+            {
+                var clock = K.VBox(board, 0); K.Flex(clock);
+                string head = G.SeasonDone ? "Saison " + Sl(G.S.season) + " beendet" : "Spieltag " + G.S.day + " von " + G.MaxDay;
+                K.T(clock, head, wide ? 18 : 16, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
+                K.T(clock, picking ? "Wähle deinen Verein" : NextInfo(), 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+            }
+            else K.Spacer(board);
+            if (!inGame) return;
+            if (G.SeasonDone) { var b = K.Btn(board, wide ? "Saison abschließen" : "Abschließen", CloseSeason, K.B.Primary, 32, -1, 13.5f, "ff"); return; }
+            K.Btn(board, wide ? "Weiter" : "", Next, K.B.Primary, 32, wide ? -1 : 40, 13.5f, "play");
+            K.Btn(board, wide ? "Saison" : "", SimSeason, K.B.Board, 32, wide ? -1 : 40, 13.5f, "ff");
+        }
+
+        string NextInfo()
+        {
+            if (G.S.fav < 0) return "";
+            var fx = G.FixturesOf(G.S.fav); var nx = fx.FirstOrDefault(x => x.Value.hg < 0);
+            if (nx.Value == null) return "Keine Spiele mehr in dieser Saison";
+            var m = nx.Value; bool home = m.h == G.S.fav;
+            return "Nächstes Spiel: " + G.T(home ? m.a : m.h).name + (home ? " (H)" : " (A)");
+        }
+
+        void BuildRail(bool picking)
+        {
+            for (int i = rail.childCount - 1; i >= 0; i--) { var c = rail.GetChild(i); if (c.name != "Linie") { c.SetParent(null, false); Destroy(c.gameObject); } }
+            foreach (var a in Areas)
+            {
+                if (picking && (a[0] == "news" || a[0] == "fav" || a[0] == "hist")) continue;
+                string key = a[0]; bool on = area == key;
+                var r = K.VBox(rail, 3, 0, null, "Bereich"); var v = r.GetComponent<VerticalLayoutGroup>(); v.childAlignment = TextAnchor.MiddleCenter; v.padding = new RectOffset(2, 2, wide ? 8 : 5, wide ? 8 : 5);
+                v.childControlWidth = false; v.childForceExpandWidth = false;
+                K.Shape(r, on ? K.AccSoft : new Color(0, 0, 0, 0), 8);
+                Color c2 = on ? K.Acc : K.Mut;
+                K.Icon(r, a[2], wide ? 22 : 20, c2);
+                var t = K.T(r, picking && key == "home" ? "Verein wählen" : a[1], wide ? 10.5f : 9.5f, c2, K.FM, TextAnchor.MiddleCenter, -1, false); t.rectTransform.sizeDelta = new Vector2(wide ? 64 : 60, 14);
+                var bt = K.Click(r, () => { if (key == "fav") { viewTeam = -1; favSub = "ov"; } if (key == "de" || key == "eu") { viewLeague = null; viewRound = -1; } Go(key); });
+                if (!on) { var img = r.GetComponent<Image>(); img.sprite = K.Round(8, K.AccSoft); var cb = bt.colors; cb.normalColor = new Color(1, 1, 1, 0); cb.highlightedColor = Color.white; cb.pressedColor = Color.white; cb.selectedColor = new Color(1, 1, 1, 0); bt.colors = cb; }
+                if (wide) K.LE(r, -1, 56); else K.Flex(r);
+            }
+        }
+
+        // ================= Bausteine =================
+        // Spalten nebeneinander (PC) bzw. untereinander (Handy)
+        RectTransform[] Cols(Transform p, params float[] w)
+        {
+            var res = new RectTransform[w.Length];
+            if (!wide) { for (int i = 0; i < w.Length; i++) res[i] = (RectTransform)p; return res; }
+            var row = K.Rect("Spalten", p); var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+            h.spacing = 16; h.childAlignment = TextAnchor.UpperLeft; h.childControlWidth = true; h.childControlHeight = true; h.childForceExpandWidth = false; h.childForceExpandHeight = false;
+            for (int i = 0; i < w.Length; i++) { var c = K.VBox(row, 16); K.Flex(c, w[i]); res[i] = c; }
+            return res;
+        }
+        // Raster gleich breiter Zellen
+        List<RectTransform> Grid(Transform p, int n, int perRow)
+        {
+            var cells = new List<RectTransform>(); if (!wide) perRow = 1;
+            for (int i = 0; i < n; i += perRow)
+            {
+                var row = K.Rect("Raster", p); var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+                h.spacing = 12; h.childAlignment = TextAnchor.UpperLeft; h.childControlWidth = true; h.childControlHeight = true; h.childForceExpandWidth = false; h.childForceExpandHeight = true;
+                for (int j = 0; j < perRow; j++) { var c = K.VBox(row, 0); K.Flex(c); if (i + j < n) cells.Add(c); }
+            }
+            return cells;
+        }
+        // Chips/Knöpfe mit Zeilenumbruch
+        void Flow(Transform p, List<KeyValuePair<string, Action>> items, string active, float h = 28)
+        {
+            float maxW = contentW - 4, x = 0; RectTransform row = null;
+            foreach (var it in items)
+            {
+                float w = it.Key.Length * 7.2f + 26;
+                if (row == null || x + w > maxW) { row = K.HBox(p, h, 6); x = 0; }
+                var a = it.Value; K.Btn(row, it.Key, () => a(), it.Key == active ? K.B.ChipOn : K.B.Chip, h, -1, 12.5f);
+                x += w + 6;
+            }
+        }
+        void Tag(Transform p, string s, bool accent = false)
+        {
+            var r = K.HBox(p, 20, 0, 6); K.Shape(r, new Color(0, 0, 0, 0), 4, accent ? K.Acc : K.Line);
+            K.T(r, s.ToUpperInvariant(), 10.5f, accent ? K.Acc : K.Mut, K.F, TextAnchor.MiddleCenter, -1, false).GetComponent<LayoutElement>().flexibleWidth = 0;
+        }
+        void PageHead(Transform p, string small, string title, params string[] tags)
+        {
+            var c = K.Card(p, 14, 2);
+            var r = K.HBox(c, -1, 10); r.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.LowerLeft;
+            var v = K.VBox(r, 0); K.Flex(v);
+            if (!string.IsNullOrEmpty(small)) K.T(v, small, 12.5f, K.Mut);
+            K.T(v, title, wide ? 30 : 26, K.Ink, K.FD);
+            foreach (var t in tags) Tag(r, t, t.StartsWith("!"));
+        }
+        // Mein-Verein-Leiste mit goldener Kante
+        void FavStrip(Transform p)
+        {
+            if (G == null || G.S.fav < 0) return;
+            var t = G.T(G.S.fav); var l = G.LeagueOf(G.S.fav);
+            var r = K.HBox(p, wide ? 48 : 64, 14); K.Shape(r, K.Panel, 8, K.Line);
+            var hg = r.GetComponent<HorizontalLayoutGroup>(); hg.padding = new RectOffset(0, 14, 0, 0);
+            var bar = K.Rect("Kante", r); K.Shape(bar, K.Gold, 2); K.LE(bar, 4, wide ? 48 : 64);
+            var ic = K.Icon(r, "starf", 14, K.Gold); ic.GetComponent<LayoutElement>().minHeight = 14;
+            var v = K.VBox(r, 0); K.LE(v, wide ? 190 : -1, -1, wide ? 0 : 1).minWidth = 0; v.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
+            K.T(v, t.name, 13.5f, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
+            if (l != null) K.T(v, l.name.ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+            var fx = G.FixturesOf(G.S.fav);
+            var last = fx.Where(x => x.Value.hg >= 0).LastOrDefault(); var nx = fx.FirstOrDefault(x => x.Value.hg < 0);
             if (wide)
             {
-                string pn; PageNames.TryGetValue(tab, out pn);
-                topTitle.text = (pn ?? "").ToUpperInvariant();
-                topSub.text = status;
-                K.Clear(topActions);
-                if (inGame) GameActions(topActions, 120, 420);
+                StripCol(r, "ZULETZT", last.Value == null ? "–" : ResultText(last.Value, G.S.fav), last.Value == null ? K.Ink : ResultColor(last.Value, G.S.fav));
+                StripCol(r, "ALS NÄCHSTES", nx.Value == null ? "–" : G.T(nx.Value.h == G.S.fav ? nx.Value.a : nx.Value.h).name + (nx.Value.h == G.S.fav ? " (H)" : " (A)"), K.Ink);
+                K.Spacer(r);
             }
-            else
-            {
-                topTitle.text = inGame ? G.T(G.S.fav).name : "FUSSBALL-PYRAMIDE";
-                topSub.text = status;
-            }
+            K.Click(r, () => { viewTeam = -1; favSub = "ov"; Go("fav"); });
         }
-
-        // Weiter-Knöpfe (Kopfzeile am PC, Übersicht am Handy)
-        void GameActions(Transform p, float h, float w)
+        void StripCol(Transform p, string label, string val, Color c)
         {
-            if (!G.SeasonDone)
-            {
-                K.Btn(p, "▶  Nächstes Spiel", () => { PlayToFavMatch(); Save(); Render(); }, K.Acc, h, w, 40, Color.white);
-                K.Btn(p, "Bis Saisonende", () => { G.SimToEnd(); Save(); Render(); }, K.Card2, h, w * .8f, 36);
-            }
-            else K.Btn(p, "Saison abschließen → " + Sl(G.S.season + 1), () => { G.EndSeason(); showAllLog = false; Save(); Go("season"); }, K.Gold, h, w * 1.4f, 38, Color.black);
+            var v = K.VBox(p, 0); K.LE(v, -1, -1, 0); v.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
+            K.T(v, label, 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+            K.T(v, val, 13.5f, c, K.FM, TextAnchor.MiddleLeft, -1, false);
         }
+        string ResultText(Match m, int id) { var o = G.T(m.h == id ? m.a : m.h).name; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; return me + ":" + op + " gegen " + o; }
+        Color ResultColor(Match m, int id) { int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; return me > op ? K.Up : me < op ? K.Down : K.Rel; }
 
         static string Sl(int s) { return s + "/" + ((s + 1) % 100).ToString("00"); }
 
-        void NavClick(string key)
+        // Spielzeile (.m): Heim rechtsbündig, Ergebnisfeld, Gast linksbündig
+        void MatchRow(Transform p, Match m, int focus = -1, string sub = null)
         {
-            if (key == "table" || key == "games") { viewLeague = null; viewRound = -1; }
-            if (key == "squad") viewTeam = -1;
-            if (key == "leagues") vbView = null;
-            Go(key);
+            var r = K.HBox(p, 31, 8); var hg = r.GetComponent<HorizontalLayoutGroup>(); hg.childAlignment = TextAnchor.MiddleCenter;
+            var h = G.T(m.h); var a = G.T(m.a); bool played = m.hg >= 0;
+            bool hw = played && m.hg > m.ag, aw = played && m.ag > m.hg;
+            var hn = K.Cell(r, h.name, -1, TextAnchor.MiddleRight, m.h == G.S.fav ? K.Acc : K.Ink, hw ? K.FM : K.F);
+            K.Crest(r, h, 16);
+            var s = K.HBox(r, 24, 0); K.Shape(s, K.Bg, 4); K.LE(s, 64, 24); s.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
+            Color sc = K.Ink; if (played && focus >= 0 && (m.h == focus || m.a == focus)) sc = ResultColor(m, focus);
+            K.T(s, played ? m.hg + ":" + m.ag : "–:–", 18, played ? sc : K.Mut, K.FD, TextAnchor.MiddleCenter, -1, false);
+            K.Crest(r, a, 16);
+            K.Cell(r, a.name, -1, TextAnchor.MiddleLeft, m.a == G.S.fav ? K.Acc : K.Ink, aw ? K.FM : K.F);
+            K.Divider(p);
         }
-        bool NavOn(string key) { return tab == key || (key == "leagues" && tab == "team"); }
 
-        void BuildBottomNav()
+        // Tabelle mit Zonenfarben
+        Color ZoneColor(League l, int i, int n)
         {
-            K.Clear(navBar);
-            foreach (var it in NavItems)
+            if (l.id == "bl") return i < 4 ? CL : i < 6 ? EL : i == 6 ? ECL : i == 15 ? K.Rel : i >= 16 ? K.Down : Color.clear;
+            if (l.foreign) return i < 4 ? CL : i < 6 ? EL : i == 6 ? ECL : i >= n - 3 ? K.Down : Color.clear;
+            int z = G.Zone(l, i, n); return z == 1 ? K.Up : z == 2 || z == -2 ? K.Rel : z == -1 ? K.Down : Color.clear;
+        }
+        void TableView(Transform p, League l, int from = 0, int to = int.MaxValue, bool compact = false)
+        {
+            var tb = G.Table(l); to = Math.Min(to, tb.Count);
+            bool full = wide && !compact;
+            var h = K.HBox(p, 26, 0);
+            Hd(h, "PL.", 40, TextAnchor.MiddleLeft); Hd(h, "", 22, TextAnchor.MiddleLeft); Hd(h, "VEREIN", -1, TextAnchor.MiddleLeft);
+            Hd(h, "SP", 34); if (full) { Hd(h, "S", 34); Hd(h, "U", 34); Hd(h, "N", 34); Hd(h, "TORE", 58); }
+            Hd(h, "DIFF", 46); Hd(h, "PKT", 40);
+            K.Divider(p);
+            for (int i = from; i < to; i++)
             {
-                string key = it[0]; bool on = NavOn(key);
-                var b = K.Btn(navBar, it[0] == "home" ? "Start" : it[0] == "games" ? "Spiele" : it[1], () => NavClick(key), on ? K.AccD : K.Card, -1, -1, 30, on ? Color.white : K.Mut);
-                var le = b.GetComponent<LayoutElement>(); le.minHeight = 0; le.preferredHeight = -1; le.flexibleWidth = 1;
+                var row = tb[i]; var t = G.T(row.id); bool me = row.id == G.S.fav;
+                var r = K.HBox(p, 28, 0); if (me) r.gameObject.AddComponent<Image>().color = K.AccSoft;
+                var zc = ZoneColor(l, i, tb.Count);
+                var bar = K.Rect("Zone", r); bar.gameObject.AddComponent<Image>().color = zc; K.LE(bar, 4, 28);
+                K.Cell(r, (i + 1).ToString(), 36, TextAnchor.MiddleCenter, K.Ink, K.FM);
+                K.Crest(r, t, 16); K.Gap(r, 0); K.LE(K.Rect("x", r), 6, 1);
+                K.Cell(r, t.name, -1, TextAnchor.MiddleLeft, K.Ink, me ? K.FM : K.F);
+                Num(r, row.sp.ToString(), 34);
+                if (full) { Num(r, row.s.ToString(), 34); Num(r, row.u.ToString(), 34); Num(r, row.n.ToString(), 34); Num(r, row.tf + ":" + row.tg, 58); }
+                Num(r, row.Diff.ToString(), 46); Num(r, row.p.ToString(), 40, true);
+                int id = row.id; K.Click(r, () => OpenTeam(id));
+                K.Divider(p);
+            }
+        }
+        void Hd(Transform p, string s, float w, TextAnchor a = TextAnchor.MiddleRight) { K.Cell(p, s, w, a, K.Mut, K.FM, 10.5f); }
+        void Num(Transform p, string s, float w, bool bold = false) { K.Cell(p, s, w, TextAnchor.MiddleRight, K.Ink, bold ? K.FM : K.F); }
+        void Legend(Transform p, League l)
+        {
+            var r = K.HBox(p, 22, 14);
+            var items = new List<KeyValuePair<Color, string>>();
+            if (l.id == "bl" || l.foreign) { items.Add(new KeyValuePair<Color, string>(CL, "Champions League")); items.Add(new KeyValuePair<Color, string>(EL, "Europa League")); items.Add(new KeyValuePair<Color, string>(ECL, "Conference League")); }
+            else items.Add(new KeyValuePair<Color, string>(K.Up, "Aufstieg"));
+            if (!l.foreign) items.Add(new KeyValuePair<Color, string>(K.Rel, "Relegation"));
+            items.Add(new KeyValuePair<Color, string>(K.Down, "Abstieg"));
+            foreach (var it in items)
+            {
+                var b = K.Rect("Farbe", r); K.Shape(b, it.Key, 2); K.LE(b, 10, 10);
+                K.T(r, it.Value, 12, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false).GetComponent<LayoutElement>().flexibleWidth = 0;
             }
         }
 
-        void BuildSide(bool inGame)
-        {
-            K.Clear(side);
-            K.Label(side, "FUSSBALL-PYRAMIDE", 44, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold, -1, false);
-            K.Label(side, "Von der Kreisklasse bis zur Bundesliga", 26, K.Mut, TextAnchor.MiddleLeft, FontStyle.Normal, -1, false);
-            K.Gap(side, 30);
-            if (inGame)
-            {
-                var t = G.T(G.S.fav); var l = G.LeagueOf(G.S.fav);
-                var card = K.VBox(side, 10, 24, K.Card2, "Verein");
-                var cr = K.HBox(card, 110, 20); K.Crest(cr, t, 96);
-                var cv = K.VBox(cr, 2); K.LE(cv, -1, -1, 1).minWidth = 0;
-                K.Cell(cv, t.name, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Bold, 32).GetComponent<LayoutElement>().preferredHeight = 44;
-                if (l != null)
-                {
-                    var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == G.S.fav);
-                    K.Cell(cv, "Platz " + (pos + 1) + " · " + tb[pos].p + " Pkt.", -1, TextAnchor.MiddleLeft, K.Acc, FontStyle.Normal, 28).GetComponent<LayoutElement>().preferredHeight = 38;
-                }
-                if (l != null) K.Cell(card, l.name, -1, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 26).GetComponent<LayoutElement>().preferredHeight = 36;
-                K.Click(card, () => { viewTeam = G.S.fav; Go("team"); });
-                K.Gap(side, 24);
-                foreach (var it in NavItems)
-                {
-                    string key = it[0]; bool on = NavOn(key);
-                    var b = K.Btn(side, "   " + it[1], () => NavClick(key), on ? K.AccD : K.Card, 96, -1, 36, on ? Color.white : K.Mut);
-                    b.GetComponentInChildren<Text>().alignment = TextAnchor.MiddleLeft;
-                }
-                var spacer = K.Rect("Platz", side); K.LE(spacer, -1, -1, -1, 1);
-                K.Label(side, "Leertaste: nächstes Spiel · Esc: Übersicht", 24, K.Mut, TextAnchor.MiddleLeft);
-                K.Btn(side, "Hauptmenü", () => { Save(); G = null; Go("title"); }, K.Card, 84, -1, 30, K.Mut);
-            }
-        }
+        void OpenTeam(int id) { viewTeam = id == G.S.fav ? -1 : id; favSub = "ov"; Go("fav"); }
+        void OpenLeague(string id) { var l = G.L(id); viewLeague = id; viewRound = -1; Go(l != null && l.foreign ? "eu" : "de"); }
 
-        // ---------- Start ohne Spiel ----------
+        // ================= Startbildschirm =================
         void Title()
         {
-            var cols = wide ? Cols(1, 1.4f, 1) : Cols(1);
-            var mid = wide ? cols[1] : cols[0];
-            if (wide) K.Gap(mid, 120);
-            var c = K.CardBox(mid, 56, 24);
-            K.Label(c, "FUSSBALL-PYRAMIDE", wide ? 96 : 72, K.Txt, TextAnchor.MiddleCenter, FontStyle.Bold);
-            K.Label(c, "Von der Kreisklasse bis zur Bundesliga – jede Liga, jeder Verein.", K.FS, K.Mut, TextAnchor.MiddleCenter);
-            K.Gap(c, 12);
-            if (Store.HasSave) K.Btn(c, "Spiel fortsetzen", ContinueGame, K.Acc, 130, -1, 44, Color.white);
-            K.Btn(c, confirmNew ? "Wirklich neu beginnen? Spielstand wird ersetzt" : "Neues Spiel", () =>
+            var outer = K.HBox(content, -1, 0); outer.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
+            K.Spacer(outer);
+            var col = K.VBox(outer, 14); K.LE(col, Mathf.Min(560, contentW), -1, 0);
+            K.Spacer(outer);
+            if (wide) K.Gap(col, 90);
+            var c = K.Card(col, 28, 12);
+            K.T(c, "FUSSBALL-PYRAMIDE", wide ? 56 : 40, K.Ink, K.FD, TextAnchor.MiddleCenter);
+            K.T(c, "Von der Kreisklasse bis zur Bundesliga – jede Liga, jeder Verein.", 14, K.Mut, K.F, TextAnchor.MiddleCenter);
+            K.Gap(c, 6);
+            if (Store.HasSave) K.Stretch(K.Btn(c, "Spiel fortsetzen", ContinueGame, K.B.Primary, 40, -1, 15, "play"));
+            K.Stretch(K.Btn(c, confirmNew ? "Wirklich neu beginnen? Der Spielstand wird ersetzt" : "Neues Spiel", () =>
             {
                 if (Store.HasSave && !confirmNew) { confirmNew = true; Render(); return; }
                 confirmNew = false; NewGame();
-            }, Store.HasSave ? K.Card2 : K.Acc, 130, -1, 44, Color.white);
-            if (error != null) K.Label(c, error, 28, K.Down);
-            var info = K.CardBox(mid);
-            try
-            {
-                if (G == null) { var w = Store.LoadWorld(); K.Label(info, w.teams.Count.ToString("N0").Replace(',', '.') + " Vereine · " + w.leagues.Count + " Ligen · " + Crests() + " Wappen", K.FSs, K.Mut, TextAnchor.MiddleCenter); }
-            }
-            catch (Exception e) { K.Label(info, "Daten fehlen: " + e.Message, K.FSs, K.Down); }
-            K.Label(info, "Unity-Version · Phase 1: Ligabetrieb mit Auf- und Abstieg in der ganzen Pyramide", 28, K.Mut, TextAnchor.MiddleCenter);
+            }, Store.HasSave ? K.B.Outline : K.B.Primary, 40, -1, 15));
+            if (error != null) K.T(c, error, 12.5f, K.Down);
+            var info = K.Card(col, 14, 4);
+            try { var w = Store.LoadWorld(); K.T(info, w.teams.Count.ToString("N0").Replace(',', '.') + " Vereine · " + w.leagues.Count + " Ligen · " + Crests() + " Wappen", 13.5f, K.Ink, K.FM, TextAnchor.MiddleCenter); }
+            catch (Exception e) { K.T(info, "Daten fehlen: " + e.Message, 13, K.Down); }
+            K.T(info, "Unity-Fassung · Ligabetrieb mit Auf- und Abstieg in der ganzen Pyramide", 12, K.Mut, K.F, TextAnchor.MiddleCenter);
         }
         static int crestCount = -1;
         static int Crests() { if (crestCount < 0) crestCount = Resources.LoadAll<Texture2D>("Crests").Length; return crestCount; }
 
         void ContinueGame()
         {
-            try { G = Game.FromState(Store.Load(), Store.LoadNames()); error = null; Go(G.S.fav >= 0 ? "home" : "pick"); }
+            try { G = Game.FromState(Store.Load(), Store.LoadNames()); error = null; Go("home"); }
             catch (Exception e) { error = "Spielstand konnte nicht geladen werden: " + e.Message; Debug.LogException(e); Render(); }
         }
-        void NewGame()
-        {
-            G = Game.NewGame(Store.LoadWorld(), Store.LoadNames(), Environment.TickCount & 0x7fffffff);
-            query = ""; Go("pick");
-        }
+        void NewGame() { G = Game.NewGame(Store.LoadWorld(), Store.LoadNames(), Environment.TickCount & 0x7fffffff); query = ""; Go("home"); }
 
-        // ---------- Verein wählen ----------
+        // ================= Verein wählen =================
         void Pick()
         {
-            var cols = Cols(1, 1.6f);
-            var c = K.CardBox(cols[0]);
-            K.Label(c, "Wähle deinen Verein", K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            K.Label(c, "Suche nach Name oder Ort – oder stöbere unter „Ligen“.", K.FSs, K.Mut);
+            PageHead(content, "Neues Spiel · Saison " + Sl(G.S.season), "Verein wählen");
+            var cols = Cols(content, 1, 1.35f);
+            var c = K.Card(cols[0], 16, 10);
+            K.T(c, "SUCHE", 20, K.Ink, K.FD);
+            K.T(c, "Name oder Ort eingeben – oder unter „Ligen“ durch die Pyramide stöbern.", 12.5f, K.Mut);
             SearchField(c, "Verein suchen …", query, v => { query = v; FillResults(); });
-            K.Btn(c, "Ligen durchsuchen", () => Go("leagues"));
-            resultsBox = K.VBox(cols[1], 10);
+            K.Stretch(K.Btn(c, "Ligen durchsuchen", () => Go("de"), K.B.Outline, 32, -1, 13.5f, "ligen"));
+            resultsBox = K.Card(cols[1], 12, 0);
             FillResults();
         }
         void FillResults()
         {
             if (resultsBox == null) return; K.Clear(resultsBox);
-            IEnumerable<Team> list;
-            string q = (query ?? "").Trim().ToLowerInvariant();
-            if (q.Length < 2) { list = G.L("bl").teams.Select(id => G.T(id)); K.Label(resultsBox, "Bundesliga", K.FSs, K.Mut); }
-            else list = G.S.teams.Where(t => G.LeagueOf(t.id) != null && !G.LeagueOf(t.id).foreign && t.name.ToLowerInvariant().Contains(q)).OrderBy(t => G.LeagueOf(t.id).level).Take(50);
+            IEnumerable<Team> list; string q = (query ?? "").Trim().ToLowerInvariant();
+            if (q.Length < 2) { list = G.L("bl").teams.Select(id => G.T(id)); K.T(resultsBox, "BUNDESLIGA", 20, K.Ink, K.FD); }
+            else { list = G.S.teams.Where(t => G.LeagueOf(t.id) != null && !G.LeagueOf(t.id).foreign && t.name.ToLowerInvariant().Contains(q)).OrderBy(t => G.LeagueOf(t.id).level).Take(50); K.T(resultsBox, "TREFFER", 20, K.Ink, K.FD); }
             int n = 0;
-            foreach (var t in list) { TeamLine(resultsBox, t.id, () => { viewTeam = t.id; Go("team"); }); n++; }
-            if (n == 0) K.Label(resultsBox, "Kein Verein gefunden.", K.FSs, K.Mut);
+            foreach (var t in list)
+            {
+                var l = G.LeagueOf(t.id);
+                var r = K.HBox(resultsBox, 44, 10);
+                K.Crest(r, t, 26);
+                var v = K.VBox(r, 0); K.Flex(v);
+                K.Cell(v, t.name, -1, TextAnchor.MiddleLeft, K.Ink, K.FM);
+                K.Cell(v, l != null ? l.name + " · Stufe " + l.level : "", -1, TextAnchor.MiddleLeft, K.Mut, K.F, 12);
+                K.Cell(r, t.r.ToString("0.0"), 50, TextAnchor.MiddleRight, K.Mut);
+                int id = t.id; K.Click(r, () => OpenTeam(id));
+                K.Divider(resultsBox); n++;
+            }
+            if (n == 0) K.T(resultsBox, "Kein Verein gefunden.", 13.5f, K.Mut);
         }
         void SearchField(Transform p, string placeholder, string value, Action<string> changed)
         {
-            var r = K.Rect("Eingabe", p); var img = r.gameObject.AddComponent<Image>(); img.color = K.Card2; K.LE(r, -1, 110);
-            var tr = K.Label(r, "", K.FS, K.Txt, TextAnchor.MiddleLeft, FontStyle.Normal, -1, false); tr.supportRichText = false; K.Fill(tr.rectTransform); tr.rectTransform.offsetMin = new Vector2(28, 0); tr.rectTransform.offsetMax = new Vector2(-28, 0);
-            var ph = K.Label(r, placeholder, K.FS, K.Mut, TextAnchor.MiddleLeft, FontStyle.Italic, -1, false); K.Fill(ph.rectTransform); ph.rectTransform.offsetMin = new Vector2(28, 0); ph.rectTransform.offsetMax = new Vector2(-28, 0);
-            var inp = r.gameObject.AddComponent<InputField>(); inp.textComponent = tr; inp.placeholder = ph; inp.targetGraphic = img; inp.text = value ?? "";
+            var r = K.Rect("Eingabe", p); var img = K.Shape(r, K.Bg, 6, K.Line); K.LE(r, -1, 34);
+            var tr = K.T(r, "", 13.5f, K.Ink, K.F, TextAnchor.MiddleLeft, -1, false); tr.supportRichText = false; K.Fill(tr.rectTransform); tr.rectTransform.offsetMin = new Vector2(10, 0); tr.rectTransform.offsetMax = new Vector2(-10, 0);
+            var ph = K.T(r, placeholder, 13.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false); K.Fill(ph.rectTransform); ph.rectTransform.offsetMin = new Vector2(10, 0); ph.rectTransform.offsetMax = new Vector2(-10, 0);
+            var inp = r.gameObject.AddComponent<InputField>(); inp.textComponent = tr; inp.placeholder = ph; inp.targetGraphic = img; inp.text = value ?? ""; inp.caretColor = K.Acc; inp.selectionColor = new Color(.24f, .7f, .48f, .35f);
             inp.onValueChanged.AddListener(v => changed(v));
             if (wide) inp.ActivateInputField();
         }
 
-        // ---------- Übersicht ----------
+        // ================= Start =================
         void Home()
         {
-            int fav = G.S.fav; var t = G.T(fav); var l = G.LeagueOf(fav);
-            var cols = Cols(1, 1.25f, 1);
-
-            // Vereinskarte
-            var head = K.CardBox(cols[0], 32, 10);
-            var hr = K.HBox(head, 180, 28); K.Crest(hr, t, 160);
-            var hv = K.VBox(hr, 4); K.LE(hv, -1, -1, 1).minWidth = 0;
-            K.Label(hv, t.name, 46, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            if (l != null)
+            FavStrip(content);
+            PageHead(content, "Saison " + Sl(G.S.season), "Übersicht", G.SeasonDone ? "Saison beendet" : "Spieltag " + G.S.day + "/" + G.MaxDay);
+            var fl = G.LeagueOf(G.S.fav);
+            K.Section(content, "Deutschland");
+            var de = new List<League> { G.L("bl"), G.L("bl2"), G.L("l3") }.Where(x => x != null).ToList();
+            if (fl != null && !de.Contains(fl)) de.Add(fl);
+            var cells = Grid(content, de.Count, 4);
+            for (int i = 0; i < de.Count; i++) MiniLeague(cells[i], de[i]);
+            K.Section(content, "Top-Ligen Europas");
+            var eu = G.S.leagues.Where(x => x.foreign).Take(4).ToList();
+            cells = Grid(content, eu.Count, 4);
+            for (int i = 0; i < eu.Count; i++) MiniLeague(cells[i], eu[i]);
+        }
+        void MiniLeague(Transform cell, League l)
+        {
+            var c = K.Card(cell, 12, 0); K.Flex(c);
+            var h = K.HBox(c, 34, 6);
+            var tt = K.T(h, l.name, 19, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false); K.Flex(tt);
+            K.T(h, l.played + "/" + l.rounds.Count, 12.5f, K.Mut, K.F, TextAnchor.MiddleRight, -1, false).GetComponent<LayoutElement>().flexibleWidth = 0;
+            var tb = G.Table(l); int fi = tb.FindIndex(r => r.id == G.S.fav);
+            var idx = new List<int> { 0, 1, 2, 3 }; if (fi > 3) { idx[3] = fi; }
+            foreach (int i in idx)
             {
-                var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == fav);
-                K.Label(hv, l.name, K.FSs, K.Acc);
-                var stats = K.HBox(head, 120, 16);
-                Stat(stats, "Platz", (pos + 1) + ". / " + tb.Count); Stat(stats, "Punkte", tb[pos].p.ToString()); Stat(stats, "Tore", tb[pos].tf + ":" + tb[pos].tg); Stat(stats, "Stärke", t.r.ToString("0.0"));
+                if (i >= tb.Count) break;
+                K.Divider(c);
+                var r = K.HBox(c, 27, 8); var t = G.T(tb[i].id); bool me = tb[i].id == G.S.fav;
+                K.Cell(r, (i + 1).ToString(), 16, TextAnchor.MiddleLeft, K.Mut);
+                K.Crest(r, t, 16);
+                K.Cell(r, t.name, -1, TextAnchor.MiddleLeft, me ? K.Acc : K.Ink, me ? K.FM : K.F);
+                K.Cell(r, tb[i].p.ToString(), 30, TextAnchor.MiddleRight, K.Ink, K.FM);
             }
+            var lid = l.id; K.Click(c, () => OpenLeague(lid));
+        }
 
-            // Nächstes Spiel
-            var fx = G.FixturesOf(fav);
-            var next = fx.FirstOrDefault(x => x.Value.hg < 0);
-            var nc = K.CardBox(cols[0], 32, 14);
-            if (!G.SeasonDone && next.Value != null)
+        // ================= News =================
+        void News()
+        {
+            FavStrip(content);
+            PageHead(content, "Saison " + Sl(G.S.season), "News");
+            var cols = Cols(content, 1.35f, 1);
+            var c = K.Card(cols[0], 16, 8);
+            int fav = G.S.fav; string fn = G.T(fav).name;
+            if (G.S.log.Count > 0)
             {
-                K.Label(nc, "NÄCHSTES SPIEL · " + (next.Key + 1) + ". SPIELTAG", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                BigMatch(nc, next.Value);
-                if (!wide) { var bh = K.HBox(nc, 120, 16); GameActions(bh, 120, -1); }
+                var lg = G.S.log[0];
+                K.T(c, "SAISON " + Sl(lg.season) + " · RÜCKBLICK", 20, K.Ink, K.FD);
+                foreach (var x in lg.lines.Where(x => x.Contains(fn))) LogLine(c, x, K.Gold);
+                int cap = 40;
+                var lines = showAllLog ? lg.lines.Where(x => !x.Contains(fn)).Take(500).ToList() : lg.lines.Where(x => !x.Contains(fn)).Take(cap).ToList();
+                foreach (var x in lines) LogLine(c, x, K.Acc);
+                if (!showAllLog && lg.lines.Count > cap) K.Btn(c, "Alle " + lg.lines.Count + " Meldungen", () => { showAllLog = true; Render(); });
             }
             else
             {
-                K.Label(nc, "Die Saison ist zu Ende.", K.FS, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-                if (!wide) GameActions(nc, 130, -1);
+                K.T(c, "AKTUELL", 20, K.Ink, K.FD);
+                LogLine(c, "Saison " + Sl(G.S.season) + " läuft – " + (G.SeasonDone ? "alle Spiele gespielt." : "Spieltag " + G.S.day + " von " + G.MaxDay + "."), K.Acc);
+                LogLine(c, "Nach der Saison stehen hier Meister, Auf- und Absteiger und alle Relegationsspiele.", K.Acc);
             }
+            var r = K.Card(cols[1], 16, 0);
+            K.T(r, "LETZTE ERGEBNISSE", 20, K.Ink, K.FD); K.Gap(r, 6);
+            var done = G.FixturesOf(fav).Where(x => x.Value.hg >= 0).Reverse().Take(8).ToList();
+            if (done.Count == 0) K.T(r, "Noch keine Spiele", 13.5f, K.Mut);
+            foreach (var x in done) MatchRow(r, x.Value, fav);
+        }
+        void LogLine(Transform p, string s, Color edge)
+        {
+            var r = K.HBox(p, -1, 0); K.Shape(r, K.Bg, 4); var hg = r.GetComponent<HorizontalLayoutGroup>(); hg.childForceExpandHeight = true; hg.padding = new RectOffset(0, 10, 0, 0);
+            var bar = K.Rect("Kante", r); bar.gameObject.AddComponent<Image>().color = edge; K.LE(bar, 3, -1);
+            var v = K.VBox(r, 0); K.Flex(v); v.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(10, 0, 6, 6);
+            K.T(v, s, 13.5f, K.Ink);
+        }
 
-            // Letzte Ergebnisse
-            var done = fx.Where(x => x.Value.hg >= 0).Reverse().Take(6).ToList();
-            if (done.Count > 0)
+        // ================= Verein =================
+        void Club()
+        {
+            int id = viewTeam >= 0 ? viewTeam : G.S.fav; if (id < 0) { Go("home"); return; }
+            var t = G.T(id); var l = G.LeagueOf(id); bool mine = id == G.S.fav;
+            var subs = new List<KeyValuePair<string, Action>> {
+                new KeyValuePair<string, Action>("Überblick", () => { favSub = "ov"; Render(); }), new KeyValuePair<string, Action>("Kader", () => { favSub = "squad"; Render(); }),
+                new KeyValuePair<string, Action>("Spiele", () => { favSub = "games"; Render(); }), new KeyValuePair<string, Action>("Historie", () => { favSub = "hist"; Render(); }) };
+            if (!mine && G.S.fav >= 0) subs.Insert(0, new KeyValuePair<string, Action>("◀ Mein Verein", () => { viewTeam = -1; favSub = "ov"; Render(); }));
+            string act = favSub == "squad" ? "Kader" : favSub == "games" ? "Spiele" : favSub == "hist" ? "Historie" : "Überblick";
+            Flow(content, subs, act);
+
+            // Vereinskarte mit goldener Oberkante
+            var card = K.VBox(content, 0, 0, null, "Vereinskarte"); K.Shape(card, K.Panel, 8, K.Line);
+            var top = K.Rect("Kante", card); K.Shape(top, K.Gold, 2); K.LE(top, -1, 3);
+            var inner = K.VBox(card, 10, 14);
+            K.T(inner, (mine ? "Mein Verein" : "Verein") + (l != null ? " · " + l.name : ""), 12.5f, K.Mut);
+            var hr = K.HBox(inner, 44, 12); K.Crest(hr, t, 40);
+            K.T(hr, (mine ? "★ " : "") + t.name, wide ? 26 : 21, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
+            if (favSub == "ov")
             {
-                var rc = K.CardBox(cols[0], 24, 6); K.Label(rc, "LETZTE SPIELE", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var x in done) MatchLine(rc, x.Value, false, fav);
-            }
+                var sq = G.Squad(id); var ps = sq.Select(x => G.S.players[x]).ToList();
+                var tiles = new List<string[]>();
+                var fx = G.FixturesOf(id);
+                string form = string.Join(" ", fx.Where(x => x.Value.hg >= 0).Reverse().Take(5).Reverse().Select(x => { var m = x.Value; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; return me > op ? "S" : me < op ? "N" : "U"; }).ToArray());
+                tiles.Add(new[] { "Form", form.Length > 0 ? form : "–", "" });
+                tiles.Add(new[] { "Stimmung", t.mo >= 80 ? "Euphorisch" : t.mo >= 65 ? "Gut" : t.mo >= 45 ? "Normal" : t.mo >= 30 ? "Gedrückt" : "Schlecht", t.mo + "/100" });
+                if (l != null) { var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == id); tiles.Add(new[] { "Tabellenplatz", (pos + 1) + ". · " + tb[pos].p + " Pkt", "" }); }
+                tiles.Add(new[] { "Spielstärke", t.r.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture), "" });
+                tiles.Add(new[] { "Kaderwert", Util.Money(ps.Sum(x => (double)G.PlayerValue(x))), "" });
+                tiles.Add(new[] { "Ø Alter", ps.Count > 0 ? ps.Average(x => x.a).ToString("0.0") : "–", ps.Count + " Spieler" });
+                var cells = wide ? Grid(inner, tiles.Count, 6) : GridForce(inner, tiles.Count, 2);
+                for (int i = 0; i < tiles.Count; i++)
+                {
+                    var tl = K.VBox(cells[i], 2, 10); K.Shape(tl, K.Bg, 6); K.Flex(tl);
+                    K.T(tl, tiles[i][0].ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                    K.T(tl, tiles[i][1], 17, i == 0 ? K.Ink : K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
+                    if (tiles[i][2] != "") K.T(tl, tiles[i][2], 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                }
+                if (G.S.fav < 0) K.Stretch(K.Btn(inner, "Diesen Verein übernehmen", () => { G.S.fav = id; viewTeam = -1; viewLeague = null; Save(); Go("home"); }, K.B.Primary, 40, -1, 15, "starf"));
 
-            // Tabelle
+                var cols = Cols(content, 1.35f, 1);
+                if (l != null)
+                {
+                    var tc = K.Card(cols[0], 14, 0); K.T(tc, "TABELLE " + l.name.ToUpperInvariant(), 20, K.Ink, K.FD); K.Gap(tc, 8);
+                    var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == id);
+                    int a = Mathf.Clamp(pos - 3, 0, Mathf.Max(0, tb.Count - 7));
+                    TableView(tc, l, a, a + 7, true);
+                    K.Gap(tc, 10); var lid = l.id; K.Btn(tc, "Ganze Tabelle", () => OpenLeague(lid));
+                }
+                var rc = K.Card(cols[1], 14, 4);
+                K.T(rc, "FORM", 20, K.Ink, K.FD);
+                var last = fx.Where(x => x.Value.hg >= 0).Reverse().Take(5).ToList();
+                if (last.Count == 0) K.T(rc, "Noch keine Spiele", 12.5f, K.Mut);
+                else { var fr = K.HBox(rc, 26, 4); foreach (var x in last.AsEnumerable().Reverse()) { var m = x.Value; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; var b = K.HBox(fr, 26, 0); K.Shape(b, me > op ? K.Up : me < op ? K.Down : K.Rel, 4); K.LE(b, 26, 26); b.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter; K.T(b, me > op ? "S" : me < op ? "N" : "U", 13, K.AccInk, K.FM, TextAnchor.MiddleCenter, -1, false); } }
+                K.Gap(rc, 8);
+                K.T(rc, "NÄCHSTE SPIELE", 20, K.Ink, K.FD);
+                var nx = fx.Where(x => x.Value.hg < 0).Take(5).ToList();
+                if (nx.Count == 0) K.T(rc, "Keine offenen Spiele", 12.5f, K.Mut);
+                foreach (var x in nx) { K.T(rc, (x.Key + 1) + ". SPIELTAG · " + (l != null ? l.name.ToUpperInvariant() : ""), 10.5f, K.Mut); MatchRow(rc, x.Value, id); }
+            }
+            else if (favSub == "squad") SquadCard(id);
+            else if (favSub == "games")
+            {
+                var c = K.Card(content, 14, 2); K.T(c, "ALLE SPIELE", 20, K.Ink, K.FD);
+                foreach (var x in G.FixturesOf(id)) { K.T(c, (x.Key + 1) + ". SPIELTAG", 10.5f, K.Mut); MatchRow(c, x.Value, id); }
+            }
+            else ClubHistory(content, id);
+        }
+        List<RectTransform> GridForce(Transform p, int n, int perRow)
+        {
+            var cells = new List<RectTransform>();
+            for (int i = 0; i < n; i += perRow)
+            {
+                var row = K.Rect("Raster", p); var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+                h.spacing = 8; h.childControlWidth = true; h.childControlHeight = true; h.childForceExpandWidth = false; h.childForceExpandHeight = true;
+                for (int j = 0; j < perRow; j++) { var c = K.VBox(row, 0); K.Flex(c); if (i + j < n) cells.Add(c); }
+            }
+            return cells;
+        }
+
+        void SquadCard(int id)
+        {
+            var t = G.T(id); var ps = G.Squad(id).Select(x => G.S.players[x]).ToList();
+            var c = K.Card(content, 14, 0);
+            K.T(c, "KADER", 20, K.Ink, K.FD); K.Gap(c, 8);
+            var h = K.HBox(c, 26, 0);
+            Hd(h, "NR", 36, TextAnchor.MiddleCenter); Hd(h, "NAME", -1, TextAnchor.MiddleLeft); Hd(h, "POS", 44, TextAnchor.MiddleCenter);
+            if (wide) Hd(h, "NAT.", 52, TextAnchor.MiddleCenter);
+            Hd(h, "ALTER", 50); Hd(h, "STÄRKE", 60); Hd(h, "MARKTWERT", wide ? 110 : 84);
+            K.Divider(c);
+            foreach (var pos in Game.Pos)
+                foreach (var p in ps.Where(x => x.p == pos).OrderByDescending(x => x.s))
+                {
+                    var r = K.HBox(c, 28, 0);
+                    K.Cell(r, p.no > 0 ? p.no.ToString() : "", 36, TextAnchor.MiddleCenter, K.Mut);
+                    K.Cell(r, p.n, -1, TextAnchor.MiddleLeft, K.Ink, K.F);
+                    K.Cell(r, pos, 44, TextAnchor.MiddleCenter, K.Mut, K.FM, 12);
+                    if (wide) K.Cell(r, Short(p.nat), 52, TextAnchor.MiddleCenter, K.Mut, K.F, 12);
+                    Num(r, p.a.ToString(), 50);
+                    K.Cell(r, p.s.ToString("0"), 60, TextAnchor.MiddleRight, p.s >= t.r + 4 ? K.Up : p.s <= t.r - 6 ? K.Mut : K.Ink, K.FM);
+                    K.Cell(r, Util.Money(G.PlayerValue(p)), wide ? 110 : 84, TextAnchor.MiddleRight, K.Mut, K.F, 12.5f);
+                    K.Divider(c);
+                }
+        }
+        static string Short(string nat) { if (string.IsNullOrEmpty(nat)) return ""; if (nat.StartsWith("X:")) return nat.Substring(2, Math.Min(3, nat.Length - 2)).ToUpperInvariant(); return nat == "DE" ? "GER" : nat; }
+
+        void ClubHistory(Transform p, int id)
+        {
+            var c = K.Card(p, 14, 0); K.T(c, "SAISONVERLAUF", 20, K.Ink, K.FD); K.Gap(c, 6);
+            var h = G.S.hist.FirstOrDefault(x => x.team == id);
+            var l = G.LeagueOf(id);
             if (l != null)
             {
-                var tc = K.CardBox(cols[1], 20, 2); K.Label(tc, l.name.ToUpperInvariant(), 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == fav);
-                TableHeader(tc);
-                int a = 0, b = tb.Count;
-                if (!wide) { a = Mathf.Clamp(pos - 3, 0, Mathf.Max(0, tb.Count - 7)); b = Mathf.Min(tb.Count, a + 7); }
-                for (int i = a; i < b; i++) TableRow(tc, l, tb, i);
-                if (!wide) K.Btn(tc, "Ganze Tabelle", () => { viewLeague = l.id; Go("table"); }, K.Card2, 100);
+                var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == id);
+                HistRow(c, Sl(G.S.season), l.name, (pos + 1) + ". · " + tb[pos].p + " Pkt", "LÄUFT", K.Mut);
             }
+            if (h != null) foreach (var e in h.e)
+                {
+                    var nl = h.e.IndexOf(e) > 0 ? h.e[h.e.IndexOf(e) - 1] : null;
+                    int nextLv = nl != null ? nl.level : (l != null ? l.level : e.level);
+                    string mv = nextLv < e.level ? "▲ Aufstieg" : nextLv > e.level ? "▼ Abstieg" : "";
+                    HistRow(c, Sl(e.season), e.league, e.pos + "." + (e.pos == 1 ? " ★" : "") + " · " + e.pts + " Pkt", mv, mv.StartsWith("▲") ? K.Up : K.Down);
+                }
+            if (h == null && id != G.S.fav) K.T(c, "Vereinsgeschichte wird nur für deinen Verein geführt.", 12.5f, K.Mut);
+        }
+        void HistRow(Transform p, string season, string league, string res, string mv, Color mvc)
+        {
+            var r = K.HBox(p, 48, 12);
+            K.Cell(r, season, 76, TextAnchor.MiddleLeft, K.Ink, K.FM, 15);
+            var v = K.VBox(r, 0); K.Flex(v);
+            K.Cell(v, res, -1, TextAnchor.MiddleLeft, K.Ink, K.FM, 14);
+            K.Cell(v, league, -1, TextAnchor.MiddleLeft, K.Mut, K.F, 12.5f);
+            if (mv != "") { if (mv == "LÄUFT") Tag(r, mv); else K.Cell(r, mv, 100, TextAnchor.MiddleRight, mvc, K.FM); }
+            K.Divider(p);
+        }
 
-            // Spieltag der Liga
-            if (l != null && l.played > 0)
+        // ================= Ligen / Europa =================
+        void Leagues(bool foreign)
+        {
+            var items = new List<KeyValuePair<string, Action>>();
+            if (!foreign)
             {
-                int r = l.played - 1;
-                var mc = K.CardBox(cols[2], 24, 6); K.Label(mc, (r + 1) + ". SPIELTAG · ERGEBNISSE", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var m in l.rounds[r].m) MatchLine(mc, m, false, fav);
+                foreach (var id in Game.ProLeagues) { var lid = id; if (G.L(id) != null) items.Add(new KeyValuePair<string, Action>(ShortName[id], () => { vbOpen = false; OpenLeague(lid); })); }
+                var fl = G.S.fav >= 0 ? G.LeagueOf(G.S.fav) : null;
+                if (fl != null && !Game.ProLeagues.Contains(fl.id)) { var fid = fl.id; items.Add(new KeyValuePair<string, Action>("★ " + fl.name, () => { vbOpen = false; OpenLeague(fid); })); }
+                items.Add(new KeyValuePair<string, Action>(vbOpen ? "Verbände ▴" : "Verbände ▾", () => { vbOpen = !vbOpen; Render(); }));
             }
-            if (l != null && l.played < l.rounds.Count && wide)
+            else foreach (var l in G.S.leagues.Where(x => x.foreign)) { var lid = l.id; items.Add(new KeyValuePair<string, Action>(l.name, () => OpenLeague(lid))); }
+            var cur = G.L(viewLeague);
+            if (cur == null || cur.foreign != foreign) cur = foreign ? G.S.leagues.FirstOrDefault(x => x.foreign) : (G.S.fav >= 0 && !G.LeagueOf(G.S.fav).foreign ? G.LeagueOf(G.S.fav) : G.L("bl"));
+            if (cur == null) return;
+            if (viewLeague != cur.id) { viewLeague = cur.id; viewRound = -1; }
+            string active = foreign ? cur.name : (ShortName.ContainsKey(cur.id) ? ShortName[cur.id] : (G.S.fav >= 0 && G.LeagueOf(G.S.fav) == cur ? "★ " + cur.name : ""));
+            if (vbOpen && !foreign) active = vbOpen ? "Verbände ▴" : active;
+            Flow(content, items, active);
+            if (vbOpen && !foreign) VerbandPicker();
+            FavStrip(content);
+
+            // Ligakopf
+            var c = K.Card(content, 14, 10);
+            var hr = K.HBox(c, -1, 10); hr.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.LowerLeft;
+            var hv = K.VBox(hr, 0); K.Flex(hv);
+            string vb; string bc = cur.foreign ? cur.title + " · Saison " + Sl(G.S.season) : "Stufe " + cur.level + (cur.vb != "" && VB.TryGetValue(cur.vb, out vb) ? " · " + vb : "") + (cur.kreis != "" ? " · Kreis " + cur.kreis : "") + " · Saison " + Sl(G.S.season);
+            K.T(hv, bc, 12.5f, K.Mut);
+            K.T(hv, cur.name, wide ? 30 : 24, K.Ink, K.FD);
+            Tag(hr, cur.teams.Count + " Vereine"); Tag(hr, cur.played + "/" + cur.rounds.Count + " Spieltage");
+            if (!cur.foreign) LeagueLinks(c, cur);
+
+            var cols = Cols(c, 1.35f, 1);
+            TableView(cols[0], cur);
+            K.Gap(cols[0], 6); Legend(cols[0], cur);
+            Matchday(cols[1], cur);
+        }
+
+        void VerbandPicker()
+        {
+            var c = K.Card(content, 14, 8);
+            var items = new List<KeyValuePair<string, Action>>();
+            foreach (var kv in VB.OrderBy(x => x.Value))
             {
-                var mc = K.CardBox(cols[2], 24, 6); K.Label(mc, (l.played + 1) + ". SPIELTAG · VORSCHAU", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var m in l.rounds[l.played].m) MatchLine(mc, m, false, fav);
+                string code = kv.Key; if (!G.S.leagues.Any(l => !l.foreign && l.level >= 5 && (l.vb == code || l.vbs.Contains(code)))) continue;
+                items.Add(new KeyValuePair<string, Action>(kv.Value, () => { vbView = code; Render(); }));
             }
-            if (!wide) { var mc = K.CardBox(content); K.Btn(mc, "Zum Hauptmenü", () => { Save(); G = null; Go("title"); }, K.Card2, 100); }
+            string vn; VB.TryGetValue(vbView ?? "", out vn);
+            K.T(c, "LANDESVERBÄNDE", 18, K.Ink, K.FD);
+            Flow(c, items, vn);
+            if (vbView == null) return;
+            foreach (var g in G.S.leagues.Where(l => !l.foreign && l.level >= 5 && (l.vb == vbView || l.vbs.Contains(vbView))).GroupBy(l => l.level).OrderBy(x => x.Key))
+            {
+                K.T(c, "STUFE " + g.Key, 11, K.Mut, K.FM);
+                var li = new List<KeyValuePair<string, Action>>();
+                foreach (var l in g.OrderBy(x => x.name)) { var lid = l.id; li.Add(new KeyValuePair<string, Action>(l.name, () => { vbOpen = false; OpenLeague(lid); })); }
+                Flow(c, li, G.L(viewLeague) != null ? G.L(viewLeague).name : null, 26);
+            }
         }
 
-        void Stat(Transform p, string label, string value)
+        void LeagueLinks(Transform p, League l)
         {
-            var v = K.VBox(p, 0, 0, null, "Wert"); K.LE(v, -1, -1, 1).minWidth = 0;
-            K.Label(v, label.ToUpperInvariant(), 24, K.Mut, TextAnchor.MiddleLeft, FontStyle.Normal, -1, false);
-            K.Label(v, value, 44, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold, -1, false);
+            League up = null;
+            if (l.level == 2) up = G.L("bl"); else if (l.level == 3) up = G.L("bl2"); else if (l.level == 4) up = G.L("l3");
+            else if (l.level == 5) up = G.L(G.RegionOf(l.vb));
+            else if (l.level > 5) up = G.LeagueByName(l.up) ?? G.S.leagues.FirstOrDefault(u => !u.foreign && u.level == l.level - 1 && u.vbs.Contains(l.vb));
+            List<League> subs;
+            if (l.level == 1) subs = new List<League> { G.L("bl2") };
+            else if (l.level == 2) subs = new List<League> { G.L("l3") };
+            else if (l.level == 3) subs = Game.RegionalLeagues.Select(x => G.L(x)).ToList();
+            else if (l.level == 4) subs = G.S.leagues.Where(x => !x.foreign && x.level == 5 && G.RegionOf(x.vb) == l.id).ToList();
+            else subs = G.S.leagues.Where(x => !x.foreign && x.level == l.level + 1 && x.up == l.name).ToList();
+            subs = subs.Where(x => x != null).ToList();
+            var items = new List<KeyValuePair<string, Action>>();
+            if (up != null) { var uid = up.id; items.Add(new KeyValuePair<string, Action>("▲ " + up.name, () => OpenLeague(uid))); }
+            foreach (var s in subs) { var sid = s.id; items.Add(new KeyValuePair<string, Action>("▼ " + s.name, () => OpenLeague(sid))); }
+            if (items.Count > 0) Flow(p, items, null, 26);
         }
 
-        void BigMatch(Transform p, Match m)
+        void Matchday(Transform p, League l)
         {
-            var h = G.T(m.h); var a = G.T(m.a);
-            var r = K.HBox(p, 260, 20);
-            Side(r, h); K.Cell(r, m.hg >= 0 ? m.hg + " : " + m.ag : "vs", 140, TextAnchor.MiddleCenter, K.Mut, FontStyle.Bold, 48); Side(r, a);
+            if (l.rounds.Count == 0) return;
+            if (viewRound < 0) viewRound = Mathf.Clamp(l.played > 0 && (l.played >= l.rounds.Count || G.S.fav < 0 || G.LeagueOf(G.S.fav) != l) ? l.played - 1 : l.played, 0, l.rounds.Count - 1);
+            viewRound = Mathf.Clamp(viewRound, 0, l.rounds.Count - 1);
+            var nav = K.HBox(p, 34, 8); nav.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
+            K.Btn(nav, "", () => { viewRound = Mathf.Max(0, viewRound - 1); Render(); }, K.B.Outline, 32, 32, 13, "left");
+            K.T(nav, (viewRound + 1) + ". Spieltag", 20, K.Ink, K.FM, TextAnchor.MiddleCenter, 120, false);
+            K.Btn(nav, "", () => { viewRound = Mathf.Min(l.rounds.Count - 1, viewRound + 1); Render(); }, K.B.Outline, 32, 32, 13, "right");
+            K.Gap(p, 4);
+            foreach (var m in l.rounds[viewRound].m) MatchRow(p, m, G.S.fav);
+            int sf = l.teams.Count % 2 == 1 ? l.teams.FirstOr(id => !l.rounds[viewRound].m.Any(m => m.h == id || m.a == id), -1) : -1;
+            if (sf >= 0) K.T(p, "Spielfrei: " + G.T(sf).name, 12, K.Mut);
         }
-        void Side(Transform p, Team t)
+
+        // ================= Historie =================
+        void History()
         {
-            var v = K.VBox(p, 10); K.LE(v, -1, -1, 1).minWidth = 0; v.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.UpperCenter;
-            v.GetComponent<VerticalLayoutGroup>().childControlWidth = false; v.GetComponent<VerticalLayoutGroup>().childForceExpandWidth = false;
-            K.Crest(v, t, 150);
-            var n = K.Label(v, t.name, 32, t.id == G.S.fav ? K.Acc : K.Txt, TextAnchor.UpperCenter, FontStyle.Bold); n.rectTransform.sizeDelta = new Vector2(380, 90); K.LE(n, 380, 90);
+            FavStrip(content);
+            PageHead(content, "Saison " + Sl(G.S.season), "Historie");
+            var cols = Cols(content, 1, 1);
+            ClubHistory(cols[0], G.S.fav);
+            var c = K.Card(cols[1], 14, 0); K.T(c, "DEUTSCHE MEISTER", 20, K.Ink, K.FD); K.Gap(c, 6);
+            if (G.S.log.Count == 0) K.T(c, "Noch keine Saison abgeschlossen.", 12.5f, K.Mut);
+            foreach (var lg in G.S.log)
+            {
+                var line = lg.lines.FirstOrDefault(x => x.StartsWith("Deutscher Meister: ")); if (line == null) continue;
+                string name = line.Substring("Deutscher Meister: ".Length); var t = G.S.teams.FirstOrDefault(x => x.name == name);
+                var r = K.HBox(c, 32, 10);
+                K.Cell(r, Sl(lg.season), 76, TextAnchor.MiddleLeft, K.Mut, K.FM);
+                if (t != null) K.Crest(r, t, 18);
+                K.Cell(r, name, -1, TextAnchor.MiddleLeft, K.Ink, K.FM);
+                K.Divider(c);
+            }
         }
 
         // spielt Spieltage, bis Mein Verein gespielt hat (kleine Ligen spielen nicht an jedem Spieltag)
@@ -430,272 +773,6 @@ namespace FP.UI
         {
             var l = G.LeagueOf(G.S.fav); int before = l != null ? l.played : 0; int g = 0;
             while (!G.SeasonDone && l != null && l.played == before && g++ < 100) G.NextDay();
-        }
-
-        void MatchLine(Transform p, Match m, bool big, int fav = -1)
-        {
-            var r = K.HBox(p, big ? 130 : 84, 14);
-            var h = G.T(m.h); var a = G.T(m.a);
-            K.Cell(r, h.name, -1, TextAnchor.MiddleRight, m.h == G.S.fav ? K.Acc : K.Txt, m.h == G.S.fav ? FontStyle.Bold : FontStyle.Normal, big ? 36 : 30);
-            K.Crest(r, h, big ? 90 : 56);
-            string sc = m.hg >= 0 ? m.hg + " : " + m.ag : "– : –";
-            Color col = K.Txt;
-            if (fav >= 0 && m.hg >= 0 && (m.h == fav || m.a == fav)) { int me = m.h == fav ? m.hg : m.ag, op = m.h == fav ? m.ag : m.hg; col = me > op ? K.Up : me < op ? K.Down : K.Rel; }
-            K.Cell(r, sc, big ? 150 : 110, TextAnchor.MiddleCenter, col, FontStyle.Bold, big ? 44 : 32);
-            K.Crest(r, a, big ? 90 : 56);
-            K.Cell(r, a.name, -1, TextAnchor.MiddleLeft, m.a == G.S.fav ? K.Acc : K.Txt, m.a == G.S.fav ? FontStyle.Bold : FontStyle.Normal, big ? 36 : 30);
-        }
-
-        void TeamLine(Transform p, int id, Action on)
-        {
-            var t = G.T(id); var l = G.LeagueOf(id);
-            var r = K.HBox(p, 120, 20, 20, K.Card);
-            K.Crest(r, t, 84);
-            var v = K.VBox(r, 2); K.LE(v, -1, -1, 1).minWidth = 0;
-            K.Cell(v, t.name, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Bold).GetComponent<LayoutElement>().preferredHeight = 50;
-            K.Cell(v, l != null ? l.name + " · Stufe " + l.level : "", -1, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 28).GetComponent<LayoutElement>().preferredHeight = 40;
-            K.Cell(r, t.r.ToString("0.0"), 90, TextAnchor.MiddleRight, K.Mut);
-            K.Click(r, on);
-        }
-
-        // ---------- Tabelle ----------
-        League CurLeague() { return G.L(viewLeague) ?? (G.S.fav >= 0 ? G.LeagueOf(G.S.fav) : null) ?? G.L("bl"); }
-
-        void TableTab()
-        {
-            var l = CurLeague(); viewLeague = l.id;
-            var cols = Cols(1.6f, 1);
-            LeagueHead(cols[0], l);
-            var tb = G.Table(l);
-            var c = K.CardBox(cols[0], 16, 0);
-            TableHeader(c);
-            for (int i = 0; i < tb.Count; i++) TableRow(c, l, tb, i);
-            var lg = K.HBox(cols[0], 60, 24);
-            Legend(lg, K.Up, "Aufstieg"); Legend(lg, K.Rel, "Relegation"); Legend(lg, K.Down, "Abstieg");
-            if (l.played > 0)
-            {
-                int r = l.played - 1;
-                var mc = K.CardBox(cols[1], 24, 6); K.Label(mc, (r + 1) + ". SPIELTAG", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var m in l.rounds[r].m) MatchLine(mc, m, false, -1);
-                K.Btn(mc, "Ganzer Spielplan", () => { viewRound = -1; Go("games"); }, K.Card2, 96);
-            }
-            else K.Btn(cols[1], "Spielplan", () => { viewRound = -1; Go("games"); });
-            LeagueLinks(cols[1], l);
-        }
-        void Legend(Transform p, Color c, string s) { var b = K.Rect("Farbe", p); b.gameObject.AddComponent<Image>().color = c; K.LE(b, 24, 24); K.Cell(p, s, 220, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 28); }
-
-        void TableHeader(Transform p)
-        {
-            var h = K.HBox(p, 60, 10, 8);
-            K.Cell(h, "", 8, TextAnchor.MiddleCenter); K.Cell(h, "#", 48, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); K.Cell(h, "", 56, TextAnchor.MiddleCenter);
-            K.Cell(h, "Verein", -1, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 26);
-            K.Cell(h, "Sp", 64, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26);
-            if (wide) { K.Cell(h, "S", 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); K.Cell(h, "U", 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); K.Cell(h, "N", 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); K.Cell(h, "Tore", 110, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); }
-            K.Cell(h, "Diff", 84, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26); K.Cell(h, "Pkt", 84, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 26);
-        }
-
-        void TableRow(Transform p, League l, List<Row> tbl, int i)
-        {
-            var row = tbl[i]; var t = G.T(row.id); bool me = row.id == G.S.fav;
-            var r = K.HBox(p, 78, 10, 8, me ? K.Card2 : (Color?)null);
-            int z = G.Zone(l, i, tbl.Count);
-            var bar = K.Rect("Zone", r); bar.gameObject.AddComponent<Image>().color = z == 1 ? K.Up : z == 2 || z == -2 ? K.Rel : z == -1 ? K.Down : new Color(0, 0, 0, 0); K.LE(bar, 8, 60);
-            K.Cell(r, (i + 1).ToString(), 48, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-            K.Crest(r, t, 52);
-            K.Cell(r, t.name, -1, TextAnchor.MiddleLeft, me ? K.Acc : K.Txt, me ? FontStyle.Bold : FontStyle.Normal, 32);
-            K.Cell(r, row.sp.ToString(), 64, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-            if (wide)
-            {
-                K.Cell(r, row.s.ToString(), 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30); K.Cell(r, row.u.ToString(), 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30); K.Cell(r, row.n.ToString(), 56, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-                K.Cell(r, row.tf + ":" + row.tg, 110, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-            }
-            K.Cell(r, (row.Diff > 0 ? "+" : "") + row.Diff, 84, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-            K.Cell(r, row.p.ToString(), 84, TextAnchor.MiddleCenter, K.Txt, FontStyle.Bold, 32);
-            int id = row.id; K.Click(r, () => { viewTeam = id; Go("team"); });
-        }
-
-        void LeagueHead(Transform p, League l)
-        {
-            var c = K.CardBox(p, 28, 6);
-            K.Label(c, l.name, K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            string vb; string info = l.foreign ? "Ausland" : "Stufe " + l.level + (l.vb != "" && VB.TryGetValue(l.vb, out vb) ? " · " + vb : "") + (l.kreis != "" ? " · Kreis " + l.kreis : "");
-            K.Label(c, info + " · " + l.teams.Count + " Vereine · " + l.played + "/" + l.rounds.Count + " Spieltage", K.FSs, K.Mut);
-        }
-
-        void LeagueLinks(Transform p, League l)
-        {
-            if (l.foreign) return;
-            var c = K.CardBox(p, 24, 10);
-            League up = null;
-            if (l.level == 2) up = G.L("bl"); else if (l.level == 3) up = G.L("bl2"); else if (l.level == 4) up = G.L("l3");
-            else if (l.level == 5) up = G.L(G.RegionOf(l.vb));
-            else if (l.level > 5) up = G.LeagueByName(l.up) ?? G.S.leagues.FirstOrDefault(u => !u.foreign && u.level == l.level - 1 && u.vbs.Contains(l.vb));
-            if (up != null) { K.Label(c, "NÄCHSTHÖHERE LIGA", 26, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold); var lid = up.id; K.Btn(c, "▲  " + up.name, () => { viewLeague = lid; Go("table"); }, K.Card2, 90, -1, 32); }
-            List<League> subs;
-            if (l.level == 1) subs = new List<League> { G.L("bl2") };
-            else if (l.level == 2) subs = new List<League> { G.L("l3") };
-            else if (l.level == 3) subs = Game.RegionalLeagues.Select(x => G.L(x)).ToList();
-            else if (l.level == 4) subs = G.S.leagues.Where(x => !x.foreign && x.level == 5 && G.RegionOf(x.vb) == l.id).ToList();
-            else subs = G.S.leagues.Where(x => !x.foreign && x.level == l.level + 1 && x.up == l.name).ToList();
-            if (subs.Count > 0)
-            {
-                K.Label(c, "UNTERBAU", 26, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var s in subs.Where(x => x != null)) { var sid = s.id; K.Btn(c, "▼  " + s.name, () => { viewLeague = sid; Go("table"); }, K.Card2, 90, -1, 32); }
-            }
-        }
-
-        // ---------- Spielplan ----------
-        void Games()
-        {
-            var l = CurLeague(); viewLeague = l.id;
-            if (viewRound < 0) viewRound = Mathf.Clamp(l.played > 0 && (l.played >= l.rounds.Count || G.S.fav < 0 || G.LeagueOf(G.S.fav) != l) ? l.played - 1 : l.played, 0, l.rounds.Count - 1);
-            var cols = Cols(1.3f, 1);
-            LeagueHead(cols[0], l);
-            var nav = K.HBox(cols[0], 110, 16);
-            K.Btn(nav, "◀", () => { viewRound = Mathf.Max(0, viewRound - 1); Render(); }, K.Card2, 110, 140, 44);
-            K.Cell(nav, (viewRound + 1) + ". Spieltag von " + l.rounds.Count, -1, TextAnchor.MiddleCenter, K.Txt, FontStyle.Bold, 38);
-            K.Btn(nav, "▶", () => { viewRound = Mathf.Min(l.rounds.Count - 1, viewRound + 1); Render(); }, K.Card2, 110, 140, 44);
-            var c = K.CardBox(cols[0], 16, 6);
-            foreach (var m in l.rounds[viewRound].m) MatchLine(c, m, false, -1);
-            int spielfrei = l.teams.Count % 2 == 1 ? l.teams.FirstOr(id => !l.rounds[viewRound].m.Any(m => m.h == id || m.a == id), -1) : -1;
-            if (spielfrei >= 0) K.Label(c, "Spielfrei: " + G.T(spielfrei).name, 28, K.Mut);
-            if (G.S.fav >= 0 && G.LeagueOf(G.S.fav) == l)
-            {
-                var fc = K.CardBox(cols[1], 16, 6); K.Label(fc, "SPIELE VON " + G.T(G.S.fav).name.ToUpperInvariant(), 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var x in G.FixturesOf(G.S.fav)) MatchLine(fc, x.Value, false, G.S.fav);
-            }
-            else LeagueLinks(cols[1], l);
-        }
-
-        // ---------- Kader ----------
-        void SquadTab()
-        {
-            int id = viewTeam >= 0 ? viewTeam : G.S.fav; var t = G.T(id);
-            var sq = G.Squad(id);
-            var c = K.CardBox(content, 24, 6);
-            var hr = K.HBox(c, 120, 24); K.Crest(hr, t, 110);
-            var hv = K.VBox(hr, 2); K.LE(hv, -1, -1, 1).minWidth = 0;
-            K.Label(hv, t.name, 42, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var ps0 = sq.Select(x => G.S.players[x]).ToList();
-            K.Label(hv, sq.Count + " Spieler · Stärke " + t.r.ToString("0.0") + " · Ø Alter " + (ps0.Count > 0 ? ps0.Average(x => x.a).ToString("0.0") : "-") + " · Kaderwert " + Util.Money(ps0.Sum(x => (double)G.PlayerValue(x))), K.FSs, K.Mut);
-            var names = new Dictionary<string, string> { { "TW", "Torwart" }, { "AB", "Abwehr" }, { "MF", "Mittelfeld" }, { "ST", "Sturm" } };
-            var cols = Cols(1, 1);
-            int ci = 0;
-            foreach (var pos in Game.Pos)
-            {
-                var ps = ps0.Where(x => x.p == pos).OrderByDescending(x => x.s).ToList(); if (ps.Count == 0) continue;
-                var col = cols[pos == "TW" || pos == "AB" ? 0 : 1]; ci++;
-                var pc = K.CardBox(col, 16, 0);
-                K.Label(pc, names[pos].ToUpperInvariant(), 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-                var hh = K.HBox(pc, 50, 10, 8);
-                K.Cell(hh, "Nr", 64, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 24); K.Cell(hh, "Name", -1, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 24);
-                K.Cell(hh, "Nat.", 96, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 24); K.Cell(hh, "Alter", 70, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 24);
-                K.Cell(hh, "Stärke", 90, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 24); K.Cell(hh, "Marktwert", 200, TextAnchor.MiddleRight, K.Mut, FontStyle.Normal, 24);
-                foreach (var p in ps)
-                {
-                    var r = K.HBox(pc, 76, 10, 8);
-                    K.Cell(r, p.no > 0 ? p.no.ToString() : "", 64, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-                    K.Cell(r, p.n, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Normal, 32);
-                    K.Cell(r, Short(p.nat), 96, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 28);
-                    K.Cell(r, p.a.ToString(), 70, TextAnchor.MiddleCenter, K.Mut, FontStyle.Normal, 30);
-                    K.Cell(r, p.s.ToString("0"), 90, TextAnchor.MiddleCenter, StrColor(p.s, t.r), FontStyle.Bold, 32);
-                    K.Cell(r, Util.Money(G.PlayerValue(p)), 200, TextAnchor.MiddleRight, K.Mut, FontStyle.Normal, 28);
-                }
-            }
-        }
-        static Color StrColor(float s, float teamR) { return s >= teamR + 4 ? K.Up : s <= teamR - 6 ? K.Mut : K.Txt; }
-        static string Short(string nat) { if (string.IsNullOrEmpty(nat)) return ""; if (nat.StartsWith("X:")) return nat.Substring(2, Math.Min(3, nat.Length - 2)).ToUpperInvariant(); return nat == "DE" ? "GER" : nat; }
-
-        // ---------- Ligen ----------
-        void Leagues()
-        {
-            if (vbView != null)
-            {
-                string vbn; VB.TryGetValue(vbView, out vbn);
-                var hc = K.CardBox(content, 24, 8); K.Label(hc, vbn ?? vbView, K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-                var bh = K.HBox(hc, 96, 16); K.Btn(bh, "◀  Alle Verbände", () => { vbView = null; Render(); }, K.Card2, 96, wide ? 420 : -1);
-                var groups = G.S.leagues.Where(l => !l.foreign && l.level >= 5 && (l.vb == vbView || l.vbs.Contains(vbView))).GroupBy(l => l.level).OrderBy(x => x.Key).ToList();
-                var cols = Cols(1, 1, 1); int i = 0;
-                foreach (var g in groups)
-                {
-                    var c = K.CardBox(cols[i++ % cols.Length], 20, 8); K.Label(c, "STUFE " + g.Key + " · " + LevelName(g.First()).ToUpperInvariant(), 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-                    foreach (var l in g.OrderBy(x => x.name)) { var lid = l.id; K.Btn(c, l.name + "  (" + l.teams.Count + ")", () => { viewLeague = lid; Go("table"); }, K.Card2, 84, -1, 30); }
-                }
-                return;
-            }
-            var cs = Cols(1, 1, 1);
-            var pc = K.CardBox(cs[0], 20, 8); K.Label(pc, "PROFILIGEN", 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-            foreach (var id in Game.ProLeagues) { var l = G.L(id); if (l == null) continue; K.Btn(pc, l.name, () => { viewLeague = id; Go("table"); }, K.Card2, 88, -1, 32); }
-            var vc = K.CardBox(cs[1], 20, 8); K.Label(vc, "LANDESVERBÄNDE", 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-            foreach (var kv in VB.OrderBy(x => x.Value))
-            {
-                string code = kv.Key; int n = G.S.leagues.Count(l => !l.foreign && l.level >= 5 && (l.vb == code || l.vbs.Contains(code))); if (n == 0) continue;
-                K.Btn(vc, kv.Value + "  ·  " + n + " Ligen", () => { vbView = code; Render(); }, K.Card2, 88, -1, 32);
-            }
-            var fc = K.CardBox(cs[2], 20, 8); K.Label(fc, "AUSLAND", 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-            foreach (var l in G.S.leagues.Where(x => x.foreign)) { var lid = l.id; K.Btn(fc, l.name, () => { viewLeague = lid; Go("table"); }, K.Card2, 88, -1, 32); }
-        }
-        static string LevelName(League l)
-        {
-            var n = l.name; foreach (var k in new[] { "Oberliga", "Verbandsliga", "Landesliga", "Landesklasse", "Bezirksliga", "Bezirksklasse", "Kreisoberliga", "Kreisliga", "Kreisklasse", "Kreisstaffel", "A-Klasse", "B-Klasse", "C-Klasse", "Thüringenliga", "Sachsenliga", "Bayernliga", "Hessenliga", "Westfalenliga" }) if (n.Contains(k)) return k;
-            return n.Split(' ')[0];
-        }
-
-        // ---------- Verein ----------
-        void TeamTab()
-        {
-            int id = viewTeam >= 0 ? viewTeam : G.S.fav; var t = G.T(id); var l = G.LeagueOf(id);
-            var cols = Cols(1, 1.3f);
-            var c = K.CardBox(cols[0], 32, 12);
-            var hr = K.HBox(c, 200, 28); K.Crest(hr, t, 180);
-            var hv = K.VBox(hr, 4); K.LE(hv, -1, -1, 1).minWidth = 0;
-            K.Label(hv, t.name, 46, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            if (l != null)
-            {
-                var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == id);
-                K.Label(hv, l.name, K.FSs, K.Acc);
-                var stats = K.HBox(c, 120, 16);
-                Stat(stats, "Platz", (pos + 1) + ". / " + tb.Count); Stat(stats, "Punkte", tb[pos].p.ToString()); Stat(stats, "Stärke", t.r.ToString("0.0"));
-            }
-            if (G.S.fav < 0)
-            {
-                K.Btn(c, "Diesen Verein übernehmen", () => { G.S.fav = id; viewTeam = -1; viewLeague = null; Save(); Go("home"); }, K.Acc, 130, -1, 42, Color.white);
-                K.Btn(c, "◀  Zurück zur Suche", () => Go("pick"), K.Card2, 100);
-            }
-            var bh = K.HBox(c, 110, 16);
-            K.Btn(bh, "Kader", () => { viewTeam = id; Go("squad"); });
-            if (l != null) { var lid = l.id; K.Btn(bh, "Tabelle", () => { viewLeague = lid; Go("table"); }); }
-            var fx = G.FixturesOf(id);
-            if (fx.Count > 0)
-            {
-                var fc = K.CardBox(cols[1], 16, 6); K.Label(fc, "SPIELE", 28, K.Mut, TextAnchor.MiddleLeft, FontStyle.Bold);
-                foreach (var x in fx) MatchLine(fc, x.Value, false, id);
-            }
-        }
-
-        // ---------- Saison ----------
-        void SeasonTab()
-        {
-            int fav = G.S.fav; var h = G.S.hist.FirstOrDefault(x => x.team == fav);
-            var cols = Cols(1, 1.6f);
-            var c = K.CardBox(cols[0], 24, 6); K.Label(c, "Vereinsgeschichte", K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
-            if (h == null || h.e.Count == 0) K.Label(c, "Noch keine Saison abgeschlossen.", K.FSs, K.Mut);
-            else foreach (var e in h.e)
-                {
-                    var r = K.HBox(c, 76, 12);
-                    K.Cell(r, Sl(e.season), 150, TextAnchor.MiddleLeft, K.Mut, FontStyle.Normal, 32);
-                    K.Cell(r, e.league, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Normal, 32);
-                    K.Cell(r, e.pos + ". / " + e.n, 140, TextAnchor.MiddleRight, e.pos == 1 ? K.Gold : K.Txt, FontStyle.Bold, 32);
-                }
-            if (G.S.log.Count == 0) return;
-            var lg = G.S.log[0]; string fn = G.T(fav).name;
-            var lc = K.CardBox(cols[1], 24, 6); K.Label(lc, "SAISON " + Sl(lg.season) + " – MELDUNGEN", 28, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var mine = lg.lines.Where(x => x.Contains(fn)).ToList();
-            foreach (var x in mine) K.Label(lc, "★ " + x, 32, K.Gold);
-            int cap = wide ? 60 : 25;
-            var lines = showAllLog ? lg.lines.Take(400).ToList() : lg.lines.Where(x => !x.Contains(fn)).Take(cap).ToList();
-            foreach (var x in lines) K.Label(lc, x, 30, K.Txt);
-            if (!showAllLog && lg.lines.Count > cap) K.Btn(lc, "Mehr anzeigen (" + lg.lines.Count + " Meldungen)", () => { showAllLog = true; Render(); }, K.Card2, 96);
         }
     }
 }

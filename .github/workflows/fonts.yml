@@ -14,6 +14,13 @@ jobs:
           find $T -name 'IBMPlexSans-Regular.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
           find $T -name 'IBMPlexSans-SemiBold.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
           find $T -name 'IBMPlexSans-Medium.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
+          if [ ! -f $D/IBMPlexSans-Regular.ttf ]; then
+            for wt in 400:Regular 500:Medium 600:SemiBold; do
+              W=${wt%%:*}; N=${wt##*:}
+              U=$(curl -sS "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@$W" | grep -o 'https://[^)]*\.ttf' | head -1)
+              echo "$N -> $U"; [ -n "$U" ] && curl -sSfL -o $D/IBMPlexSans-$N.ttf "$U"
+            done
+          fi
           for w in Bold SemiBold; do [ -f $D/BarlowCondensed-$w.ttf ] || curl -sSfL -o $D/BarlowCondensed-$w.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-$w.ttf; done
           curl -sSfL -o $D/OFL-Barlow.txt https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/OFL.txt
           find $T -iname 'LICENSE*' | head -1 | xargs -I{} cp {} $D/OFL-IBMPlex.txt
