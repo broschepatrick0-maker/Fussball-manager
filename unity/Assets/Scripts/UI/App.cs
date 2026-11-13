@@ -16,7 +16,7 @@ namespace FP.UI
         ScrollRect scroll; CanvasScaler scaler; RectTransform canvasRT;
         bool wide, shellBuilt; float contentW = 1200;
         string area = "title", lastKey = "";
-        string favSub = "ov"; int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; bool vbOpen; string query = "";
+        string viewCup; bool lpOpen; string favSub = "ov"; int viewTeam = -1; string viewLeague; int viewRound = -1; string vbView; bool vbOpen; string query = "";
         bool showAllLog, confirmNew; string error;
         Vector2 lastScreen; Rect lastSafe;
 
@@ -26,7 +26,7 @@ namespace FP.UI
             {"BY","Bayern"},{"BA","Baden"},{"SB","Südbaden"},{"WU","Württemberg"},{"HE","Hessen"},{"SW","Südwest"},{"RL","Rheinland"},{"SL","Saarland"},
             {"MR","Mittelrhein"},{"NR","Niederrhein"},{"WF","Westfalen"},{"NI","Niedersachsen"},{"HB","Bremen"},{"HH","Hamburg"},{"SH","Schleswig-Holstein"},
             {"MV","Mecklenburg-Vorpommern"},{"BB","Brandenburg"},{"BE","Berlin"},{"ST","Sachsen-Anhalt"},{"SN","Sachsen"},{"TH","Thüringen"} };
-        static readonly string[][] Areas = { new[] { "home", "Start", "home" }, new[] { "news", "News", "news" }, new[] { "fav", "Verein", "star" }, new[] { "de", "Ligen", "ligen" }, new[] { "eu", "Europa", "europa" }, new[] { "hist", "Historie", "hist" } };
+        static readonly string[][] Areas = { new[] { "home", "Start", "home" }, new[] { "news", "News", "news" }, new[] { "fav", "Verein", "star" }, new[] { "de", "Ligen", "ligen" }, new[] { "eu", "Europa", "europa" }, new[] { "cups", "Pokale", "pokal" }, new[] { "hist", "Historie", "hist" } };
         static readonly Dictionary<string, string> ShortName = new Dictionary<string, string> { { "bl", "Bundesliga" }, { "bl2", "2. BL" }, { "l3", "3. Liga" }, { "rln", "RL Nord" }, { "rlno", "RL Nordost" }, { "rlw", "RL West" }, { "rlsw", "RL Südwest" }, { "rlby", "RL Bayern" } };
 
         // ================= Gerüst =================
@@ -155,8 +155,9 @@ namespace FP.UI
                 case "de": Leagues(false); break;
                 case "eu": Leagues(true); break;
                 case "hist": History(); break;
+                case "cups": Cups(); break;
             }
-            string key = area + "|" + favSub + "|" + viewLeague + "|" + viewTeam + "|" + vbView;
+            string key = area + "|" + favSub + "|" + viewLeague + "|" + viewTeam + "|" + vbView + "|" + viewCup;
             if (key != lastKey) { lastKey = key; Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1; }
         }
 
@@ -188,10 +189,7 @@ namespace FP.UI
         string NextInfo()
         {
             if (G.S.fav < 0) return "";
-            var fx = G.FixturesOf(G.S.fav); var nx = fx.FirstOrDefault(x => x.Value.hg < 0);
-            if (nx.Value == null) return "Keine Spiele mehr in dieser Saison";
-            var m = nx.Value; bool home = m.h == G.S.fav;
-            return "Nächstes Spiel: " + G.T(home ? m.a : m.h).name + (home ? " (H)" : " (A)");
+            string n = NextText(); return n == "–" ? "Keine Spiele mehr in dieser Saison" : "Nächstes Spiel: " + n;
         }
 
         void BuildRail(bool picking)
@@ -279,7 +277,7 @@ namespace FP.UI
             if (wide)
             {
                 StripCol(r, "ZULETZT", last.Value == null ? "–" : ResultText(last.Value, G.S.fav), last.Value == null ? K.Ink : ResultColor(last.Value, G.S.fav));
-                StripCol(r, "ALS NÄCHSTES", nx.Value == null ? "–" : G.T(nx.Value.h == G.S.fav ? nx.Value.a : nx.Value.h).name + (nx.Value.h == G.S.fav ? " (H)" : " (A)"), K.Ink);
+                StripCol(r, "ALS NÄCHSTES", NextText(), K.Ink);
                 K.Spacer(r);
             }
             K.Click(r, () => { viewTeam = -1; favSub = "ov"; Go("fav"); });
@@ -289,6 +287,19 @@ namespace FP.UI
             var v = K.VBox(p, 0); K.LE(v, -1, -1, 0); v.GetComponent<VerticalLayoutGroup>().childAlignment = TextAnchor.MiddleLeft;
             K.T(v, label, 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
             K.T(v, val, 13.5f, c, K.FM, TextAnchor.MiddleLeft, -1, false);
+        }
+        // nächstes Liga- oder Pokalspiel (was zuerst kommt)
+        string NextText()
+        {
+            int fav = G.S.fav; var l = G.LeagueOf(fav);
+            var nx = G.FixturesOf(fav).FirstOrDefault(x => x.Value.hg < 0);
+            int ld = nx.Value != null && l != null && nx.Key < l.dates.Count ? l.dates[nx.Key] : int.MaxValue;
+            Cup c; int rd; var cm = G.NextCupMatch(fav, out c, out rd);
+            int cd = cm != null ? c.dates[rd] : int.MaxValue;
+            if (cm != null && cd < ld) { bool h = cm.h == fav; return G.T(h ? cm.a : cm.h).name + (h ? " (H)" : " (A)") + " · " + c.name; }
+            if (nx.Value == null) return "–";
+            var m = nx.Value; bool home = m.h == fav;
+            return G.T(home ? m.a : m.h).name + (home ? " (H)" : " (A)");
         }
         string ResultText(Match m, int id) { var o = G.T(m.h == id ? m.a : m.h).name; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; return me + ":" + op + " gegen " + o; }
         Color ResultColor(Match m, int id) { int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; return me > op ? K.Up : me < op ? K.Down : K.Rel; }
@@ -456,6 +467,19 @@ namespace FP.UI
             var eu = G.S.leagues.Where(x => x.foreign).Take(4).ToList();
             cells = Grid(content, eu.Count, 4);
             for (int i = 0; i < eu.Count; i++) MiniLeague(cells[i], eu[i]);
+            K.Section(content, "Wettbewerbe");
+            var cl = new List<Cup>(); var dfb = G.CupById("dfb"); if (dfb != null) cl.Add(dfb);
+            cl.AddRange(G.CupsOf(G.S.fav).Where(x => x.type != "dfb"));
+            cells = Grid(content, cl.Count, 4);
+            for (int i = 0; i < cl.Count; i++)
+            {
+                var c = cl[i]; var tl = K.VBox(cells[i], 2, 12); K.Shape(tl, K.Panel, 8, K.Line);
+                K.T(tl, c.name.ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                string st = c.winner >= 0 ? "Sieger: " + G.T(c.winner).name : (c.played == 0 ? G.RoundName(c.R, 0) + " ausstehend" : G.RoundName(c.R, c.played) + " · " + c.played + "/" + c.R);
+                K.T(tl, st, 14, K.Ink, K.FM, TextAnchor.MiddleLeft);
+                string me = G.CupReach(c, G.S.fav); if (me != null) K.T(tl, "Dein Verein: " + me, 12, me == "Sieger" ? K.Gold : K.Acc, K.F);
+                var cid = c.id; K.Click(tl, () => { viewCup = cid; Go("cups"); });
+            }
         }
         void MiniLeague(Transform cell, League l)
         {
@@ -638,17 +662,17 @@ namespace FP.UI
                     var nl = h.e.IndexOf(e) > 0 ? h.e[h.e.IndexOf(e) - 1] : null;
                     int nextLv = nl != null ? nl.level : (l != null ? l.level : e.level);
                     string mv = nextLv < e.level ? "▲ Aufstieg" : nextLv > e.level ? "▼ Abstieg" : "";
-                    HistRow(c, Sl(e.season), e.league, e.pos + "." + (e.pos == 1 ? " ★" : "") + " · " + e.pts + " Pkt", mv, mv.StartsWith("▲") ? K.Up : K.Down);
+                    HistRow(c, Sl(e.season), e.league + (string.IsNullOrEmpty(e.cups) ? "" : "\n" + e.cups), e.pos + "." + (e.pos == 1 ? " ★" : "") + " · " + e.pts + " Pkt", mv, mv.StartsWith("▲") ? K.Up : K.Down);
                 }
             if (h == null && id != G.S.fav) K.T(c, "Vereinsgeschichte wird nur für deinen Verein geführt.", 12.5f, K.Mut);
         }
         void HistRow(Transform p, string season, string league, string res, string mv, Color mvc)
         {
-            var r = K.HBox(p, 48, 12);
+            var r = K.HBox(p, -1, 12); K.Pad(r, 0, 0, 7, 7);
             K.Cell(r, season, 76, TextAnchor.MiddleLeft, K.Ink, K.FM, 15);
             var v = K.VBox(r, 0); K.Flex(v);
             K.Cell(v, res, -1, TextAnchor.MiddleLeft, K.Ink, K.FM, 14);
-            K.Cell(v, league, -1, TextAnchor.MiddleLeft, K.Mut, K.F, 12.5f);
+            K.T(v, league, 12.5f, K.Mut, K.F);
             if (mv != "") { if (mv == "LÄUFT") Tag(r, mv); else K.Cell(r, mv, 100, TextAnchor.MiddleRight, mvc, K.FM); }
             K.Divider(p);
         }
@@ -747,6 +771,81 @@ namespace FP.UI
             foreach (var m in l.rounds[viewRound].m) MatchRow(p, m, G.S.fav);
             int sf = l.teams.Count % 2 == 1 ? l.teams.FirstOr(id => !l.rounds[viewRound].m.Any(m => m.h == id || m.a == id), -1) : -1;
             if (sf >= 0) K.T(p, "Spielfrei: " + G.T(sf).name, 12, K.Mut);
+        }
+
+        // ================= Pokale =================
+        void Cups()
+        {
+            int fav = G.S.fav;
+            var mine = G.CupsOf(fav);
+            var cur = G.CupById(viewCup) ?? mine.FirstOrDefault() ?? G.CupById("dfb");
+            if (cur == null) { PageHead(content, "", "Pokale"); return; }
+            viewCup = cur.id;
+            var items = new List<KeyValuePair<string, Action>>();
+            var dfb = G.CupById("dfb"); if (dfb != null) items.Add(new KeyValuePair<string, Action>(dfb.name, () => { lpOpen = false; viewCup = "dfb"; Render(); }));
+            foreach (var c in mine.Where(x => x.type != "dfb")) { var cid = c.id; items.Add(new KeyValuePair<string, Action>(c.name, () => { lpOpen = false; viewCup = cid; Render(); })); }
+            items.Add(new KeyValuePair<string, Action>(lpOpen ? "Alle Landespokale ▴" : "Alle Landespokale ▾", () => { lpOpen = !lpOpen; Render(); }));
+            Flow(content, items, lpOpen ? "Alle Landespokale ▴" : cur.name);
+            if (lpOpen)
+            {
+                var c = K.Card(content, 14, 8); K.T(c, "LANDESPOKALE", 18, K.Ink, K.FD);
+                var li = new List<KeyValuePair<string, Action>>();
+                foreach (var lp in G.S.cups.Where(x => x.type == "lp").OrderBy(x => x.name)) { var cid = lp.id; li.Add(new KeyValuePair<string, Action>(lp.name, () => { lpOpen = false; viewCup = cid; Render(); })); }
+                Flow(c, li, cur.name, 26);
+            }
+            FavStrip(content);
+
+            var head = K.Card(content, 14, 10);
+            var hr = K.HBox(head, -1, 10); hr.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.LowerLeft;
+            var hv = K.VBox(hr, 0); K.Flex(hv);
+            string vb; string kind = cur.type == "dfb" ? "Pokal · Deutschland" : cur.type == "lp" ? "Landespokal · " + (VB.TryGetValue(cur.vb, out vb) ? vb : cur.vb) : "Kreispokal · " + (VB.TryGetValue(cur.vb, out vb) ? vb : cur.vb);
+            K.T(hv, kind + " · Saison " + Sl(G.S.season), 12.5f, K.Mut);
+            K.T(hv, cur.name, wide ? 30 : 24, K.Ink, K.FD);
+            Tag(hr, cur.teams.Count + " Teams"); Tag(hr, cur.winner >= 0 ? "Entschieden" : "Runde " + Math.Min(cur.R, cur.played + 1) + "/" + cur.R);
+            string me = G.CupReach(cur, fav);
+            if (me != null) K.T(head, "Dein Verein: " + me, 13.5f, me == "Sieger" ? K.Gold : K.Acc, K.FM);
+            if (cur.winner >= 0)
+            {
+                var ch = K.HBox(head, 56, 12); K.Shape(ch, K.AccSoft, 6); K.Pad(ch, 14, 14, 0, 0);
+                K.Icon(ch, "pokal", 26, K.Gold); K.Crest(ch, G.T(cur.winner), 30);
+                K.T(ch, "Pokalsieger: " + G.T(cur.winner).name, 22, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false);
+            }
+
+            // Runden, die neueste zuerst
+            var shown = Enumerable.Range(0, cur.rounds.Count).Reverse().ToList();
+            var cells = Grid(content, shown.Count, 2);
+            for (int i = 0; i < shown.Count; i++)
+            {
+                int k = shown[i]; var rd = cur.rounds[k];
+                var c = K.Card(cells[i], 14, 0); K.Flex(c);
+                var h = K.HBox(c, 30, 8);
+                var tt = K.T(h, G.RoundName(cur.R, k).ToUpperInvariant(), 20, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false); K.Flex(tt);
+                K.T(h, k < cur.played ? "gespielt" : "Spieltag " + (k < cur.dates.Count ? cur.dates[k] : 0), 12, K.Mut, K.F, TextAnchor.MiddleRight, -1, false).GetComponent<LayoutElement>().flexibleWidth = 0;
+                K.Gap(c, 4);
+                var list = rd.m.OrderByDescending(m => m.h == fav || m.a == fav).ThenBy(m => m.bye).ToList();
+                int max = 40, n = 0;
+                foreach (var m in list) { if (n++ >= max) { K.T(c, "… und " + (list.Count - max) + " weitere Spiele", 12, K.Mut); break; } CupRow(c, m, fav); }
+            }
+        }
+        void CupRow(Transform p, CupMatch m, int focus)
+        {
+            var r = K.HBox(p, 31, 8); r.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
+            var h = G.T(m.h); bool done = m.w >= 0 && !m.bye;
+            K.Cell(r, h.name, -1, TextAnchor.MiddleRight, m.h == G.S.fav ? K.Acc : K.Ink, m.w == m.h && !m.bye ? K.FM : K.F);
+            K.Crest(r, h, 16);
+            var s = K.HBox(r, 24, 0); K.Shape(s, K.Bg, 4); K.LE(s, 64, 24, 0); s.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
+            Color sc = K.Ink;
+            if (done && (m.h == focus || m.a == focus)) sc = m.w == focus ? K.Up : K.Down;
+            string txt = m.bye ? "Freilos" : done ? m.hg + ":" + m.ag : "–:–";
+            K.T(s, txt, m.bye ? 12 : 18, done ? sc : K.Mut, m.bye ? K.F : K.FD, TextAnchor.MiddleCenter, -1, false);
+            if (m.a >= 0)
+            {
+                var a = G.T(m.a);
+                K.Crest(r, a, 16);
+                K.Cell(r, a.name + (m.ph >= 0 ? "  (" + m.ph + ":" + m.pa + " i.E.)" : m.et ? "  (n.V.)" : ""), -1, TextAnchor.MiddleLeft, m.a == G.S.fav ? K.Acc : K.Ink, m.w == m.a ? K.FM : K.F);
+            }
+            else { K.LE(K.Rect("leer", r), 16, 16); K.Cell(r, "", -1); }
+            K.Divider(p);
         }
 
         // ================= Historie =================
