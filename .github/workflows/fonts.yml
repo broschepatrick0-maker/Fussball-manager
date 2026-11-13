@@ -10,13 +10,13 @@ jobs:
       - name: IBM Plex Sans und Barlow Condensed laden (OFL)
         run: |
           D=unity/Assets/Resources/Fonts; mkdir -p $D; T=$(mktemp -d)
-          (cd $T && npm pack @ibm/plex-sans >/dev/null && tar xzf ibm-plex-sans-*.tgz)
+          (cd $T && (npm pack @ibm/plex-sans >/dev/null 2>&1 || true); (npm pack @ibm/plex >/dev/null 2>&1 || true); for f in *.tgz; do tar xzf $f; done; ls; find . -name 'IBMPlexSans-*.ttf' | head)
           find $T -name 'IBMPlexSans-Regular.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
           find $T -name 'IBMPlexSans-SemiBold.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
           find $T -name 'IBMPlexSans-Medium.ttf' -path '*ttf*' | head -1 | xargs -I{} cp {} $D/
-          for w in Bold SemiBold; do curl -sSfL -o $D/BarlowCondensed-$w.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-$w.ttf; done
+          for w in Bold SemiBold; do [ -f $D/BarlowCondensed-$w.ttf ] || curl -sSfL -o $D/BarlowCondensed-$w.ttf https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/BarlowCondensed-$w.ttf; done
           curl -sSfL -o $D/OFL-Barlow.txt https://raw.githubusercontent.com/google/fonts/main/ofl/barlowcondensed/OFL.txt
           find $T -iname 'LICENSE*' | head -1 | xargs -I{} cp {} $D/OFL-IBMPlex.txt
           ls -la $D
-          git config user.name "Fußball-Pyramide"; git config user.email "patrickbrosche2@gmail.com"
-          git add $D && git commit -m "Schriften für Unity (OFL)" && git push
+          git config user.name "Fußball-Pyramide"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $D && (git commit -m "Schriften für Unity (OFL)" && git push || echo nichts neu)
