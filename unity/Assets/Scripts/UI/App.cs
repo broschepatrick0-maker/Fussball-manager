@@ -303,7 +303,7 @@ namespace FP.UI
             bool hw = played && m.hg > m.ag, aw = played && m.ag > m.hg;
             var hn = K.Cell(r, h.name, -1, TextAnchor.MiddleRight, m.h == G.S.fav ? K.Acc : K.Ink, hw ? K.FM : K.F);
             K.Crest(r, h, 16);
-            var s = K.HBox(r, 24, 0); K.Shape(s, K.Bg, 4); K.LE(s, 64, 24); s.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
+            var s = K.HBox(r, 24, 0); K.Shape(s, K.Bg, 4); K.LE(s, 64, 24, 0); s.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter;
             Color sc = K.Ink; if (played && focus >= 0 && (m.h == focus || m.a == focus)) sc = ResultColor(m, focus);
             K.T(s, played ? m.hg + ":" + m.ag : "–:–", 18, played ? sc : K.Mut, K.FD, TextAnchor.MiddleCenter, -1, false);
             K.Crest(r, a, 16);
@@ -570,7 +570,7 @@ namespace FP.UI
                 K.T(rc, "FORM", 20, K.Ink, K.FD);
                 var last = fx.Where(x => x.Value.hg >= 0).Reverse().Take(5).ToList();
                 if (last.Count == 0) K.T(rc, "Noch keine Spiele", 12.5f, K.Mut);
-                else { var fr = K.HBox(rc, 26, 4); foreach (var x in last.AsEnumerable().Reverse()) { var m = x.Value; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; var b = K.HBox(fr, 26, 0); K.Shape(b, me > op ? K.Up : me < op ? K.Down : K.Rel, 4); K.LE(b, 26, 26); b.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter; K.T(b, me > op ? "S" : me < op ? "N" : "U", 13, K.AccInk, K.FM, TextAnchor.MiddleCenter, -1, false); } }
+                else { var fr = K.HBox(rc, 26, 4); foreach (var x in last.AsEnumerable().Reverse()) { var m = x.Value; int me = m.h == id ? m.hg : m.ag, op = m.h == id ? m.ag : m.hg; var b = K.HBox(fr, 26, 0); K.Shape(b, me > op ? K.Up : me < op ? K.Down : K.Rel, 4); K.LE(b, 26, 26, 0); b.GetComponent<HorizontalLayoutGroup>().childAlignment = TextAnchor.MiddleCenter; K.T(b, me > op ? "S" : me < op ? "N" : "U", 13, K.AccInk, K.FM, TextAnchor.MiddleCenter, -1, false); } }
                 K.Gap(rc, 8);
                 K.T(rc, "NÄCHSTE SPIELE", 20, K.Ink, K.FD);
                 var nx = fx.Where(x => x.Value.hg < 0).Take(5).ToList();
@@ -686,9 +686,11 @@ namespace FP.UI
             if (!cur.foreign) LeagueLinks(c, cur);
 
             var cols = Cols(c, 1.35f, 1);
-            TableView(cols[0], cur);
-            K.Gap(cols[0], 6); Legend(cols[0], cur);
-            Matchday(cols[1], cur);
+            var left = K.VBox(cols[0], 0); var right = K.VBox(cols[1], 0);
+            TableView(left, cur);
+            K.Gap(left, 8); Legend(left, cur);
+            if (!wide) K.Gap(right, 16);
+            Matchday(right, cur);
         }
 
         void VerbandPicker()
