@@ -76,8 +76,9 @@ namespace FP.UI
             int fav = G.S.fav;
             // Mein Verein
             var mine = G.S.cups.Where(c => c.teams.Contains(fav)).ToList(); var mineE = G.S.euro.Where(e => e.teams.Contains(fav)).ToList();
-            var mc = K.CardBox(content, 24, 10);
-            K.Label(mc, "Mein Verein im Pokal", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var pcols = K.Columns(content, 32, 1.2f, 1);
+            var mc = K.CardBox(pcols[0], 24, 10);
+            K.Kicker(mc, "Mein Verein im Pokal");
             if (mine.Count == 0 && mineE.Count == 0) K.Label(mc, G.T(fav).name + " spielt in dieser Saison in keinem Pokal.", K.FSs, K.Mut);
             foreach (var c in mine)
             {
@@ -101,23 +102,23 @@ namespace FP.UI
                 foreach (var x in games) { K.Label(mc, x.comp + " · " + x.round + " · Spieltag " + x.day, 26, K.Mut); CupLine(mc, x.m, false, fav); }
             }
             // National
-            var nc = K.CardBox(content, 24, 10); K.Label(nc, "National", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var nc = K.CardBox(pcols[1], 24, 10); K.Kicker(nc, "National");
             var dfb = G.CupById("dfb"); if (dfb != null) CupButton(nc, dfb);
             // Europa
-            var ec = K.CardBox(content, 24, 10); K.Label(ec, "Europapokal", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var ec = K.CardBox(pcols[1], 24, 10); K.Kicker(ec, "Europapokal");
             foreach (var e in G.S.euro) EuroButton(ec, e);
             // Landes- und Kreispokale
-            var lc = K.CardBox(content, 24, 10); K.Label(lc, "Landespokale", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var lc = K.CardBox(pcols[1], 24, 10); K.Kicker(lc, "Landespokale");
             var favVb = G.T(fav).vb;
             var lps = G.S.cups.Where(c => c.type == "lp").OrderBy(c => c.vb == favVb ? 0 : 1).ThenBy(c => c.name).ToList();
             foreach (var c in showAllCups ? lps : lps.Take(4).ToList()) CupButton(lc, c);
             var kps = G.S.cups.Where(c => c.type == "kp").OrderBy(c => c.teams.Contains(fav) ? 0 : c.vb == favVb ? 1 : 2).ThenBy(c => c.name).ToList();
             if (kps.Count > 0)
             {
-                var kc = K.CardBox(content, 24, 10); K.Label(kc, "Kreispokale (" + kps.Count + ")", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+                var kc = K.CardBox(pcols[1], 24, 10); K.Kicker(kc, "Kreispokale (" + kps.Count + ")");
                 foreach (var c in showAllCups ? kps : kps.Take(4).ToList()) CupButton(kc, c);
             }
-            if (!showAllCups) K.Btn(content, "Alle Landes- und Kreispokale zeigen", () => { showAllCups = true; Render(); }, K.Card2, 100);
+            if (!showAllCups) K.Btn(pcols[1], "Alle Landes- und Kreispokale zeigen", () => { showAllCups = true; Render(); }, K.Card2, 100);
         }
 
         // ---------- Ein Pokal ----------
@@ -127,7 +128,7 @@ namespace FP.UI
             viewCup = c.id;
             if (viewCupRound < 0 || viewCupRound >= c.rounds.Count) viewCupRound = Mathf.Clamp(c.played >= c.rounds.Count ? c.rounds.Count - 1 : c.played, 0, c.rounds.Count - 1);
             var hc = K.CardBox(content, 28, 6);
-            K.Label(hc, c.name, K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
+            K.Head(hc, c.name, K.Desk ? 76 : 60);
             K.Label(hc, c.teams.Count + " Teams · " + c.R + " Runden · " + Stage(c), K.FSs, c.winner >= 0 ? K.Gold : K.Mut);
             if (c.winner >= 0)
             {
@@ -154,7 +155,7 @@ namespace FP.UI
             var e = G.EuroById(viewEuro) ?? G.EuroById("ucl"); if (e == null) { Go("cups"); return; }
             viewEuro = e.id;
             var hc = K.CardBox(content, 28, 6);
-            K.Label(hc, e.name, K.FSh, K.Txt, TextAnchor.MiddleLeft, FontStyle.Bold);
+            K.Head(hc, e.name, K.Desk ? 76 : 60);
             K.Label(hc, e.teams.Count + " Teams · " + Stage(e), K.FSs, e.winner >= 0 ? K.Gold : K.Mut);
             if (e.winner >= 0) { var wr = K.HBox(hc, 120, 20); K.Crest(wr, G.T(e.winner), 100); K.Label(wr, "★ " + G.T(e.winner).name, 44, K.Gold, TextAnchor.MiddleLeft, FontStyle.Bold); }
             var sw = K.HBox(content, 100, 16);
@@ -196,7 +197,7 @@ namespace FP.UI
                 for (int k = e.ko.Count - 1; k >= 0; k--)
                 {
                     var ko = e.ko[k]; var c = K.CardBox(content, 16, 6);
-                    K.Label(c, ko.name, K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+                    K.Kicker(c, ko.name);
                     foreach (var t in ko.ties.OrderBy(x => x.a == G.S.fav || x.b == G.S.fav ? 0 : 1))
                     {
                         int f = t.a == G.S.fav || t.b == G.S.fav ? G.S.fav : -1;
@@ -211,11 +212,11 @@ namespace FP.UI
         }
 
         // ---------- Titel und Pokalläufe eines Vereins ----------
-        void TitlesCard(int id)
+        void TitlesCard(int id, Transform where = null)
         {
             var tl = G.TitlesOf(id);
-            var c = K.CardBox(content, 24, 8);
-            K.Label(c, "Erfolge", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var c = K.CardBox(where ?? content, 24, 8);
+            K.Kicker(c, "Erfolge");
             if (tl.Count == 0) { K.Label(c, "Noch kein Titel seit Spielbeginn.", K.FSs, K.Mut); return; }
             foreach (var g in tl.GroupBy(t => t.comp).OrderBy(x => x.First().lv).ThenByDescending(x => x.Count()))
             {
@@ -226,11 +227,11 @@ namespace FP.UI
                 K.Label(c, string.Join(", ", g.Select(t => Sl(t.season))), 26, K.Mut);
             }
         }
-        void CupRunsCard(int id)
+        void CupRunsCard(int id, Transform where = null)
         {
             var cs = G.S.cups.Where(x => x.teams.Contains(id)).ToList(); var es = G.S.euro.Where(x => x.teams.Contains(id)).ToList();
             if (cs.Count == 0 && es.Count == 0) return;
-            var c = K.CardBox(content, 24, 8); K.Label(c, "Pokale in dieser Saison", K.FSs, K.Mut);
+            var c = K.CardBox(where ?? content, 24, 8); K.Kicker(c, "Pokale in dieser Saison");
             foreach (var x in cs) { var r = K.HBox(c, 72, 12); K.Cell(r, x.name, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Normal, 30); K.Cell(r, G.CupReach(x, id) ?? "–", 340, TextAnchor.MiddleRight, x.winner == id ? K.Gold : K.Mut, FontStyle.Bold, 30); var cid = x.id; K.Click(r, () => { viewCup = cid; viewCupRound = -1; Go("cup"); }); }
             foreach (var x in es) { var r = K.HBox(c, 72, 12); K.Cell(r, x.name, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Normal, 30); K.Cell(r, G.EuroReach(x, id), 340, TextAnchor.MiddleRight, x.winner == id ? K.Gold : K.Mut, FontStyle.Bold, 30); var eid = x.id; K.Click(r, () => { viewEuro = eid; euroKo = x.step > x.nmd; Go("euro"); }); }
         }
