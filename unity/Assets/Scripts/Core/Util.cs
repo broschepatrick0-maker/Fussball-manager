@@ -13,6 +13,7 @@ namespace FP.Core
         }
         public static string Money(double v)
         {
+            if (v < 0) return "−" + Money(-v);
             if (v >= 1e6) return (v / 1e6).ToString(v >= 1e7 ? "0" : "0.0", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',') + " Mio. €";
             if (v >= 1e3) return Math.Round(v / 1e3) + " Tsd. €";
             return Math.Round(v) + " €";

@@ -122,7 +122,7 @@ namespace FP.UI
         }
 
         void Go(string a) { area = a; Render(); }
-        void Save() { try { if (G != null) Store.Save(G.S); } catch (Exception e) { Debug.LogWarning("Speichern fehlgeschlagen: " + e.Message); } }
+        void Save() { try { if (G != null) Store.Save(G); } catch (Exception e) { Debug.LogWarning("Speichern fehlgeschlagen: " + e.Message); } }
         bool Jobless { get { return G != null && G.IsCareer && G.S.fav < 0; } }
         void Next() { if (G == null || G.SeasonDone) return; if (Jobless) G.NextDay(); else if (G.S.fav >= 0) PlayToFavMatch(); else return; Save(); Render(); }
         void SimSeason() { if (G == null) return; G.SimToEnd(); Save(); Render(); }
@@ -173,6 +173,7 @@ namespace FP.UI
             {
                 var brand = K.VBox(board, 0); K.LE(brand, -1, -1, 0);
                 K.T(brand, "FUSSBALL-PYRAMIDE", wide ? 30 : 24, K.Ink, K.FD, TextAnchor.MiddleLeft, -1, false);
+                if (G != null) K.Click(brand, () => { Save(); G = null; Go("title"); });
                 if (G == null) K.T(brand, "DIE KOMPLETTE DEUTSCHE FUSSBALLPYRAMIDE", 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
                 if (G != null) { var sep = K.Rect("Trenner", board); sep.gameObject.AddComponent<Image>().color = K.BoardLine; K.LE(sep, 1, 36); }
             }
@@ -392,13 +393,8 @@ namespace FP.UI
             K.T(c, "FUSSBALL-PYRAMIDE", wide ? 56 : 40, K.Ink, K.FD, TextAnchor.MiddleCenter);
             K.T(c, "Von der Kreisklasse bis zur Bundesliga – jede Liga, jeder Verein.", 14, K.Mut, K.F, TextAnchor.MiddleCenter);
             K.Gap(c, 6);
-            if (Store.HasSave) K.Stretch(K.Btn(c, "Spiel fortsetzen", ContinueGame, K.B.Primary, 40, -1, 15, "play"));
-            K.Stretch(K.Btn(c, confirmNew ? "Wirklich neu beginnen? Der Spielstand wird ersetzt" : "Neues Spiel", () =>
-            {
-                if (Store.HasSave && !confirmNew) { confirmNew = true; Render(); return; }
-                confirmNew = false; NewGame();
-            }, Store.HasSave ? K.B.Outline : K.B.Primary, 40, -1, 15));
             if (error != null) K.T(c, error, 12.5f, K.Down);
+            for (int sl = 1; sl <= Store.Slots; sl++) SlotRow(c, sl);
             var info = K.Card(col, 14, 4);
             try { var w = Store.LoadWorld(); K.T(info, w.teams.Count.ToString("N0").Replace(',', '.') + " Vereine · " + w.leagues.Count + " Ligen · " + Crests() + " Wappen", 13.5f, K.Ink, K.FM, TextAnchor.MiddleCenter); }
             catch (Exception e) { K.T(info, "Daten fehlen: " + e.Message, 13, K.Down); }
@@ -407,9 +403,30 @@ namespace FP.UI
         static int crestCount = -1;
         static int Crests() { if (crestCount < 0) crestCount = Resources.LoadAll<Texture2D>("Crests").Length; return crestCount; }
 
-        void ContinueGame()
+        int confirmDel = -1;
+        void SlotRow(Transform p, int sl)
         {
-            try { G = Game.FromState(Store.Load(), Store.LoadNames()); error = null; Go("home"); }
+            var m = Store.Meta(sl);
+            var r = K.HBox(p, 58, 10); K.Shape(r, K.Bg, 6, K.Line); K.Pad(r, 12, 10, 0, 0);
+            var v = K.VBox(r, 0); K.Flex(v);
+            K.T(v, "SPIELSTAND " + sl, 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+            if (m == null) K.T(v, "Frei", 14, K.Mut, K.FM, TextAnchor.MiddleLeft, -1, false);
+            else
+            {
+                K.T(v, m.club + (string.IsNullOrEmpty(m.league) ? "" : " · " + m.league), 14, K.Ink, K.FM, TextAnchor.MiddleLeft, -1, false);
+                K.T(v, (m.mode == "career" ? "Karriere" + (string.IsNullOrEmpty(m.coach) ? "" : " · " + m.coach) : "Freies Spiel") + (m.season > 0 ? " · Saison " + Sl(m.season) : "") + (string.IsNullOrEmpty(m.saved) ? "" : " · " + m.saved), 11, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+            }
+            int s2 = sl;
+            if (m != null)
+            {
+                K.Btn(r, "Laden", () => ContinueGame(s2), K.B.Primary, 32, -1, 13.5f, "play");
+                K.Btn(r, confirmDel == sl ? "Wirklich löschen?" : "Löschen", () => { if (confirmDel != s2) { confirmDel = s2; Render(); return; } Store.Delete(s2); confirmDel = -1; Render(); }, K.B.Outline, 32, -1, 12.5f);
+            }
+            else K.Btn(r, "Neues Spiel", () => { Store.Slot = s2; NewGame(); }, K.B.Outline, 32, -1, 13.5f);
+        }
+        void ContinueGame(int sl)
+        {
+            try { G = Game.FromState(Store.Load(sl), Store.LoadNames()); error = null; viewTeam = -1; viewLeague = null; viewCup = null; Go("home"); }
             catch (Exception e) { error = "Spielstand konnte nicht geladen werden: " + e.Message; Debug.LogException(e); Render(); }
         }
         void NewGame() { G = null; Go("setup"); }
@@ -684,9 +701,10 @@ namespace FP.UI
             var subs = new List<KeyValuePair<string, Action>> {
                 new KeyValuePair<string, Action>("Überblick", () => { favSub = "ov"; Render(); }), new KeyValuePair<string, Action>("Kader", () => { favSub = "squad"; Render(); }),
                 new KeyValuePair<string, Action>("Spiele", () => { favSub = "games"; Render(); }), new KeyValuePair<string, Action>("Historie", () => { favSub = "hist"; Render(); }) };
+            if (mine) subs.Insert(2, new KeyValuePair<string, Action>("Finanzen", () => { favSub = "fin"; Render(); }));
             if (mine && G.IsCareer) subs.Add(new KeyValuePair<string, Action>("Karriere", () => { favSub = "career"; Render(); }));
             if (!mine && (G.S.fav >= 0 || G.IsCareer)) subs.Insert(0, new KeyValuePair<string, Action>(G.S.fav >= 0 ? "◀ Mein Verein" : "◀ Karriere", () => { viewTeam = -1; favSub = "ov"; Render(); }));
-            string act = favSub == "squad" ? "Kader" : favSub == "games" ? "Spiele" : favSub == "hist" ? "Historie" : favSub == "career" ? "Karriere" : "Überblick";
+            string act = favSub == "fin" ? "Finanzen" : favSub == "squad" ? "Kader" : favSub == "games" ? "Spiele" : favSub == "hist" ? "Historie" : favSub == "career" ? "Karriere" : "Überblick";
             if (favSub == "career" && mine) { Flow(content, subs, act); CareerPage(); return; }
             Flow(content, subs, act);
 
@@ -708,6 +726,7 @@ namespace FP.UI
                 if (l != null) { var tb = G.Table(l); int pos = tb.FindIndex(r => r.id == id); tiles.Add(new[] { "Tabellenplatz", (pos + 1) + ". · " + tb[pos].p + " Pkt", "" }); }
                 tiles.Add(new[] { "Spielstärke", t.r.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture), "" });
                 tiles.Add(new[] { "Kaderwert", Util.Money(ps.Sum(x => (double)G.PlayerValue(x))), "" });
+                if (mine) { var fz = G.FZ(id); tiles.Add(new[] { "Kontostand", Util.Money(fz.c), fz.d > 0 ? "Kredite " + Util.Money(fz.d) : "schuldenfrei" }); }
                 tiles.Add(new[] { "Ø Alter", ps.Count > 0 ? ps.Average(x => x.a).ToString("0.0") : "–", ps.Count + " Spieler" });
                 var cells = wide ? Grid(inner, tiles.Count, 6) : GridForce(inner, tiles.Count, 2);
                 for (int i = 0; i < tiles.Count; i++)
@@ -741,12 +760,67 @@ namespace FP.UI
                 foreach (var x in nx) { K.T(rc, (x.Key + 1) + ". SPIELTAG · " + (l != null ? l.name.ToUpperInvariant() : ""), 10.5f, K.Mut); MatchRow(rc, x.Value, id); }
             }
             else if (favSub == "squad") SquadCard(id);
+            else if (favSub == "fin") FinancePage(id);
             else if (favSub == "games")
             {
                 var c = K.Card(content, 14, 2); K.T(c, "ALLE SPIELE", 20, K.Ink, K.FD);
                 foreach (var x in G.FixturesOf(id)) { K.T(c, (x.Key + 1) + ". SPIELTAG", 10.5f, K.Mut); MatchRow(c, x.Value, id); }
             }
             else ClubHistory(content, id);
+        }
+        void FinancePage(int id)
+        {
+            var z = G.FZ(id); var b = G.Balance(id); int lv = G.FinLv(id);
+            var tiles = new List<string[]> {
+                new[] { "Kontostand", Util.Money(z.c), "verfügbar" },
+                new[] { "Kredite", z.d > 0 ? Util.Money(z.d) : "keine", z.d > 0 ? "Zins " + (z.ir * 100).ToString("0.0") + " %" : "" },
+                new[] { "Prognose Saison", (b.res >= 0 ? "+" : "") + Util.Money(b.res), "bei aktuellem Tabellenplatz" },
+                new[] { "Stadion", z.cap.ToString("N0").Replace(',', '.') + " Plätze", "Ø " + b.att.ToString("N0").Replace(',', '.') + " Zuschauer · " + b.price + " €" },
+                new[] { "Gehälter", Util.Money(b.exp[0].Value), "pro Saison" } };
+            var cells = wide ? Grid(content, tiles.Count, 5) : GridForce(content, tiles.Count, 2);
+            for (int i = 0; i < tiles.Count; i++)
+            {
+                var tl = K.VBox(cells[i], 2, 10); K.Shape(tl, K.Panel, 6, K.Line); K.Flex(tl);
+                K.T(tl, tiles[i][0].ToUpperInvariant(), 10.5f, K.Mut, K.F, TextAnchor.MiddleLeft, -1, false);
+                K.T(tl, tiles[i][1], 17, i == 2 ? (b.res >= 0 ? K.Up : K.Down) : K.Ink, K.FM, TextAnchor.MiddleLeft);
+                if (tiles[i][2] != "") K.T(tl, tiles[i][2], 11, K.Mut, K.F, TextAnchor.MiddleLeft);
+            }
+            var cols = Cols(content, 1, 1);
+            FinTable(cols[0], "EINNAHMEN", b.inc, b.rev, K.Up);
+            FinTable(cols[0], "AUSGABEN", b.exp, b.ex, K.Down);
+            var sc = K.Card(cols[1], 14, 6); K.T(sc, "STADION", 20, K.Ink, K.FD);
+            K.T(sc, z.cap.ToString("N0").Replace(',', '.') + " Plätze · Unterhalt " + Util.Money(Game.StadUpkeep(lv, z.cap)) + " pro Saison", 13.5f, K.Ink);
+            K.T(sc, "Ausbau um " + G.StadStep(id) + " Plätze für " + Util.Money(G.StadCost(id)) + ". Mehr Plätze bringen mehr Zuschauereinnahmen, kosten aber Unterhalt.", 12.5f, K.Mut);
+            K.Btn(sc, "Stadion ausbauen", () => { string r = G.StadiumUpgrade(id); G.Events.Add(r == "ok" ? "Das Stadion wurde auf " + G.FZ(id).cap + " Plätze ausgebaut." : r); Save(); Render(); }, K.B.Outline, 30, -1, 13);
+            var kc = K.Card(cols[1], 14, 6); K.T(kc, "KREDITE", 20, K.Ink, K.FD);
+            double lim = G.CreditLimit(id);
+            K.T(kc, "Kreditrahmen: " + Util.Money(lim) + " · Zins 6 %", 13.5f, K.Ink);
+            var kh = K.HBox(kc, 30, 8);
+            double step = Math.Max(1000, Math.Round(lim / 4 / 1000) * 1000);
+            if (lim >= 1000) K.Btn(kh, "Kredit " + Util.Money(Math.Min(lim, step)), () => { double got = G.TakeLoan(id, step); G.Events.Add("Kredit über " + Util.Money(got) + " aufgenommen."); Save(); Render(); }, K.B.Outline, 30, -1, 13);
+            if (z.d > 0 && z.c > 0) K.Btn(kh, "Tilgen " + Util.Money(Math.Min(z.d, z.c)), () => { double p2 = G.Repay(id, z.d); G.Events.Add(Util.Money(p2) + " Kredit getilgt."); Save(); Render(); }, K.B.Outline, 30, -1, 13);
+            var hc = K.Card(cols[1], 14, 0); K.T(hc, "BILANZEN", 20, K.Ink, K.FD); K.Gap(hc, 6);
+            if (z.h.Count == 0) K.T(hc, "Noch keine abgeschlossene Saison.", 12.5f, K.Mut);
+            foreach (var h in z.h)
+            {
+                var r = K.HBox(hc, 28, 8);
+                K.Cell(r, Sl(h.season), 76, TextAnchor.MiddleLeft, K.Ink, K.FM);
+                K.Cell(r, "Umsatz " + Util.Money(h.rev), -1, TextAnchor.MiddleLeft, K.Mut);
+                K.Cell(r, (h.res >= 0 ? "+" : "") + Util.Money(h.res), 110, TextAnchor.MiddleRight, h.res >= 0 ? K.Up : K.Down, K.FM);
+                K.Divider(hc);
+            }
+        }
+        void FinTable(Transform p, string title, List<KeyValuePair<string, double>> rows, double sum, Color c)
+        {
+            var card = K.Card(p, 14, 0); K.T(card, title, 20, K.Ink, K.FD); K.Gap(card, 6);
+            foreach (var r in rows.Where(x => x.Value >= 1))
+            {
+                var h = K.HBox(card, 28, 8);
+                K.Cell(h, r.Key, -1, TextAnchor.MiddleLeft, K.Ink);
+                K.Cell(h, Util.Money(r.Value), 130, TextAnchor.MiddleRight, K.Ink);
+                K.Divider(card);
+            }
+            var t = K.HBox(card, 30, 8); K.Cell(t, "Summe (Saison)", -1, TextAnchor.MiddleLeft, K.Ink, K.FM); K.Cell(t, Util.Money(sum), 130, TextAnchor.MiddleRight, c, K.FM);
         }
         List<RectTransform> GridForce(Transform p, int n, int perRow)
         {

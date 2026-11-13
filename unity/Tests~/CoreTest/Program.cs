@@ -46,6 +46,9 @@ static class Program
             Console.WriteLine($"{log.season}: Meister {g.T(tab[0].id).name} ({tab[0].p} P., Stärke {g.T(tab[0].id).r}) · {log.lines.Count} Meldungen · Ligen mit Abweichung >3: {drift.Count} · Werningshausen: {favL?.name}");
             if (s == 0) foreach (var line in log.lines.Take(12)) Console.WriteLine("   " + line);
         }
+        var fz = g.FZ(fav); Check(fz.h.Count >= seasons - 1, "Finanzhistorie fehlt: " + fz.h.Count);
+        var bal = g.Balance(fav); Console.WriteLine($"Finanzen Werningshausen: Konto {Util.Money(fz.c)} · Kredite {Util.Money(fz.d)} · Stadion {fz.cap} · Umsatz {Util.Money(bal.rev)} · Ergebnis {Util.Money(bal.res)}");
+        var bf = g.Balance(g.L("bl").teams[0]); Console.WriteLine($"Finanzen {g.T(g.L("bl").teams[0]).name}: Umsatz {Util.Money(bf.rev)} · Gehälter {Util.Money(bf.exp[0].Value)} · Ergebnis {Util.Money(bf.res)}");
         var lv = g.S.leagues.Where(l => !l.foreign).GroupBy(l => l.level).OrderBy(x => x.Key).Select(x => $"{x.Key}:{x.SelectMany(l => l.teams).Average(id => g.T(id).r):0.0}");
         Console.WriteLine("Ø Stärke je Stufe: " + string.Join(" ", lv));
         // Speichern und Laden
