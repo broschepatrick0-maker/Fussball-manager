@@ -9,7 +9,11 @@ NETSTD=$(find "$U" -type f -name netstandard.dll -path '*ref/2.1.0*' | head -1)
 echo "dotnet=$DOTNET csc=$CSC netstandard=$NETSTD"
 REFS=()
 for f in "$U"/Managed/UnityEngine/*.dll; do case "$f" in *Editor*) ;; *) REFS+=("-r:$f");; esac; done
-UIASM=$(find "$U" -name 'UnityEngine.UI.asmdef' -path '*com.unity.ugui*' | grep -v -i editor | head -1)
+ls "$U/Resources/PackageManager/BuiltInPackages" 2>/dev/null | head -80 || true
+find / -iname '*ugui*' -not -path '/proc/*' 2>/dev/null | head -20 || true
+UIASM=$(find / -name 'UnityEngine.UI.asmdef' -not -path '/proc/*' 2>/dev/null | head -1 || true)
+if [ -z "$UIASM" ]; then T=$(find / -iname 'com.unity.ugui*.tgz' -not -path '/proc/*' 2>/dev/null | head -1 || true); echo "tgz: $T"; if [ -n "$T" ]; then mkdir -p /tmp/ugui && tar xzf "$T" -C /tmp/ugui; UIASM=$(find /tmp/ugui -name 'UnityEngine.UI.asmdef' | head -1); fi; fi
+echo "asmdef: $UIASM"
 UIDIR=$(dirname "$UIASM"); echo "uGUI-Quellen: $UIDIR"
 DEF="UNITY_6000_0_OR_NEWER;UNITY_2023_1_OR_NEWER;UNITY_2022_3_OR_NEWER;UNITY_2022_2_OR_NEWER;UNITY_2021_3_OR_NEWER;UNITY_2021_2_OR_NEWER;UNITY_2021_1_OR_NEWER;UNITY_2020_3_OR_NEWER;UNITY_2020_1_OR_NEWER;UNITY_2019_4_OR_NEWER;UNITY_2019_1_OR_NEWER;PACKAGE_PHYSICS;PACKAGE_PHYSICS2D;PACKAGE_ANIMATION;PACKAGE_TILEMAP;PACKAGE_UITOOLKIT;ENABLE_LEGACY_INPUT_MANAGER;UNITY_STANDALONE"
 find "$UIDIR" -name '*.cs' > /tmp/ui.rsp
