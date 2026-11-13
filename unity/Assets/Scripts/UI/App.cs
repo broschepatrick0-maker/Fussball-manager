@@ -176,7 +176,7 @@ namespace FP.UI
         }
 
         static readonly Dictionary<string, string> PageNames = new Dictionary<string, string> {
-            {"home","Übersicht"},{"table","Tabelle"},{"games","Spielplan"},{"squad","Kader"},{"leagues","Ligen"},{"team","Verein"},{"season","Saison"},{"pick","Verein wählen"},{"title","Fußball-Pyramide"} };
+            {"home","Übersicht"},{"table","Tabelle"},{"games","Spielplan"},{"squad","Kader"},{"leagues","Ligen"},{"team","Verein"},{"season","Saison"},{"pick","Verein wählen"},{"title","Fussball-Pyramide"} };
 
         void UpdateTop(bool inGame)
         {
