@@ -1,0 +1,25 @@
+name: Unity-Prüfung
+on:
+  push:
+    paths: ['unity/**', '.github/workflows/unity-check.yml']
+  workflow_dispatch:
+jobs:
+  kern:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '8.0.x' }
+      - name: Spielkern 10 Saisons simulieren
+        run: dotnet run -c Release --project "unity/Tests~/CoreTest/CoreTest.csproj" -- 10
+  unity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unity-Image wählen
+        id: img
+        run: |
+          TAG=$(curl -s "https://hub.docker.com/v2/repositories/unityci/editor/tags?page_size=100&name=ubuntu-6000.0" | jq -r '.results[].name' | grep -E '^ubuntu-6000\.0\.[0-9]+f1-base-3' | sort -V | tail -1)
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"; echo "Image: $TAG"
+      - name: Skripte gegen Unity-DLLs kompilieren
+        run: docker run --rm -v "$PWD/unity:/w" "unityci/editor:${{ steps.img.outputs.tag }}" bash /w/Tests~/compile-unity.sh /w
