@@ -54,7 +54,7 @@ namespace FP.Core
     [Serializable] public class Player { public int id; public string n; public string p; public int a; public string nat; public float s; public int no; public bool real; }
     [Serializable] public class SeasonLog { public int season; public List<string> lines = new List<string>(); }
     [Serializable] public class Parked { public int id; public string lg; }
-    [Serializable] public class HistEntry { public int season; public string league; public int level; public int pos; public int n; public int pts; }
+    [Serializable] public class HistEntry { public int season; public string league; public int level; public int pos; public int n; public int pts; public string cups; }
     [Serializable] public class TeamHist { public int team; public List<HistEntry> e = new List<HistEntry>(); }
 
     [Serializable]
@@ -73,5 +73,9 @@ namespace FP.Core
         public List<SeasonLog> log = new List<SeasonLog>();
         public List<TeamHist> hist = new List<TeamHist>();
         public List<string> lastRel = new List<string>();
+        public List<Cup> cups = new List<Cup>();
+        public List<KV> pokalWinners = new List<KV>();
+        public List<KV> kpWinners = new List<KV>();
+        public List<int> lastL3 = new List<int>();
     }
 }

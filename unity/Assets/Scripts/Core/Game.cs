@@ -63,6 +63,12 @@ namespace FP.Core
             var g = new Game { S = s, names = n };
             Rng.Seed(s.seed + s.season * 1000 + s.day);
             g.Reindex();
+            if (s.cups == null || s.cups.Count == 0)
+            {
+                // ältere Spielstände ohne Pokale: Pokale anlegen und bis zum aktuellen Spieltag nachspielen
+                g.BuildCups();
+                foreach (var c in g.S.cups) while (c.winner < 0 && c.played < c.dates.Count && c.dates[c.played] <= s.day) g.PlayCupRound(c);
+            }
             return g;
         }
 
@@ -96,6 +102,7 @@ namespace FP.Core
             BuildCalendar();
             S.day = 0; S.done = false;
             Reindex();
+            BuildCups();
         }
 
         // Doppelrunde nach dem Kreissystem; Rückrunde mit getauschtem Heimrecht
@@ -172,9 +179,12 @@ namespace FP.Core
             int d = ++S.day;
             foreach (var l in S.leagues)
                 while (l.played < l.rounds.Count && l.dates[l.played] <= d) PlayRound(l);
-            if (d >= S.lastDay || S.leagues.All(l => l.played >= l.rounds.Count))
+            foreach (var c in S.cups)
+                while (c.winner < 0 && c.played < c.dates.Count && c.dates[c.played] <= d) PlayCupRound(c);
+            if (d >= S.lastDay || (S.leagues.All(l => l.played >= l.rounds.Count) && S.cups.All(c => c.winner >= 0)))
             {
                 foreach (var l in S.leagues) while (l.played < l.rounds.Count) PlayRound(l);
+                foreach (var c in S.cups) { int g = 0; while (c.winner < 0 && g++ < 20) PlayCupRound(c); }
                 S.done = true;
             }
             return S.done;

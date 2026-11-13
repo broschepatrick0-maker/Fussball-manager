@@ -299,6 +299,15 @@ namespace FP.Core
             RecordHistory(st);
             log.Add("Deutscher Meister: " + T(st["bl"][0]).name);
             foreach (var l in S.leagues.Where(x => x.foreign)) log.Add((string.IsNullOrEmpty(l.title) ? l.name : l.title) + ": " + T(st[l.id][0]).name);
+            // Pokalsieger
+            S.kpWinners = new List<KV>(); S.pokalWinners = new List<KV>();
+            foreach (var c in S.cups.Where(c => c.winner >= 0))
+            {
+                if (c.type == "dfb") log.Insert(1, "DFB-Pokal: " + T(c.winner).name);
+                else if (c.type == "lp") { S.pokalWinners.Add(new KV { k = c.vb, v = c.winner.ToString() }); log.Add(c.name + ": " + T(c.winner).name + " (DFB-Pokal-Teilnehmer)"); }
+                else S.kpWinners.Add(new KV { k = c.vb + "|" + c.kreis, v = c.winner.ToString() });
+            }
+            S.lastL3 = new List<int>(st["l3"]);
             var mv = DecideMoves(st, log);
             var lvOld = new Dictionary<int, int>(); foreach (var l in S.leagues) foreach (var id in l.teams) lvOld[id] = l.level;
             foreach (var id in mv.order)
@@ -381,7 +390,8 @@ namespace FP.Core
             if (S.fav < 0) return; var l = LeagueOf(S.fav); if (l == null) return;
             var tab = Table(l); int pos = tab.FindIndex(r => r.id == S.fav);
             var h = S.hist.FirstOrDefault(x => x.team == S.fav); if (h == null) { h = new TeamHist { team = S.fav }; S.hist.Add(h); }
-            h.e.Insert(0, new HistEntry { season = S.season, league = l.name, level = l.level, pos = pos + 1, n = tab.Count, pts = tab[pos].p });
+            string cups = string.Join(" · ", CupsOf(S.fav).Select(c => c.name + ": " + CupReach(c, S.fav)).ToArray());
+            h.e.Insert(0, new HistEntry { season = S.season, league = l.name, level = l.level, pos = pos + 1, n = tab.Count, pts = tab[pos].p, cups = cups });
         }
     }
 }
