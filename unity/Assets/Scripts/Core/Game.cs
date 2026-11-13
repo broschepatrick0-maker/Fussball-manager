@@ -63,6 +63,8 @@ namespace FP.Core
             var g = new Game { S = s, names = n };
             Rng.Seed(s.seed + s.season * 1000 + s.day);
             g.Reindex();
+            // Spielstände aus Phase 1 haben noch keine Pokale: jetzt anlegen, verpasste Runden werden am nächsten Spieltag nachgeholt
+            if (s.cups == null || s.cups.Count == 0) { s.titles = s.titles ?? new List<Title>(); s.lpWinners = s.lpWinners ?? new List<KV>(); s.kpWinners = s.kpWinners ?? new List<KV>(); s.lastL3 = s.lastL3 ?? new List<int>(); s.qual = s.qual ?? new Qual(); g.BuildCups(); g.BuildEuro(); }
             return g;
         }
 
@@ -94,6 +96,7 @@ namespace FP.Core
                 foreach (var id in l.teams) T(id).lv = l.level;
             }
             BuildCalendar();
+            BuildCups(); BuildEuro();
             S.day = 0; S.done = false;
             Reindex();
         }
@@ -172,9 +175,11 @@ namespace FP.Core
             int d = ++S.day;
             foreach (var l in S.leagues)
                 while (l.played < l.rounds.Count && l.dates[l.played] <= d) PlayRound(l);
+            CupsDay(d);
             if (d >= S.lastDay || S.leagues.All(l => l.played >= l.rounds.Count))
             {
                 foreach (var l in S.leagues) while (l.played < l.rounds.Count) PlayRound(l);
+                CupsFinish();
                 S.done = true;
             }
             return S.done;

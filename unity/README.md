@@ -11,8 +11,13 @@ File → Build Profiles (bzw. Build Settings) → Android → Switch Platform �
 Player Settings: Default Orientation = Portrait.
 
 ## Aufbau
-- `Assets/Scripts/Core` – Spielkern ohne Unity (Welt, Spielplan, Spiele, Tabellen, Auf-/Abstieg, Kader)
+- `Assets/Scripts/Core` – Spielkern ohne Unity (Welt, Spielplan, Spiele, Tabellen, Auf-/Abstieg, Kader, Pokale & Europapokal, Titel)
 - `Assets/Scripts/UI` – Oberfläche, komplett per Code erzeugt
 - `Assets/Resources/Data` – Welt (9.434 Vereine, 710 Ligen, echte Kader) und Namenslisten, aus der Web-App exportiert
 - `Assets/Resources/Crests` – Wappen als PNG
+- `Assets/Resources/Fonts` – Schriften Barlow Condensed (Überschriften) und Inter (Text), beide SIL Open Font License
+
+## Ansicht
+- **PC (Querformat):** Seitenleiste links, Kopfzeile mit „Weiter“ / „Bis Saisonende“, mehrspaltige Übersichten. Leertaste = Weiter, Esc = zur Übersicht.
+- **Handy (Hochformat):** Kopf oben, Navigation unten. Die Ansicht wechselt automatisch, wenn das Fenster gedreht oder umgeformt wird.
 - `Tests~` – automatische Prüfung (GitHub Actions): Spielkern 10 Saisons + Kompilieren gegen Unity 6

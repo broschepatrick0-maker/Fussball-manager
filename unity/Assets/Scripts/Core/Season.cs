@@ -1,5 +1,5 @@
 // Saisonwechsel: Relegation, Auf- und Abstieg in der ganzen Pyramide, Ligagrößen, Zweitvertretungen.
-// Übertragen aus der Web-App (11-season.js, 02-state.js). Pokale, Finanzen und Transfers folgen später.
+// Übertragen aus der Web-App (11-season.js, 02-state.js). Pokale siehe Cups.cs; Finanzen und Transfers folgen später.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -299,6 +299,7 @@ namespace FP.Core
             RecordHistory(st);
             log.Add("Deutscher Meister: " + T(st["bl"][0]).name);
             foreach (var l in S.leagues.Where(x => x.foreign)) log.Add((string.IsNullOrEmpty(l.title) ? l.name : l.title) + ": " + T(st[l.id][0]).name);
+            CupsSeasonEnd(st, log);
             var mv = DecideMoves(st, log);
             var lvOld = new Dictionary<int, int>(); foreach (var l in S.leagues) foreach (var id in l.teams) lvOld[id] = l.level;
             foreach (var id in mv.order)
