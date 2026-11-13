@@ -1,4 +1,4 @@
-// Oberfläche: Start, Tabelle, Spielplan, Kader, Ligen, Saison – Hochformat fürs Handy, am PC mittig.
+// Oberfläche: Start, Tabelle, Spielplan, Kader, Ligen, Saison – Hochformat fürs Handy, am PC mittig. Pokale siehe AppCups.cs.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using FP.Core;
 
 namespace FP.UI
 {
-    public class App : MonoBehaviour
+    public partial class App : MonoBehaviour
     {
         Game G;
         RectTransform column, topBar, navBar, content, resultsBox;
@@ -119,6 +119,9 @@ namespace FP.UI
                 case "leagues": Leagues(); break;
                 case "team": TeamTab(); break;
                 case "season": SeasonTab(); break;
+                case "cups": CupsTab(); break;
+                case "cup": CupTab(); break;
+                case "euro": EuroTab(); break;
             }
             if (tab != lastTab) { lastTab = tab; Canvas.ForceUpdateCanvases(); scroll.verticalNormalizedPosition = 1; }
         }
@@ -135,12 +138,12 @@ namespace FP.UI
         void BuildNav()
         {
             K.Clear(navBar);
-            var items = new[] { new[] { "home", "Start" }, new[] { "table", "Tabelle" }, new[] { "games", "Spiele" }, new[] { "squad", "Kader" }, new[] { "leagues", "Ligen" }, new[] { "season", "Saison" } };
+            var items = new[] { new[] { "home", "Start" }, new[] { "table", "Tabelle" }, new[] { "games", "Spiele" }, new[] { "squad", "Kader" }, new[] { "cups", "Pokale" }, new[] { "leagues", "Ligen" }, new[] { "season", "Saison" } };
             foreach (var it in items)
             {
-                string key = it[0]; bool on = tab == key || (key == "leagues" && tab == "team");
+                string key = it[0]; bool on = tab == key || (key == "leagues" && tab == "team") || (key == "cups" && (tab == "cup" || tab == "euro"));
                 var b = K.Btn(navBar, it[1], () => { if (key == "table") { viewLeague = null; } if (key == "squad") viewTeam = -1; if (key == "games") { viewLeague = null; viewRound = -1; } Go(key); },
-                    on ? K.AccD : K.Card, -1, -1, 30, on ? Color.white : K.Mut);
+                    on ? K.AccD : K.Card, -1, -1, 28, on ? Color.white : K.Mut);
                 var le = b.GetComponent<LayoutElement>(); le.minHeight = 0; le.preferredHeight = -1; le.flexibleWidth = 1;
             }
         }
@@ -165,7 +168,7 @@ namespace FP.UI
                 if (G == null) { var w = Store.LoadWorld(); K.Label(info, w.teams.Count.ToString("N0").Replace(',', '.') + " Vereine · " + w.leagues.Count + " Ligen · " + Crests() + " Wappen", K.FSs, K.Mut, TextAnchor.MiddleCenter); }
             }
             catch (Exception e) { K.Label(info, "Daten fehlen: " + e.Message, K.FSs, K.Down); }
-            K.Label(info, "Unity-Version · Phase 1: Ligabetrieb mit Auf- und Abstieg in der ganzen Pyramide", 28, K.Mut, TextAnchor.MiddleCenter);
+            K.Label(info, "Unity-Version · Ligabetrieb mit Auf- und Abstieg in der ganzen Pyramide, DFB-, Landes- und Kreispokale, Europapokal", 28, K.Mut, TextAnchor.MiddleCenter);
         }
         static int Crests() { return Resources.LoadAll<Texture2D>("Crests").Length; }
 
@@ -230,7 +233,17 @@ namespace FP.UI
             var fx = G.FixturesOf(fav);
             var next = fx.FirstOrDefault(x => x.Value.hg < 0);
             var nc = K.CardBox(content);
-            if (!G.SeasonDone && next.Value != null)
+            var cupNext = G.SeasonDone ? null : G.CupGamesOf(fav).FirstOrDefault(x => x.m.w < 0 && x.m.hg < 0 && x.day > G.S.day);
+            var l0 = G.LeagueOf(fav); int leagueDay = next.Value != null && l0 != null && next.Key < l0.dates.Count ? l0.dates[next.Key] : int.MaxValue;
+            if (!G.SeasonDone && cupNext != null && cupNext.day <= leagueDay)
+            {
+                K.Label(nc, "Nächstes Spiel · " + cupNext.comp + " · " + cupNext.round, K.FSs, K.Gold);
+                CupLine(nc, cupNext.m, true, fav);
+                var bh = K.HBox(nc, 120, 16);
+                K.Btn(bh, "Nächstes Spiel", () => { PlayToFavMatch(); Save(); Render(); }, K.Acc, 120, -1, 40, Color.white);
+                K.Btn(bh, "Bis Saisonende", () => { G.SimToEnd(); Save(); Render(); }, K.Card2, 120, -1, 40);
+            }
+            else if (!G.SeasonDone && next.Value != null)
             {
                 K.Label(nc, "Nächstes Spiel · " + (next.Key + 1) + ". Spieltag", K.FSs, K.Mut);
                 MatchLine(nc, next.Value, true);
@@ -264,11 +277,17 @@ namespace FP.UI
             K.Btn(mc, "Zum Hauptmenü", () => { Save(); G = null; Go("title"); }, K.Card2, 100);
         }
 
-        // spielt Spieltage, bis Mein Verein gespielt hat (kleine Ligen spielen nicht an jedem Spieltag)
+        // spielt Spieltage, bis Mein Verein gespielt hat – in der Liga oder im Pokal (kleine Ligen spielen nicht an jedem Spieltag)
         void PlayToFavMatch()
         {
-            var l = G.LeagueOf(G.S.fav); int before = l != null ? l.played : 0; int g = 0;
-            while (!G.SeasonDone && l != null && l.played == before && g++ < 100) G.NextDay();
+            int fav = G.S.fav; var l = G.LeagueOf(fav); int before = l != null ? l.played : 0; int g = 0;
+            int cupDay = G.NextCupDay(fav);
+            while (!G.SeasonDone && g++ < 100)
+            {
+                G.NextDay();
+                if (l != null && l.played != before) break;
+                if (cupDay > 0 && G.S.day >= cupDay) break;
+            }
         }
 
         void MatchLine(Transform p, Match m, bool big, int fav = -1)
@@ -469,6 +488,8 @@ namespace FP.UI
             var bh = K.HBox(c, 110, 16);
             K.Btn(bh, "Kader", () => { viewTeam = id; Go("squad"); });
             if (l != null) { var lid = l.id; K.Btn(bh, "Tabelle", () => { viewLeague = lid; Go("table"); }); }
+            TitlesCard(id);
+            CupRunsCard(id);
             var fx = G.FixturesOf(id);
             if (fx.Count > 0)
             {
@@ -490,6 +511,7 @@ namespace FP.UI
                     K.Cell(r, e.league, -1, TextAnchor.MiddleLeft, K.Txt, FontStyle.Normal, 32);
                     K.Cell(r, e.pos + ". / " + e.n, 140, TextAnchor.MiddleRight, e.pos == 1 ? K.Gold : K.Txt, FontStyle.Bold, 32);
                 }
+            TitlesCard(fav);
             if (G.S.log.Count == 0) return;
             var lg = G.S.log[0]; string fn = G.T(fav).name;
             var lc = K.CardBox(content, 24, 6); K.Label(lc, "Saison " + Sl(lg.season) + " – Meldungen", K.FSs, K.Acc, TextAnchor.MiddleLeft, FontStyle.Bold);
