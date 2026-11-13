@@ -8,9 +8,8 @@ CSC=$(find "$U" -type f -name csc.dll -path '*Roslyn*' | head -1)
 NETSTD=$(find "$U" -type f -name netstandard.dll -path '*ref/2.1.0*' | head -1)
 echo "dotnet=$DOTNET csc=$CSC netstandard=$NETSTD"
 REFS=()
-for f in "$U"/Managed/UnityEngine/*.dll; do case "$f" in *Editor*) ;; *) REFS+=("-r:$f");; esac; done
-ls "$U/Resources/PackageManager/BuiltInPackages" 2>/dev/null | head -80 || true
-find / -iname '*ugui*' -not -path '/proc/*' 2>/dev/null | head -20 || true
+for f in "$U"/Managed/UnityEngine/*.dll; do case "$(basename "$f")" in *Editor*) ;; *) REFS+=("-r:$f");; esac; done
+echo "${#REFS[@]} Unity-Module"
 UIASM=$(find / -name 'UnityEngine.UI.asmdef' -not -path '/proc/*' 2>/dev/null | head -1 || true)
 if [ -z "$UIASM" ]; then T=$(find / -iname 'com.unity.ugui*.tgz' -not -path '/proc/*' 2>/dev/null | head -1 || true); echo "tgz: $T"; if [ -n "$T" ]; then mkdir -p /tmp/ugui && tar xzf "$T" -C /tmp/ugui; UIASM=$(find /tmp/ugui -name 'UnityEngine.UI.asmdef' | head -1); fi; fi
 echo "asmdef: $UIASM"
