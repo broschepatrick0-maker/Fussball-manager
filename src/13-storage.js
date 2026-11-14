@@ -32,7 +32,11 @@ function save(){
   },400);
 }
 async function loadAsync(){
-  try{const z=CANZ&&await DB.get(skey('stateZ'));if(z){const v=JSON.parse(await ungz(z));const hz=await DB.get(skey('histZ'));v.hist=hz?JSON.parse(await ungz(hz)):(await DB.get(skey('hist')))||v.hist;S=v;save.split=true;save.z=true;save.hv=v.histV||0;return true}}catch(e){console.warn('gz load',e)}
+  // Spielstand lesen; klappt das nicht, die automatische Sicherung vom letzten erfolgreichen Laden versuchen
+  for(const [ks,kh] of [['stateZ','histZ'],['bakZ','bakH']]){
+    try{const z=CANZ&&await DB.get(skey(ks));if(z){const v=JSON.parse(await ungz(z));const hz=await DB.get(skey(kh));v.hist=hz?JSON.parse(await ungz(hz)):(await DB.get(skey('hist')))||v.hist;S=v;save.split=true;save.z=true;save.hv=v.histV||0;
+      if(ks==='stateZ'){DB.set(skey('bakZ'),z).catch(()=>{});if(hz)DB.set(skey('bakH'),hz).catch(()=>{})}else{save.split=false;save.z=false}
+      return true}}catch(e){console.warn('gz load '+ks,e)}}
   try{const v=await DB.get(skey('state'));if(v){if(!v.hist){const h=await DB.get(skey('hist'));if(h)v.hist=h;save.split=true;save.hv=v.histV||0}S=v;return true}}catch(e){storeMode='ls'}
   try{const j=localStorage.getItem(KEY+(SLOT>1?SLOT:''));if(j){S=JSON.parse(j);if(storeMode==='idb'){await DB.set(skey('state'),S);try{localStorage.removeItem(KEY+(SLOT>1?SLOT:''))}catch(e){}}return true}}catch(e){}
   return false;

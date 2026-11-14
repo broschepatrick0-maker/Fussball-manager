@@ -463,7 +463,11 @@ $('main').innerHTML='<div class="card empty">Spielstand wird geladen …</div>';
 applyTheme();
 await loadCrests();
 let ok=false;try{ok=await loadAsync()}catch(e){loadFail(e,'Laden');return}
-if(!ok){fresh();S.mode='free';save()}
+if(!ok){
+  // Gibt es für diesen Platz gespeicherte Daten, die sich nur gerade nicht lesen lassen? Dann NICHT überschreiben.
+  let had=false;try{had=!!(await DB.get(skey('meta'))||await DB.get(skey('stateZ'))||await DB.get(skey('bakZ')))}catch(e){}
+  if(had){loadFail(new Error('Der Spielstand ist vorhanden, konnte aber gerade nicht gelesen werden. Er wurde nicht überschrieben.'),'Laden');return}
+  fresh();S.mode='free';save()}
 else{try{migrateLoaded()}catch(e){loadFail(e,'Aktualisieren');return}}
 try{render()}catch(e){loadFail(e,'Anzeigen');return}
 if(!navigator.webdriver)openMenu();
